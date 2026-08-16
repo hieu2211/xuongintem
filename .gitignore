@@ -1,0 +1,9 @@
+public/out/
+*.log
+.DS_Store
+.env
+sakuko-xuong-tem
+
+# cau hinh nguon Lark cua tung may — khong commit
+bot/data/lark-nguon.json
+bot/data/be-tem-nho.json

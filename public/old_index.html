@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xưởng tem nhãn Sakuko</title>
+<style>
+  :root{--navy:#10285B;--magenta:#E0376F;--line:#e2e7f0;--bg:#f5f7fb}
+  *{box-sizing:border-box} body{margin:0;font-family:-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--navy)}
+  .wrap{max-width:820px;margin:0 auto;padding:20px 14px 60px}
+  h1{font-size:22px;margin:4px 0 2px} .sub{color:#5b6b8c;font-size:13.5px;margin:0 0 14px}
+  .badge{display:inline-block;background:#e8f5ee;color:#1a7f4b;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .tabs button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:9px 13px;font-size:13.5px;cursor:pointer;font-weight:600}
+  .tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px 18px;margin-bottom:14px}
+  label{font-weight:600;font-size:13.5px;display:block;margin:10px 0 4px}
+  textarea{width:100%;min-height:100px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13.5px;font-family:ui-monospace,monospace}
+  select,input[type=number],input[type=text]{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .row label{margin:0}
+  .btn{border:0;background:var(--magenta);color:#fff;font-weight:700;font-size:15px;padding:11px 18px;border-radius:10px;cursor:pointer}
+  .btn.n{background:var(--navy)} .btn:disabled{opacity:.5}
+  .err{background:#fdecef;border:1px solid #f4c2ce;color:#b3244a;padding:10px 13px;border-radius:9px;font-size:14px;margin-top:10px}
+  .out img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin-top:10px;display:block}
+  a.dl{display:inline-block;margin-top:10px;background:var(--navy);color:#fff;text-decoration:none;padding:9px 15px;border-radius:9px;font-weight:600;font-size:14px}
+  .muted{color:#8a97b3;font-size:12.5px}
+  .pane{display:none}.pane.on{display:block}
+  .filebtn{display:inline-block;border:1px dashed var(--line);border-radius:8px;padding:7px 11px;font-size:13px;cursor:pointer;background:#fafbfe}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">● Bản chạy thử — góp ý gửi vào nhóm Lark nhé</span>
+  <h1>🏷️ Xưởng tem nhãn Sakuko</h1>
+  <p class="sub">Dán danh sách (hoặc đính Excel theo mẫu) → Xem thử → Tạo PDF cả loạt để in. Không cần tài khoản.</p>
+
+  <div class="tabs" id="tabs">
+    <button class="on" data-t="gia">💰 Tem giá kệ</button>
+    <button data-t="doan">🍙 Tem đồ ăn</button>
+    <button data-t="nhan">📋 Tem nhãn phụ</button>
+    <button data-t="mavach">▮▮ Mã vạch loạt</button>
+    <button data-t="tang">🎁 Tem khuyến mại</button>
+  </div>
+
+  <!-- 1. TEM GIÁ -->
+  <div class="pane card on" id="p-gia">
+    <label>Danh sách hàng — mỗi dòng: <code>Tên | Giá | Số lượng | Mã vạch</code></label>
+    <textarea id="gia-text">Bánh gạo Nhật Ichi | 45000 | 2 | 4901234567894
+Sữa Hokkaido | 38000 | 1 | 4902345678901</textarea>
+    <div class="row">
+      <a class="filebtn" href="mau-tem-nhan.xlsx" download style="text-decoration:none">⬇ Tải Excel mẫu (1 file dùng cả 5 công cụ)</a>
+      <label class="filebtn">📎 Hoặc đính Excel theo mẫu<input type="file" id="gia-file" accept=".xlsx" style="display:none"></label><span class="muted" id="gia-fileinfo"></span>
+    </div>
+    <div class="row">
+      <label>Khổ</label>
+      <select id="gia-kho">
+        <option value="58x30">58×30 — nẹp kệ CVS (cao 3cm)</option>
+        <option value="a4">A4 (24 tem/trang)</option>
+        <option>40x30</option><option>50x30</option><option>58x40</option>
+        <option value="60x45">60×45 (tem to)</option><option value="90x60">90×60 (tem to)</option><option value="60x90">60×90 (dọc)</option>
+        <option value="140x100">140×100 (đầu kệ)</option><option value="210x100">210×100 (băng giá)</option>
+        <option value="a4-2">A4 chia 2 tem lớn</option><option value="a4-4">A4 chia 4</option><option value="a4-6">A4 chia 6</option><option value="a4-9">A4 chia 9</option>
+      </select>
+      <label>Kiểu</label>
+      <select id="gia-theme">
+        <option value="standard">Thường</option><option value="promotion">Khuyến mại</option>
+        <option value="dovang">SALE đỏ-vàng</option><option value="vangdo">SALE vàng-đỏ</option><option value="dotrang">SALE đỏ-trắng</option>
+        <option value="new">Mới về</option><option value="bestseller">Bán chạy</option><option value="khaitruong">Khai trương</option>
+        <option value="tet">Tết</option><option value="83">8/3</option><option value="2010">20/10</option><option value="trungthu">Trung thu</option>
+        <option value="tuutruong">Tựu trường</option><option value="nhagiao">Nhà giáo 20/11</option><option value="noel">Noel</option>
+        <option value="xuan">Xuân</option><option value="ha">Hạ</option><option value="thu">Thu</option><option value="dong">Đông</option>
+      </select>
+      <label>In từ ô</label><input type="number" id="gia-batdau" value="1" min="1" max="24" style="width:64px">
+      <label><input type="checkbox" id="gia-hsd"> In NSX/HSD</label>
+    </div>
+    <div class="row">
+      <label>KM từ ngày</label><input type="text" id="gia-tu" placeholder="15/07" style="width:86px">
+      <label>đến ngày</label><input type="text" id="gia-den" placeholder="31/07" style="width:86px">
+      <label>Chữ thêm lên tem</label><input type="text" id="gia-badge" placeholder="HOT / NEW / TOP GIÁ SỐC..." maxlength="30" style="width:200px">
+      <span class="muted">(áp cho CẢ loạt — bỏ trống nếu không cần)</span>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn n" onclick="goTem('gia',true)">👁 Xem thử 1 tem</button>
+      <button class="btn" onclick="goTem('gia',false)">🖨 Tạo PDF cả loạt</button>
+    </div>
+    <div id="gia-out" class="out"></div>
+  </div>
+
+  <!-- 2. TEM ĐỒ ĂN -->
+  <div class="pane card" id="p-doan">
+    <label>Danh sách món — mỗi dòng: <code>Tên | Giá | Mã món | Cân kg | Hạn dùng (ngày) | Số lượng</code> (từ cột 3 bỏ trống được)</label>
+    <textarea id="doan-text">Cơm nắm cá hồi | 25000 | 12345 | | 2 | 1</textarea>
+    <div class="row">
+      <label class="filebtn">📎 Hoặc đính Excel<input type="file" id="doan-file" accept=".xlsx" style="display:none"></label><span class="muted" id="doan-fileinfo"></span>
+    </div>
+    <div class="row">
+      <label>Khổ</label>
+      <select id="doan-kho"><option>50x30</option><option>40x30</option><option>58x40</option><option value="a4">A4</option></select>
+      <label>Prefix mã POS</label><input type="text" id="doan-prefix" value="20" style="width:52px">
+      <label>In từ ô</label><input type="number" id="doan-batdau" value="1" min="1" max="24" style="width:64px">
+    </div>
+    <p class="muted">Mã vạch EAN-13 tự nhúng GIÁ (quét ở POS ra đúng tiền) + NSX/HSD tự tính từ lúc in.</p>
+    <div class="row"><button class="btn n" onclick="goTem('doan',true)">👁 Xem thử 1 tem</button>
+      <button class="btn" onclick="goTem('doan',false)">🖨 Tạo PDF cả loạt</button></div>
+    <div id="doan-out" class="out"></div>
+  </div>
+
+  <!-- 3. TEM NHÃN PHỤ -->
+  <div class="pane card" id="p-nhan">
+    <label>Đính file Excel theo mẫu nhãn phụ (Tên đậm; Thành phần/Công dụng/HDSD…; trường trống tự ẩn)</label>
+    <div class="row">
+      <label class="filebtn">📎 Đính Excel<input type="file" id="nhan-file" accept=".xlsx" style="display:none"></label><span class="muted" id="nhan-fileinfo"></span>
+    </div>
+    <label>Hoặc dán nhanh — mỗi dòng: <code>Tên | Thành phần | Công dụng | HDSD | ...</code></label>
+    <textarea id="nhan-text"></textarea>
+    <div class="row">
+      <label>Khổ</label>
+      <select id="nhan-kho"><option value="70x40">70×40 — tem phụ CVS</option><option>100x70</option><option>70x50</option><option>58x40</option><option>50x30</option><option value="a4">A4 (lưới 2×4)</option></select>
+      <label>In từ ô</label><input type="number" id="nhan-batdau" value="1" min="1" max="8" style="width:64px">
+    </div>
+    <div class="row"><button class="btn n" onclick="goTem('nhan',true)">👁 Xem thử 1 tem</button>
+      <button class="btn" onclick="goTem('nhan',false)">🖨 Tạo PDF cả loạt</button></div>
+    <div id="nhan-out" class="out"></div>
+  </div>
+
+  <!-- 4. MÃ VẠCH LOẠT -->
+  <div class="pane card" id="p-mavach">
+    <label>Danh sách — mỗi dòng: <code>Tên sản phẩm | Giá | Mã vạch</code>. Muốn chọn Loại mã (EAN-13 · Code128 · ITF-14 · GS1-128 · QR) thì dùng Excel theo mẫu, cột "Loại mã".</label>
+    <textarea id="mavach-text">Bánh gạo Nhật Ichi | 45000 | 4901234567894
+Nước tương Kikkoman | 62000 | 8936012345678</textarea>
+    <div class="row">
+      <label class="filebtn">📎 Hoặc đính Excel<input type="file" id="mavach-file" accept=".xlsx" style="display:none"></label><span class="muted" id="mavach-fileinfo"></span>
+    </div>
+    <div class="row"><button class="btn" onclick="goTem('mavach',false)">🖨 Tạo PDF danh mục mã vạch</button></div>
+    <div id="mavach-out" class="out"></div>
+  </div>
+
+  <!-- 5. TEM KHUYẾN MẠI (hàng tặng hàng) -->
+  <div class="pane card" id="p-tang">
+    <label>Nội dung tem — 2 dòng cách nhau dấu <code>|</code></label>
+    <input type="text" id="tang-text" value="MUA 1|TẶNG 1" style="width:100%">
+    <div class="row">
+      <span class="muted">Nhanh:</span>
+      <button class="filebtn" onclick="tangSet('MUA 1|TẶNG 1')">Mua 1 tặng 1</button>
+      <button class="filebtn" onclick="tangSet('MUA 2|TẶNG 1')">Mua 2 tặng 1</button>
+      <button class="filebtn" onclick="tangSet('KHUYẾN MẠI|ĐẶC BIỆT')">KM đặc biệt</button>
+      <button class="filebtn" onclick="tangSet('QUÀ TẶNG')">Quà tặng</button>
+    </div>
+    <div class="row">
+      <label>Hình</label><select id="tang-hinh"><option value="nhat">▭ Chữ nhật (cài nẹp kệ)</option><option value="sao">⭐ Sao gai (dán sản phẩm)</option><option value="tron">⚪ Tròn</option><option value="bong">💬 Bóng thoại</option></select>
+      <label>Màu</label><select id="tang-mau"><option value="vang">Vàng chữ đỏ</option><option value="do">Đỏ chữ trắng</option><option value="trang">Trắng viền đỏ</option></select>
+      <label>Cỡ</label><select id="tang-kich"><option value="58x37">58×37 (nẹp kệ CVS)</option><option>50x50</option><option>40x40</option><option>60x60</option></select>
+      <label>Số tem</label><input type="number" id="tang-sl" value="24" min="1" max="240" style="width:70px">
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn n" onclick="goTang(true)">👁 Xem 1 tem (PNG)</button>
+      <button class="btn" onclick="goTang(false)">🖨 Tạo PDF A4 cắt dán</button>
+    </div>
+    <div id="tang-out" class="out"></div>
+  </div>
+
+  <p class="muted">Xưởng tem nhãn Sakuko · bản chạy thử · máy chủ đặt tại văn phòng — có trục trặc nhắn nhóm Lark.</p>
+</div>
+
+<script>
+// tab
+document.getElementById('tabs').addEventListener('click', e => {
+  const b = e.target.closest('button[data-t]'); if (!b) return;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'p-' + b.dataset.t));
+});
+// hiện tên file đính
+['gia','doan','nhan','mavach'].forEach(k => {
+  const f = document.getElementById(k + '-file');
+  if (f) f.addEventListener('change', () => {
+    document.getElementById(k + '-fileinfo').textContent = f.files[0] ? '✓ ' + f.files[0].name : '';
+  });
+});
+function tangSet(v){ document.getElementById('tang-text').value = v; }
+function ra(out, d){
+  if (d.ok && d.items) out.innerHTML = d.items.map(i => `<img src="${i.url}">`).join('');
+  else if (d.ok) out.innerHTML = `<a class="dl" href="${d.url}" target="_blank">⬇ Mở PDF (${d.info || ''})</a>`;
+  else out.innerHTML = `<div class="err">${d.error || 'Lỗi'}</div>`;
+}
+async function post(url, fd, out){
+  out.innerHTML = '<p class="muted">Đang tạo...</p>';
+  try { const r = await fetch(url, { method: 'POST', body: fd }); ra(out, await r.json()); }
+  catch { out.innerHTML = '<div class="err">Không gọi được máy chủ.</div>'; }
+}
+function goTem(k, xemthu){
+  const out = document.getElementById(k + '-out');
+  const fd = new FormData();
+  const f = document.getElementById(k + '-file');
+  const t = document.getElementById(k + '-text');
+  if (f && f.files[0]) fd.append('file', f.files[0]);
+  else if (t && t.value.trim()) fd.append('text', t.value);
+  else { out.innerHTML = '<div class="err">Dán danh sách hoặc đính Excel trước đã nhé.</div>'; return; }
+  if (xemthu) fd.append('xemthu', '1');
+  const kho = document.getElementById(k + '-kho'); if (kho) fd.append('kho', kho.value);
+  const bd = document.getElementById(k + '-batdau'); if (bd) fd.append('batdau', bd.value);
+  if (k === 'gia') {
+    fd.append('theme', document.getElementById('gia-theme').value);
+    if (document.getElementById('gia-hsd').checked) fd.append('hsd', '1');
+    const tu = document.getElementById('gia-tu').value.trim(); if (tu) fd.append('tu', tu);
+    const den = document.getElementById('gia-den').value.trim(); if (den) fd.append('den', den);
+    const bg = document.getElementById('gia-badge').value.trim(); if (bg) fd.append('badge', bg);
+  }
+  if (k === 'doan') fd.append('prefix', document.getElementById('doan-prefix').value);
+  const api = { gia: '/api/tem-gia', doan: '/api/tem-doan', nhan: '/api/tem-nhan', mavach: '/api/ma-vach' }[k];
+  post(api, fd, out);
+}
+function goTang(png){
+  const out = document.getElementById('tang-out');
+  const fd = new FormData();
+  fd.append('text', document.getElementById('tang-text').value);
+  fd.append('hinh', document.getElementById('tang-hinh').value);
+  fd.append('mau', document.getElementById('tang-mau').value);
+  fd.append('kich', document.getElementById('tang-kich').value);
+  fd.append('sl', document.getElementById('tang-sl').value);
+  if (png) fd.append('xuat', 'png');
+  post('/api/tem-tang', fd, out);
+}
+</script>
+</body>
+</html>
