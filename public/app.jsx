@@ -18,7 +18,7 @@ function App() {
 
   // Print Configuration
   const [paperSize, setPaperSize] = useState('A4_portrait');
-  const [tagsPerRow, setTagsPerRow] = useState(2); // Vẫn giữ state để chia 2 cột, nhưng ẩn UI nhập liệu
+
 
   // Fetch data from API based on search query
   useEffect(() => {
@@ -210,15 +210,24 @@ function App() {
   const tagGap = 14; 
   
   // Base tag sizes based on user requested mm dimensions scaled up for clarity
-  let baseTag = { w: 600, h: 350 }; // Normal / Sale (350x600)
+  let baseTag = { w: 600, h: 350 }; // Normal / Sale (60x35mm)
+  let targetWidthMm = 60; // 60mm width
+
   if (selectedTemplate === 'normal_usp' || selectedTemplate === 'sale_usp') {
-      baseTag = { w: 800, h: 700 }; // Normal USP / Sale USP (700x800)
+      baseTag = { w: 800, h: 700 }; // Normal USP / Sale USP (80x70mm)
+      targetWidthMm = 80; // 80mm width
   }
 
-  const availableWidth = currentPaper.w - (pagePadding.x * 2) - (tagGap * (tagsPerRow - 1));
-  const scaledTagWidth = availableWidth / tagsPerRow;
+  // Calculate physical pixels required for exact printing (96 DPI)
+  const pxPerMm = 96 / 25.4;
+  const scaledTagWidth = targetWidthMm * pxPerMm;
   const scaleFactor = scaledTagWidth / baseTag.w;
   const scaledTagHeight = baseTag.h * scaleFactor;
+
+  // Compute how many tags can fit per row
+  const availableWidth = currentPaper.w - (pagePadding.x * 2);
+  let tagsPerRow = Math.floor((availableWidth + tagGap) / (scaledTagWidth + tagGap));
+  if (tagsPerRow < 1) tagsPerRow = 1;
 
   const availableHeight = currentPaper.h - (pagePadding.y * 2);
   let rowsPerPage = Math.floor((availableHeight + tagGap) / (scaledTagHeight + tagGap));
@@ -700,7 +709,7 @@ function App() {
                                 {page.map(tag => (
                                     <div 
                                         key={tag.renderId} 
-                                        className="tag-wrapper relative break-inside-avoid origin-top-left" 
+                                        className="tag-wrapper relative break-inside-avoid origin-top-left overflow-hidden" 
                                         style={{ 
                                             width: `${scaledTagWidth}px`, 
                                             height: `${scaledTagHeight}px`,
@@ -746,7 +755,7 @@ function App() {
                 box-shadow: none !important; 
                 border: none !important; 
                 width: 100% !important;
-                height: 100% !important;
+                height: auto !important;
             }
             .page-container:last-child { page-break-after: auto; }
             .tag-wrapper { page-break-inside: avoid; break-inside: avoid; display: inline-block; }

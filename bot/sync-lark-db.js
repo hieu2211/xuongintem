@@ -1,12 +1,5 @@
-const { spawn } = require('child_process');
 const { Client } = require('pg');
-const fs = require('fs');
-const path = require('path');
-
-const homeDir = process.env.USERPROFILE || process.env.HOME || '';
-const LARK_CLI = fs.existsSync(path.join(homeDir, 'bin', 'lark-cli.exe'))
-  ? path.join(homeDir, 'bin', 'lark-cli.exe') 
-  : (fs.existsSync(path.join(homeDir, 'bin', 'lark-cli')) ? path.join(homeDir, 'bin', 'lark-cli') : 'lark-cli');
+require('dotenv').config({ path: __dirname + '/../.env' });
 
 // Database config
 const dbConfig = {
@@ -18,51 +11,40 @@ const dbConfig = {
 };
 
 // Lark Info
-const WIKI_TOKEN = 'L9pmwxRLOidouSkV0PrlyS9NgPd';
-const TABLE_ID = 'tblYYTZwWwrVpHEM';
+const APP_ID = process.env.LARK_APP_ID || '';
+// bot/sync-lark-db.js
+const APP_SECRET = process.env.LARK_APP_SECRET;
+const WIKI_TOKEN = process.env.LARK_WIKI_TOKEN || 'L9pmwxRLOidouSkV0PrlyS9NgPd';
+const TABLE_ID = process.env.LARK_TABLE_ID || 'tblYYTZwWwrVpHEM';
 
-function goiLark(apiPath, params, cb) {
-  const args = ['api', 'GET', apiPath, '--as', 'user'];
-  if (params) args.push('--params', JSON.stringify(params));
-  const child = spawn(LARK_CLI, args, { env: process.env });
-  let out = '', err = '';
-  child.stdout.on('data', d => out += d.toString());
-  child.stderr.on('data', d => err += d.toString());
-  child.on('error', () => cb(new Error('lark-cli error')));
-  child.on('close', () => {
-    let j = null;
-    try { j = JSON.parse(out); }
-    catch { try { j = JSON.parse(err); } catch {} }
-    if (!j) return cb(new Error('Invalid response from lark-cli: ' + out));
-    
-    // lark-cli returns the raw data payload directly on success, or an "error" object on failure
-    if (j.error) return cb(new Error(j.error.message || JSON.stringify(j.error)));
-    if (j.ok === false) return cb(new Error(JSON.stringify(j)));
-    
-    // If it's a success, j is the data itself
-    cb(null, j);
+let tenantAccessToken = '';
+
+async function getTenantAccessToken() {
+  const res = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET })
   });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error('Lỗi lấy Token: ' + data.msg);
+  tenantAccessToken = data.tenant_access_token;
 }
 
-function layObjToken(wikiToken) {
-  return new Promise((resolve, reject) => {
-    goiLark(`/open-apis/wiki/v2/space/get_node?token=${wikiToken}`, null, (err, data) => {
-      if (err) return reject(err);
-      if (data && data.node && data.node.obj_token) resolve(data.node.obj_token);
-      else reject(new Error('Cannot find obj_token from wiki token'));
-    });
-  });
-}
+async function layRecords(appToken, tableId, pageToken = '') {
+  const url = new URL(`https://open.larksuite.com/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records`);
+  url.searchParams.append('page_size', '500');
+  if (pageToken) url.searchParams.append('page_token', pageToken);
 
-function layRecords(appToken, tableId, pageToken = '') {
-  return new Promise((resolve, reject) => {
-    const params = { page_size: 500 };
-    if (pageToken) params.page_token = pageToken;
-    goiLark(`/open-apis/bitable/v1/apps/${appToken}/tables/${tableId}/records`, params, (err, data) => {
-      if (err) return reject(err);
-      resolve(data);
-    });
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${tenantAccessToken}`,
+      'Content-Type': 'application/json'
+    }
   });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error('Lỗi lấy Records: ' + data.msg);
+  return data;
 }
 
 const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -155,6 +137,10 @@ async function sync() {
     await client.connect();
     console.log('Connected to PostgreSQL');
     
+    console.log('Authenticating with Lark API...');
+    await getTenantAccessToken();
+    console.log('Got Tenant Access Token!');
+
     console.log('Using Wiki token as App Token directly...');
     const appToken = WIKI_TOKEN;
     console.log('App Token:', appToken);
@@ -165,8 +151,10 @@ async function sync() {
 
     console.log('Syncing records...');
     
-    // Build insert query dynamically based on all possible keys in FIELD_MAP
-    const allDbKeys = Array.from(new Set(Object.values(FIELD_MAP)));
+    // Fetch valid columns from DB
+    const colResult = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'items'");
+    const validColumns = colResult.rows.map(r => r.column_name);
+    console.log('Valid DB columns:', validColumns);
     
     while (hasMore) {
       const data = await layRecords(appToken, TABLE_ID, pageToken);
@@ -181,8 +169,9 @@ async function sync() {
         // Skip if no primary key (item_no)
         if (!mapped.item_no) continue;
 
-        const keysToInsert = Object.keys(mapped);
-        const valuesToInsert = Object.values(mapped);
+        // Only insert columns that actually exist in the database
+        const keysToInsert = Object.keys(mapped).filter(k => validColumns.includes(k));
+        const valuesToInsert = keysToInsert.map(k => mapped[k]);
         
         if (keysToInsert.length === 0) continue;
 
