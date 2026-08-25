@@ -5,7 +5,19 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState('normal');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // Search state
+  // Tabs
+  const [tabMode, setTabMode] = useState('system'); // 'system' or 'excel'
+
+  // System Tab State
+  const [promoType, setPromoType] = useState('Niêm yết');
+  const [promoMonth, setPromoMonth] = useState('');
+  const [months, setMonths] = useState([]);
+  const [systemData, setSystemData] = useState([]);
+  
+  // Special Size Selector
+  const [promoSize, setPromoSize] = useState('A6');
+
+  // Search state (for specific product search, optional now but keep for manual adding if needed)
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -13,14 +25,35 @@ function App() {
 
   // Manual Input state
   const [inputMode, setInputMode] = useState('search');
-  const [manualForm, setManualForm] = useState({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '' });
+  const [manualForm, setManualForm] = useState({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
   const [editingId, setEditingId] = useState(null);
 
   // Print Configuration
   const [paperSize, setPaperSize] = useState('A4_portrait');
 
+  // Fetch months
+  useEffect(() => {
+    const fetchMonths = async () => {
+      try {
+        const response = await fetch('/api/months');
+        if (response.ok) {
+          const data = await response.json();
+          setMonths(data);
+          if (data.length > 0) setPromoMonth(data[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching months:', err);
+      }
+    };
+    fetchMonths();
+  }, []);
 
-  // Fetch data from API based on search query
+  useEffect(() => {
+    if (promoType === 'Niêm yết') setSelectedTemplate('normal');
+    else if (promoType === 'Discount') setSelectedTemplate('sale');
+  }, [promoType]);
+
+  // Fetch data from API based on search query (for autocomplete)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -34,7 +67,6 @@ function App() {
       }
     };
     
-    // Debounce to avoid spamming the API
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery.trim() !== '') {
         fetchProducts();
@@ -58,14 +90,16 @@ function App() {
 
   const formatCurrency = (amount) => {
     if (!amount) return '0';
-    // Remove trailing .00 or convert to number first
-    const num = Number(amount);
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const cleanAmount = String(amount).replace(/,/g, '');
+    const num = Number(cleanAmount);
+    return isNaN(num) ? 'NaN' : num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const getDiscountPercent = (price, original) => {
-    if (!original || price >= original) return 0;
-    return Math.round(((original - price) / original) * 100);
+    const p = Number(String(price).replace(/,/g, ''));
+    const o = Number(String(original).replace(/,/g, ''));
+    if (!o || p >= o) return 0;
+    return Math.round(((o - p) / o) * 100);
   };
 
   const addToQueue = (product) => {
@@ -78,6 +112,111 @@ function App() {
     });
     setSearchQuery('');
     setShowSuggestions(false);
+  };
+
+  const addMultipleToQueue = (items) => {
+    setProducts(prev => {
+      const merged = [...prev];
+      items.forEach(ip => {
+          const existing = merged.find(m => m.barcode === ip.barcode);
+          if (existing) { existing.quantity += 1; } 
+          else { merged.push({...ip, quantity: 1, id: `imported-${Date.now()}-${Math.random()}`}); }
+      });
+      return merged;
+    });
+  };
+
+  const handleSystemSearch = async () => {
+    try {
+      let url = '/api/products';
+      if (promoType !== 'Niêm yết') {
+        url = `/api/promotions?month=${encodeURIComponent(promoMonth)}&type=${encodeURIComponent(promoType)}`;
+      }
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Map database fields to app state fields
+        const mappedData = data.map(p => ({
+          barcode: p.barcode || '',
+          name: p.item_name || p.name || '',
+          originalPrice: p.retail_price || p.originalPrice || '',
+          price: p.promo_price || p.price || '',
+          dateRange: p.dateRange || (parseDateValue(p.start_date) ? `${parseDateValue(p.start_date)} - ${parseDateValue(p.end_date)}` : ''),
+          promoContent: p.promo_content || p.type || '',
+          discountPercent: p.discount_percent || p.discountPercent || '',
+          unit: p.unit || p.uom || ''
+        }));
+
+        setSystemData(mappedData);
+        addMultipleToQueue(mappedData);
+        alert(`Đã lấy ${mappedData.length} sản phẩm.`);
+      }
+    } catch (err) {
+      console.error('Error fetching system data:', err);
+    }
+  };
+
+  const parseDateValue = (val) => {
+    if (!val) return '';
+    // Handle Lark timestamp (13 digits)
+    if (typeof val === 'string' && /^\d{13}$/.test(val)) {
+      const d = new Date(parseInt(val, 10));
+      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    }
+    // Handle Excel serial date (e.g., 45139)
+    if (typeof val === 'number' && val > 10000 && val < 99999) {
+      const d = new Date((val - 25569) * 86400 * 1000);
+      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    }
+    return val;
+  };
+
+  const handleExportExcel = async () => {
+    if (!window.XLSX) return alert("Thư viện Excel chưa được tải.");
+    
+    let itemsToExport = [];
+    try {
+      let url = '/api/products';
+      if (promoType !== 'Niêm yết') {
+        url = `/api/promotions?month=${encodeURIComponent(promoMonth)}&type=${encodeURIComponent(promoType)}`;
+      }
+      const response = await fetch(url);
+      if (response.ok) {
+        itemsToExport = await response.json();
+      } else {
+        return alert("Lỗi khi tải dữ liệu từ máy chủ!");
+      }
+    } catch (err) {
+      console.error(err);
+      return alert("Không thể kết nối tới máy chủ.");
+    }
+
+    if (itemsToExport.length === 0) {
+      return alert("Không có dữ liệu cho điều kiện này.");
+    }
+
+    const wsData = [
+      ["Barcode", "Tên SP", "Giá cũ", "Giá mới", "Ngày bắt đầu", "Ngày kết thúc", "Nội dung CTKM"]
+    ];
+
+    itemsToExport.forEach(p => {
+      // API returns snake_case from DB for promotions, or camelCase for items
+      const barcode = p.barcode || '';
+      const name = p.item_name || p.name || '';
+      const originalPrice = p.retail_price || p.originalPrice || '';
+      const newPrice = p.promo_price || p.price || '';
+      const startDate = parseDateValue(p.start_date || p.dateRange?.split(' - ')[0]);
+      const endDate = parseDateValue(p.end_date || p.dateRange?.split(' - ')[1]);
+      const content = p.promo_content || p.type || '';
+
+      wsData.push([barcode, name, originalPrice, newPrice, startDate, endDate, content]);
+    });
+
+    const ws = window.XLSX.utils.aoa_to_sheet(wsData);
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, ws, "DanhSachTem");
+    window.XLSX.writeFile(wb, `DS_${promoType}_${promoMonth || ''}.xlsx`);
   };
 
   const handleFieldChange = (field, value) => {
@@ -97,14 +236,14 @@ function App() {
       } else {
           addToQueue(manualForm);
       }
-      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '' });
+      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
   };
 
   const handleDownloadTemplate = () => {
-    if (!window.XLSX) return alert("Thư viện Excel đang được tải, vui lòng thử lại sau 1 giây.");
+    if (!window.XLSX) return alert("Thư viện Excel đang được tải...");
     const ws = window.XLSX.utils.aoa_to_sheet([
-      ["Tên sản phẩm", "Giá bán", "Mã vạch", "Giá gốc", "% Giảm", "Đơn vị", "Đặc điểm (USP)", "Hạn áp dụng"],
-      ["Sữa tắm Kose", 259000, "4971710311556", 300000, 10, "/Chai", "Dưỡng ẩm da", "01/07 - 31/07"]
+      ["Tên sản phẩm", "Giá bán", "Mã vạch", "Giá gốc", "% Giảm", "Đơn vị", "Đặc điểm (USP)", "Hạn áp dụng", "Nội dung CTKM"],
+      ["Sữa tắm Kose", 259000, "4971710311556", 300000, 10, "/Chai", "Dưỡng ẩm da", "01/07 - 31/07", "Mua 1 tặng 1"]
     ]);
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -114,7 +253,7 @@ function App() {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!window.XLSX) return alert("Thư viện Excel đang được tải, vui lòng thử lại sau 1 giây.");
+    if (!window.XLSX) return alert("Thư viện Excel đang được tải...");
     
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -124,32 +263,31 @@ function App() {
       const ws = wb.Sheets[wsname];
       const data = window.XLSX.utils.sheet_to_json(ws);
       
-      const importedProducts = data.map((row, idx) => ({
-        id: `imported-${Date.now()}-${idx}`,
-        name: row["Tên sản phẩm"] || '',
-        price: row["Giá bán"] || '',
-        barcode: row["Mã vạch"] || '',
-        originalPrice: row["Giá gốc"] || '',
-        discountPercent: row["% Giảm"] || '',
-        unit: row["Đơn vị"] || '',
-        type: row["Đặc điểm (USP)"] || '',
-        dateRange: row["Hạn áp dụng"] || '',
-        quantity: 1
-      })).filter(p => p.name && p.price && p.barcode);
+      const importedProducts = data.map((row, idx) => {
+        const start = parseDateValue(row["Ngày bắt đầu"]);
+        const end = parseDateValue(row["Ngày kết thúc"]);
+        const han = parseDateValue(row["Hạn áp dụng"]);
+        
+        return {
+          id: `imported-${Date.now()}-${idx}`,
+          name: row["Tên SP"] || row["Tên sản phẩm"] || '',
+          price: row["Giá mới"] || row["Giá bán"] || '',
+          barcode: row["Barcode"] || row["Mã vạch"] || '',
+          originalPrice: row["Giá cũ"] || row["Giá gốc"] || '',
+          discountPercent: row["% Giảm"] || '',
+          unit: row["Đơn vị"] || '',
+          type: row["Đặc điểm (USP)"] || '',
+          dateRange: han || (start ? `${start} - ${end}` : ''),
+          promoContent: row["Nội dung CTKM"] || '',
+          quantity: 1
+        };
+      }).filter(p => p.name && p.barcode);
 
       if (importedProducts.length > 0) {
-        setProducts(prev => {
-            const merged = [...prev];
-            importedProducts.forEach(ip => {
-                const existing = merged.find(m => m.barcode === ip.barcode);
-                if (existing) { existing.quantity += 1; } 
-                else { merged.push(ip); }
-            });
-            return merged;
-        });
+        addMultipleToQueue(importedProducts);
         alert(`Đã import thành công ${importedProducts.length} sản phẩm!`);
       } else {
-        alert("Không tìm thấy dữ liệu hợp lệ trong file Excel. Vui lòng sử dụng đúng file mẫu tải về.");
+        alert("Không tìm thấy dữ liệu hợp lệ trong file Excel.");
       }
       e.target.value = null; // Reset input
     };
@@ -162,14 +300,14 @@ function App() {
           name: product.name || '', price: product.price || '', barcode: product.barcode || '', 
           originalPrice: product.originalPrice || '', discountPercent: product.discountPercent !== undefined ? product.discountPercent : '',
           location: product.location || '', supplier: product.supplier || '', type: product.type || '', 
-          unit: product.unit || '', dateRange: product.dateRange || '' 
+          unit: product.unit || '', dateRange: product.dateRange || '', promoContent: product.promoContent || ''
       });
       setEditingId(product.id);
   };
 
   const cancelEdit = () => {
       setEditingId(null);
-      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '' });
+      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
       setInputMode('search');
   };
 
@@ -206,25 +344,48 @@ function App() {
   };
   
   const currentPaper = paperDimensions[paperSize];
-  const pagePadding = { x: 20, y: 30 }; 
-  const tagGap = 14; 
+  let pagePadding = { x: 20, y: 30 }; 
+  let tagGap = 14; 
+  let baseTag = { w: 600, h: 350 };
   
-  // Base tag sizes based on user requested mm dimensions scaled up for clarity
-  let baseTag = { w: 600, h: 350 }; // Normal / Sale (60x35mm)
-  let targetWidthMm = 60; // 60mm width
+  let scaledTagWidth = 0;
+  let scaledTagHeight = 0;
+  let scaleFactor = 1;
 
-  if (selectedTemplate === 'normal_usp' || selectedTemplate === 'sale_usp') {
-      baseTag = { w: 800, h: 700 }; // Normal USP / Sale USP (80x70mm)
-      targetWidthMm = 80; // 80mm width
+  const isSpecialPromo = !['Niêm yết', 'Discount'].includes(promoType);
+
+  if (!isSpecialPromo) {
+    let targetWidthMm = 60;
+    let targetHeightMm = 35;
+    if (selectedTemplate === 'normal_usp' || selectedTemplate === 'sale_usp') {
+        baseTag = { w: 800, h: 700 };
+        targetWidthMm = 80;
+        targetHeightMm = 70;
+    }
+    const pxPerMm = 96 / 25.4;
+    scaledTagWidth = targetWidthMm * pxPerMm;
+    scaleFactor = scaledTagWidth / baseTag.w;
+    scaledTagHeight = baseTag.h * scaleFactor;
+  } else {
+    pagePadding = { x: 0, y: 0 };
+    tagGap = 0;
+    const logicalW = 1000;
+    if (promoSize === 'A5') { 
+       scaledTagWidth = currentPaper.w;
+       scaledTagHeight = currentPaper.h / 2;
+       baseTag = { w: logicalW, h: logicalW * (148.5 / 210) };
+    } else if (promoSize === 'A6') { 
+       scaledTagWidth = currentPaper.w / 2;
+       scaledTagHeight = currentPaper.h / 2;
+       baseTag = { w: logicalW, h: logicalW * (148.5 / 105) };
+    } else if (promoSize === 'A7') { 
+       scaledTagWidth = currentPaper.w / 2;
+       scaledTagHeight = currentPaper.h / 4;
+       baseTag = { w: logicalW, h: logicalW * (74.25 / 105) };
+    }
+    scaleFactor = scaledTagWidth / baseTag.w;
   }
 
-  // Calculate physical pixels required for exact printing (96 DPI)
-  const pxPerMm = 96 / 25.4;
-  const scaledTagWidth = targetWidthMm * pxPerMm;
-  const scaleFactor = scaledTagWidth / baseTag.w;
-  const scaledTagHeight = baseTag.h * scaleFactor;
-
-  // Compute how many tags can fit per row
   const availableWidth = currentPaper.w - (pagePadding.x * 2);
   let tagsPerRow = Math.floor((availableWidth + tagGap) / (scaledTagWidth + tagGap));
   if (tagsPerRow < 1) tagsPerRow = 1;
@@ -269,7 +430,7 @@ function App() {
 
   // 1. Tem Niêm yết Thường (350x600) - KHÔNG USP
   const TemplateNormal = ({ product }) => (
-    <div className="w-[600px] h-[350px] bg-white rounded-3xl border-2 border-gray-300 px-6 py-5 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+    <div className="w-full h-full bg-white rounded-3xl border-2 border-gray-300 px-6 py-5 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full">
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 38)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
@@ -277,7 +438,6 @@ function App() {
          <span className="text-[#E0376F] font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px] underline">đ</span></span>
       </div>
       <div className="flex justify-end items-end mt-auto w-full">
-          {/* Căn mã vạch sang bên phải do không có USP */}
           <BarcodeImage barcode={product.barcode} className="h-[75px]" scale={3} bcHeight={16} />
       </div>
     </div>
@@ -285,7 +445,7 @@ function App() {
 
   // 2. Tem Niêm yết có USP (700x800)
   const TemplateNormalUSP = ({ product }) => (
-    <div className="w-[800px] h-[700px] bg-white rounded-[40px] border-2 border-gray-300 p-10 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+    <div className="w-full h-full bg-white rounded-[40px] border-2 border-gray-300 p-10 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full pt-4">
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
@@ -311,7 +471,6 @@ function App() {
   const TemplateSale = ({ product }) => {
     let discount = getDiscountPercent(product.price, product.originalPrice);
     if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
-    
     let priceMain = formatCurrency(product.price);
     let priceSub = "đ";
     const priceStr = product.price.toString();
@@ -320,29 +479,45 @@ function App() {
         priceSub = ".000đ";
     }
 
+    let showPromoText = false;
+    let ribbonSub = discount + '%';
+    
+    if (product.promoContent) {
+        const pc = product.promoContent.trim().toLowerCase();
+        if (/^(giảm\s*)?\d+%$/.test(pc)) {
+            ribbonSub = product.promoContent.replace(/[^\d%]/g, '');
+        } else {
+            showPromoText = true;
+        }
+    }
+
     return (
-      <div className="w-[600px] h-[350px] bg-white border-[4px] border-black flex flex-col overflow-hidden box-border relative">
+      <div className="w-full h-full bg-white border-[4px] border-black flex flex-col overflow-hidden box-border relative">
         <div className="bg-black text-white text-center font-black text-[55px] uppercase tracking-widest py-1 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
-        <div className="px-6 pt-1 pb-0 text-center font-bold text-[26px] text-black line-clamp-2 break-words shrink-0 leading-tight" style={{ overflowWrap: 'anywhere' }}>
+        <div className="px-6 pt-1 pb-0 text-center font-bold text-[26px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[66px]" style={{ overflowWrap: 'anywhere' }}>
           {product.name}
         </div>
         
         <div className="flex-1 min-h-0 px-6 flex items-start justify-between relative mt-1">
-           {/* Ribbon giảm giá */}
-           {discount > 0 ? (
+           {showPromoText ? (
+              <div className="relative flex flex-col items-center justify-center w-[140px] shrink-0 border-[3px] border-black bg-white px-2 py-1 min-h-[80px] self-start mt-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                  <span className="text-black font-bold text-[15px] leading-tight text-center break-words w-full uppercase">
+                      {product.promoContent}
+                  </span>
+              </div>
+           ) : discount > 0 || ribbonSub !== '0%' ? (
               <div className="relative flex flex-col items-center justify-center w-[90px] h-[110px] shrink-0 mt-1">
                   <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                       <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                   </svg>
                   <span className="relative z-10 text-white font-bold text-[18px] leading-none uppercase mt-[-10px]">Giảm</span>
-                  <span className="relative z-10 text-white font-black text-[32px] leading-none mt-1">{discount}%</span>
+                  <span className="relative z-10 text-white font-black leading-none mt-1 text-[38px] tracking-tighter">{ribbonSub}</span>
               </div>
            ) : (
               <div className="w-[90px] shrink-0"></div>
            )}
-           
            <div className="flex flex-col items-end justify-start flex-1 ml-4 overflow-hidden relative top-[0px]">
               <div className="flex items-baseline text-black justify-end w-full mt-1">
                   <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[65px]' : priceMain.length > 5 ? 'text-[80px]' : 'text-[95px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
@@ -350,7 +525,7 @@ function App() {
               </div>
               <div className="text-right text-black text-[22px] shrink-0 leading-tight mt-1">
                  {product.originalPrice ? (
-                     <span>Giá gốc: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
+                     <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                  ) : (
                      <span>&nbsp;</span>
                  )}
@@ -379,7 +554,6 @@ function App() {
   const TemplateSaleUSP = ({ product }) => {
     let discount = getDiscountPercent(product.price, product.originalPrice);
     if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
-    
     let priceMain = formatCurrency(product.price);
     let priceSub = "đ";
     const priceStr = product.price.toString();
@@ -388,29 +562,46 @@ function App() {
         priceSub = ".000đ";
     }
 
+    let showPromoText = false;
+    let ribbonSub = discount + '%';
+    
+    if (product.promoContent) {
+        const pc = product.promoContent.trim().toLowerCase();
+        if (/^(giảm\s*)?\d+%$/.test(pc)) {
+            ribbonSub = product.promoContent.replace(/[^\d%]/g, '');
+        } else {
+            showPromoText = true;
+        }
+    }
+
     return (
-      <div className="w-[800px] h-[700px] bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative">
+      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative">
         <div className="bg-black text-white text-center font-black text-[80px] uppercase tracking-widest py-2 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
-        <div className="px-8 pt-3 pb-0 text-center font-bold text-[38px] text-black line-clamp-2 break-words shrink-0 leading-tight" style={{ overflowWrap: 'anywhere' }}>
+        <div className="px-6 pt-2 pb-0 text-center font-bold text-[28px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[72px]" style={{ overflowWrap: 'anywhere' }}>
           {product.name}
         </div>
         
-        <div className="flex-1 min-h-0 px-8 flex flex-col items-center justify-start relative mt-1">
+        <div className="flex-1 min-h-0 px-4 flex flex-col items-center justify-start relative mt-1">
            <div className="flex w-full justify-between items-start">
-               {discount > 0 ? (
+               {showPromoText ? (
+                  <div className="relative flex flex-col items-center justify-center w-[180px] shrink-0 border-[4px] border-black bg-white px-2 py-2 min-h-[120px] self-start mt-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                      <span className="text-black font-bold text-[18px] leading-tight text-center break-words w-full uppercase">
+                          {product.promoContent}
+                      </span>
+                  </div>
+               ) : discount > 0 || ribbonSub !== '0%' ? (
                   <div className="relative flex flex-col items-center justify-center w-[130px] h-[155px] shrink-0 mt-1">
                       <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                           <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                       </svg>
                       <span className="relative z-10 text-white font-bold text-[24px] leading-none uppercase mt-[-15px]">Giảm</span>
-                      <span className="relative z-10 text-white font-black text-[48px] leading-none mt-1">{discount}%</span>
+                      <span className="relative z-10 text-white font-black leading-none mt-1 text-[52px] tracking-tighter">{ribbonSub}</span>
                   </div>
                ) : (
                   <div className="w-[130px] shrink-0"></div>
                )}
-               
                <div className="flex flex-col items-end justify-start flex-1 ml-6 overflow-hidden mt-1">
                   <div className="flex items-baseline text-black justify-end w-full">
                       <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[90px]' : priceMain.length > 5 ? 'text-[110px]' : 'text-[130px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
@@ -418,15 +609,13 @@ function App() {
                   </div>
                   <div className="text-right text-black text-[30px] shrink-0 leading-tight mt-2">
                      {product.originalPrice ? (
-                         <span>Giá gốc: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
+                         <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                      ) : (
                          <span>&nbsp;</span>
                      )}
                   </div>
                </div>
            </div>
-           
-           {/* Khu vực chứa USP */}
            <div className="w-full mt-4 flex justify-start flex-1 min-h-0 overflow-hidden">
                {product.type ? (
                   <div className="font-bold text-[32px] text-black w-full text-left leading-tight break-words line-clamp-2" style={{ overflowWrap: 'anywhere' }}>
@@ -455,14 +644,50 @@ function App() {
     );
   };
 
-  const TemplateComponentMap = {
-    'normal': TemplateNormal,
-    'normal_usp': TemplateNormalUSP,
-    'sale': TemplateSale,
-    'sale_usp': TemplateSaleUSP
+  const TemplateSpecialPromo = ({ product }) => {
+    return (
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative">
+        <div className="w-full h-full border-[8px] border-black rounded-[40px] p-8 flex flex-col relative overflow-hidden">
+            {/* Top Name */}
+            <div className="text-center text-black font-bold text-[55px] leading-tight line-clamp-2 px-8 mb-8 mt-2">
+              {product.name}
+            </div>
+            
+            {/* Divider */}
+            <div className="w-full h-[6px] bg-black mb-8 rounded-full shrink-0"></div>
+            
+            {/* Promo Content */}
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+              <div className={`text-black font-extrabold leading-[1.3] ${promoSize === 'A6' ? 'text-[95px]' : 'text-[60px]'}`}>
+                {product.promoContent}
+              </div>
+            </div>
+            
+            {/* Bottom Section */}
+            <div className="flex justify-between items-end w-full px-2 pb-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden">
+               <div className="font-bold text-[36px] text-black">
+                  {product.barcode}
+               </div>
+               <div className="font-bold text-[36px] text-black mx-2">
+                  |
+               </div>
+               <div className="font-bold text-[36px] text-black">
+                  {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+               </div>
+            </div>
+        </div>
+      </div>
+    );
   };
 
-  const TemplateComponent = TemplateComponentMap[selectedTemplate] || TemplateNormal;
+  let TemplateComponent = TemplateNormal;
+  if (!isSpecialPromo) {
+      if (selectedTemplate === 'normal_usp') TemplateComponent = TemplateNormalUSP;
+      else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
+      else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
+  } else {
+      TemplateComponent = TemplateSpecialPromo;
+  }
 
   const pages = getPaginatedTags();
   const totalTags = products.reduce((sum, p) => sum + p.quantity, 0);
@@ -471,10 +696,10 @@ function App() {
     <div className="h-screen w-full flex flex-col md:flex-row bg-gray-100 overflow-hidden font-sans">
         
         {/* Sidebar Controls */}
-        <div className={`${isSidebarOpen ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[340px] bg-white border-r border-gray-200 z-20 shrink-0 h-full print:hidden`}>
+        <div className={`${isSidebarOpen ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[380px] bg-white border-r border-gray-200 z-20 shrink-0 h-full print:hidden`}>
             
             {/* Header */}
-            <div className="p-3 border-b border-gray-200 flex justify-between items-center shrink-0">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center shrink-0 bg-gray-50">
                 <div className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-[#E0376F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                     <h1 className="text-lg font-bold text-[#10285B]">Xưởng in tem</h1>
@@ -484,165 +709,175 @@ function App() {
                 </button>
             </div>
 
-            {/* Template Selection */}
-            <div className="px-4 py-2 border-b border-gray-100 shrink-0">
-                <div className="flex justify-between items-center mb-1.5">
-                   <h3 className="text-[11px] font-bold text-[#10285B] uppercase">1. Kho mẫu in</h3>
-                   <span className="text-[10px] text-gray-400">4 mẫu</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                    {[
-                        { id: 'normal', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z', label: 'Niêm yết' },
-                        { id: 'normal_usp', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2', label: 'Niêm yết (USP)' },
-                        { id: 'sale', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2', label: 'Sale Thường' },
-                        { id: 'sale_usp', icon: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Sale (USP)' }
-                    ].map(tpl => (
-                        <button
-                            key={tpl.id}
-                            onClick={() => setSelectedTemplate(tpl.id)}
-                            className={`flex flex-col items-center justify-center py-1.5 rounded-md border text-[10px] font-medium transition-all ${
-                                selectedTemplate === tpl.id 
-                                ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
-                                : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                            }`}
-                        >
-                            <svg className="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={tpl.icon}></path></svg>
-                            {tpl.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Forms */}
-            <div className="px-4 py-2 border-b border-gray-100 shrink-0 bg-gray-50">
-                <h3 className="text-[11px] font-bold text-[#10285B] uppercase mb-1.5">2. {editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</h3>
-                <div className="flex bg-gray-200 p-0.5 rounded-md mb-2">
-                    <button 
-                        onClick={() => { setInputMode('search'); if(editingId) cancelEdit(); }} 
-                        className={`flex-1 text-[11px] py-1 rounded-sm font-medium ${inputMode === 'search' ? 'bg-white shadow-sm text-[#10285B]' : 'text-gray-500'}`}
+            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#10285B] mb-1">Loại tem (Chương trình):</label>
+                    <select 
+                      value={promoType} 
+                      onChange={e => setPromoType(e.target.value)}
+                      className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#E0376F] outline-none"
                     >
-                        Từ dữ liệu mẫu
-                    </button>
-                    <button 
-                        onClick={() => setInputMode('manual')} 
-                        className={`flex-1 text-[11px] py-1 rounded-sm font-medium ${inputMode === 'manual' ? 'bg-white shadow-sm text-[#10285B]' : 'text-gray-500'}`}
-                    >
-                        Nhập thủ công
-                    </button>
-                </div>
-
-                {inputMode === 'search' ? (
+                      <option value="Niêm yết">Niêm yết</option>
+                      <option value="Discount">Discount</option>
+                      <option value="Mua hàng tặng hàng">Mua hàng tặng hàng</option>
+                      <option value="Mua nhiều rẻ">Mua nhiều rẻ</option>
+                      <option value="Combo">Combo</option>
+                      <option value="Hóa đơn">Hóa đơn</option>
+                    </select>
+                  </div>
+                  
+                  {promoType === 'Niêm yết' && (
                     <div className="relative" ref={searchRef}>
-                        <input
-                            type="text"
-                            placeholder="Gõ tên hoặc mã vạch để tìm kiếm..."
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
-                            onFocus={() => setShowSuggestions(true)}
-                            className="w-full text-[12px] p-1.5 pl-7 border border-gray-300 rounded focus:border-[#10285B] outline-none"
-                        />
-                        <svg className="w-3.5 h-3.5 text-gray-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        
-                        {showSuggestions && (
-                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-[250px] overflow-y-auto">
-                                {suggestions.length > 0 ? (
-                                    suggestions.map(item => (
-                                        <div key={item.barcode + '-' + item.name} onClick={() => addToQueue(item)} className="p-2 border-b border-gray-50 hover:bg-pink-50 cursor-pointer flex justify-between items-center group">
-                                            <div>
-                                                <div className="text-[12px] font-medium text-[#10285B] line-clamp-1">{item.name}</div>
-                                                <div className="text-[10px] text-gray-500">{item.barcode} | {item.category_name}</div>
-                                            </div>
-                                            <div className="text-[#E0376F] font-bold text-[12px] shrink-0 ml-2">{formatCurrency(item.price)}đ</div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-3 text-[12px] text-gray-500 text-center">{searchQuery ? 'Không tìm thấy sản phẩm' : 'Gõ để tìm kiếm từ cơ sở dữ liệu'}</div>
-                                )}
-                            </div>
-                        )}
+                      <label className="block text-xs font-bold text-[#10285B] mb-1">Tìm kiếm sản phẩm:</label>
+                      <div className="flex bg-gray-100 rounded border border-gray-200 focus-within:border-[#E0376F] transition-colors">
+                          <input 
+                              type="text" 
+                              placeholder="Nhập tên hoặc mã vạch..." 
+                              className="flex-1 bg-transparent p-2 text-sm outline-none"
+                              value={searchQuery}
+                              onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setShowSuggestions(true);
+                              }}
+                              onFocus={() => setShowSuggestions(true)}
+                          />
+                          <button className="p-2 text-gray-500 hover:text-[#E0376F]">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                          </button>
+                      </div>
+                      
+                      {/* Search Suggestions Dropdown */}
+                      {showSuggestions && suggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 shadow-xl rounded-md max-h-60 overflow-y-auto z-50">
+                              {suggestions.map(s => (
+                                  <div 
+                                      key={s.barcode} 
+                                      className="p-3 border-b border-gray-100 hover:bg-pink-50 cursor-pointer"
+                                      onClick={() => addToQueue(s)}
+                                  >
+                                      <div className="text-sm font-bold text-[#10285B]">{s.name}</div>
+                                      <div className="flex justify-between mt-1">
+                                          <div className="text-xs text-gray-500">{s.barcode}</div>
+                                          <div className="text-xs font-bold text-[#E0376F]">{formatCurrency(s.price)}đ</div>
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                      )}
                     </div>
-                ) : (
-                    <form onSubmit={handleManualAdd}>
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                            <input type="text" placeholder="Tên sản phẩm *" value={manualForm.name} onChange={e => handleFieldChange('name', e.target.value)} className="col-span-2 w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" required />
-                            <input type="number" placeholder="Giá bán *" value={manualForm.price} onChange={e => handleFieldChange('price', e.target.value)} className="w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" required />
-                            <input type="text" placeholder="Mã vạch *" value={manualForm.barcode} onChange={e => handleFieldChange('barcode', e.target.value)} className="w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" required />
-                            <div className="col-span-2 flex gap-2">
-                                <input type="number" placeholder="Giá gốc" value={manualForm.originalPrice} onChange={e => handleFieldChange('originalPrice', e.target.value)} className="w-1/2 text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" />
-                                <input type="number" placeholder="% Giảm" value={manualForm.discountPercent} onChange={e => handleFieldChange('discountPercent', e.target.value)} className="w-1/2 text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" />
-                            </div>
-                            <input type="text" placeholder="Đơn vị (vd: /Gói)" value={manualForm.unit} onChange={e => handleFieldChange('unit', e.target.value)} className="col-span-2 w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" />
-                        </div>
-                        <details className="text-[11px] text-gray-500 group" open={editingId !== null}>
-                            <summary className="cursor-pointer font-medium hover:text-[#10285B] mb-2 list-none flex items-center gap-1">
-                                <svg className="w-3 h-3 group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                                Thông tin phụ (USP, Hạn...)
-                            </summary>
-                            <div className="grid grid-cols-2 gap-2 mt-1">
-                                <input type="text" placeholder="Đặc điểm (USP)" value={manualForm.type} onChange={e => handleFieldChange('type', e.target.value)} className="col-span-2 w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" />
-                                <input type="text" placeholder="Hạn áp dụng" value={manualForm.dateRange} onChange={e => handleFieldChange('dateRange', e.target.value)} className="col-span-2 w-full text-[12px] p-1.5 border border-gray-300 rounded focus:border-[#10285B] outline-none" />
-                            </div>
-                        </details>
-                        {editingId ? (
-                            <div className="flex gap-2 mt-2">
-                                <button type="button" onClick={cancelEdit} className="w-1/3 py-1 bg-gray-300 text-gray-700 text-[12px] font-bold rounded">Đóng</button>
-                                <button type="submit" className="w-2/3 py-1 bg-[#E0376F] text-white text-[12px] font-bold rounded">Hoàn tất sửa</button>
-                            </div>
-                        ) : (
-                            <button type="submit" className="w-full mt-2 py-1.5 bg-[#10285B] text-white text-[12px] font-bold rounded">Thêm</button>
-                        )}
-                    </form>
-                )}
-            </div>
+                  )}
 
-            {/* List Chờ in */}
-            <div className="flex-1 flex flex-col min-h-0">
-                <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
-                    <h3 className="text-[11px] font-bold text-[#10285B] uppercase">3. Danh sách chờ in</h3>
-                    <span className="bg-[#E0376F] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Tổng: {totalTags}</span>
+                  {promoType !== 'Niêm yết' && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-[#10285B] mb-1">Tháng:</label>
+                        <select 
+                          value={promoMonth} 
+                          onChange={e => setPromoMonth(e.target.value)}
+                          className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#E0376F] outline-none"
+                        >
+                          {months.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleExportExcel}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                          Tải xuống
+                        </button>
+                        
+                        <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                          Tải lên (Import)
+                          <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} className="hidden" />
+                        </label>
+                      </div>
+                    </>
+                  )}
                 </div>
-                
-                <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 bg-gray-50 scrollbar-thin">
-                    {products.length === 0 ? (
-                        <div className="text-center text-gray-400 text-[11px] mt-6">Chưa có sản phẩm nào.</div>
-                    ) : (
-                        products.map(product => (
-                            <div key={product.id} className={`bg-white border ${editingId === product.id ? 'border-[#E0376F] shadow-md' : 'border-gray-200'} rounded-md p-2 flex flex-col gap-2 relative group`}>
-                                <div className="absolute top-1.5 right-1.5 flex gap-1 bg-white pl-2">
-                                    <button onClick={() => editProduct(product)} className="text-gray-300 hover:text-blue-500 p-0.5 rounded"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                                    <button onClick={() => removeProduct(product.id)} className="text-gray-300 hover:text-red-500 p-0.5 rounded"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                                </div>
-                                <div className="pr-12">
-                                    <div className="text-[11px] font-bold text-[#10285B] line-clamp-1">{product.name}</div>
-                                    <div className="text-[9px] text-gray-500 mt-0.5">{product.barcode}</div>
-                                </div>
-                                <div className="flex justify-between items-center border-t border-gray-100 pt-1.5">
-                                    <div className="text-[#E0376F] font-bold text-[11px]">{formatCurrency(product.price)}đ</div>
-                                    <div className="flex items-center border border-gray-200 rounded">
-                                        <button onClick={() => updateQuantity(product.id, -1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 text-[10px]">-</button>
-                                        <input type="number" value={product.quantity} onChange={(e) => setExactQuantity(product.id, e.target.value)} className="w-7 text-center text-[11px] border-x border-gray-200 outline-none no-spinners" min="1"/>
-                                        <button onClick={() => updateQuantity(product.id, 1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 text-[10px]">+</button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-                
-                <div className="p-3 border-t border-gray-200 bg-white shrink-0 flex gap-2">
-                    <button 
-                        onClick={handleDownloadTemplate}
-                        className="flex-1 bg-white border border-gray-300 text-gray-700 py-1.5 px-2 rounded flex items-center justify-center gap-1 text-[11px] font-medium hover:bg-gray-50 transition-colors"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        Tải Mẫu Excel
-                    </button>
-                    <label className="flex-1 bg-[#10285B] text-white py-1.5 px-2 rounded flex items-center justify-center gap-1 text-[11px] font-medium cursor-pointer hover:bg-blue-900 transition-colors">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                        Import File
-                        <input type="file" accept=".xlsx, .xls, .csv" className="hidden" onChange={handleFileUpload} />
-                    </label>
-                </div>
+
+              {/* Template Selection */}
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 shrink-0">
+                  <div className="mb-2">
+                     <h3 className="text-xs font-bold text-[#10285B] uppercase">Cấu hình mẫu in</h3>
+                  </div>
+                  
+                  {!isSpecialPromo ? (
+                    <div className="grid grid-cols-2 gap-2">
+                        {[
+                            { id: 'normal', label: 'Niêm yết (60x35)', type: 'Niêm yết' },
+                            { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
+                            { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
+                            { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' }
+                        ].filter(tpl => tpl.type === promoType).map(tpl => (
+                            <button
+                                key={tpl.id}
+                                onClick={() => setSelectedTemplate(tpl.id)}
+                                className={`py-1.5 rounded-md border text-xs font-medium transition-all ${
+                                    selectedTemplate === tpl.id 
+                                    ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
+                                    : 'border-gray-200 text-gray-600 hover:bg-white'
+                                }`}
+                            >
+                                {tpl.label}
+                            </button>
+                        ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Chọn kích thước tem:</label>
+                      <select 
+                        value={promoSize} 
+                        onChange={e => setPromoSize(e.target.value)}
+                        className="w-full border border-[#E0376F] rounded p-2 text-sm bg-pink-50 font-bold text-[#E0376F] outline-none"
+                      >
+                        <option value="A5">Khổ A5 (210 x 148 mm)</option>
+                        <option value="A6">Khổ A6 (148 x 105 mm)</option>
+                        <option value="A7">Khổ A7 (105 x 74 mm)</option>
+                      </select>
+                    </div>
+                  )}
+              </div>
+
+              {/* List Chờ in */}
+              <div className="flex-1 flex flex-col min-h-0 border-t border-gray-100">
+                  <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
+                      <h3 className="text-[11px] font-bold text-[#10285B] uppercase">Danh sách chờ in</h3>
+                      <span className="bg-[#E0376F] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Tổng: {totalTags}</span>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 bg-gray-50 scrollbar-thin">
+                      {products.length === 0 ? (
+                          <div className="text-center text-gray-400 text-xs mt-6">Chưa có sản phẩm nào chờ in.</div>
+                      ) : (
+                          products.map(product => (
+                              <div key={product.id} className="bg-white border border-gray-200 rounded-md p-2 flex flex-col gap-2 relative group shadow-sm">
+                                  <div className="absolute top-1.5 right-1.5 flex gap-1 bg-white pl-2">
+                                      <button onClick={() => removeProduct(product.id)} className="text-gray-300 hover:text-red-500 p-0.5 rounded"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                  </div>
+                                  <div className="pr-8">
+                                      <div className="text-[11px] font-bold text-[#10285B] line-clamp-1">{product.name}</div>
+                                      <div className="text-[9px] text-gray-500 mt-0.5">{product.barcode} {product.promoContent ? `| ${product.promoContent}` : ''}</div>
+                                  </div>
+                                  <div className="flex justify-between items-center border-t border-gray-100 pt-1.5">
+                                      <div className="text-[#E0376F] font-bold text-[11px]">{formatCurrency(product.price)}đ</div>
+                                      <div className="flex items-center border border-gray-200 rounded">
+                                          <button onClick={() => updateQuantity(product.id, -1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 text-[10px]">-</button>
+                                          <input type="number" value={product.quantity} onChange={(e) => setExactQuantity(product.id, e.target.value)} className="w-7 text-center text-[11px] border-x border-gray-200 outline-none no-spinners" min="1"/>
+                                          <button onClick={() => updateQuantity(product.id, 1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 text-[10px]">+</button>
+                                      </div>
+                                  </div>
+                              </div>
+                          ))
+                      )}
+                  </div>
+              </div>
             </div>
         </div>
 
@@ -764,20 +999,18 @@ function App() {
           
           .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
           .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; border: 2px solid #f3f4f6; }
-          .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #94a3b8; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
           
-          .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-          .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-          .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 20px; }
-          
+          /* Hide spinners on number inputs */
           .no-spinners::-webkit-inner-spin-button, 
-          .no-spinners::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-          .no-spinners { -moz-appearance: textfield; }
+          .no-spinners::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+          }
         `}} />
     </div>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+ReactDOM.render(<App />, document.getElementById('root'));

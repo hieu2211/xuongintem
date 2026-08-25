@@ -36,10 +36,45 @@ app.get('/api/products', async (req, res) => {
       result = await pool.query(
         `SELECT item_no, item_name as name, retail_price as price, barcode, 
                 uom as unit, category_name, is_synced_app_web 
-         FROM items 
-         LIMIT 30`
+         FROM items`
       );
     }
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Lấy danh sách tháng có khuyến mãi
+app.get('/api/months', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT month_table FROM promotions ORDER BY month_table');
+    res.json(result.rows.map(r => r.month_table));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Lấy danh sách sản phẩm khuyến mãi theo tháng và loại
+app.get('/api/promotions', async (req, res) => {
+  const { month, type } = req.query;
+  try {
+    let query = 'SELECT * FROM promotions WHERE 1=1';
+    const params = [];
+    
+    if (month) {
+      params.push(month);
+      query += ` AND month_table = $${params.length}`;
+    }
+    
+    if (type && type !== 'Tất cả') {
+      params.push(`%${type}%`);
+      query += ` AND promo_type ILIKE $${params.length}`;
+    }
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
