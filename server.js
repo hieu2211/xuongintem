@@ -57,9 +57,20 @@ app.get('/api/months', async (req, res) => {
   }
 });
 
+// Lấy danh sách cửa hàng
+app.get('/api/stores', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT store_name, layer02 FROM stores ORDER BY store_name');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 // Lấy danh sách sản phẩm khuyến mãi theo tháng và loại
 app.get('/api/promotions', async (req, res) => {
-  const { month, type } = req.query;
+  const { month, type, store_name, store_layer02 } = req.query;
   try {
     let query = 'SELECT * FROM promotions WHERE 1=1';
     const params = [];
@@ -74,10 +85,35 @@ app.get('/api/promotions', async (req, res) => {
       query += ` AND promo_type ILIKE $${params.length}`;
     }
     
+    if (store_name) {
+      let layerQuery = '';
+      let sNameLikeIdx = params.length + 1;
+      
+      if (store_layer02) {
+        params.push(`%${store_name}%`);
+        params.push(store_layer02);
+        layerQuery = `OR (TRIM(scope) = 'HN' AND $${params.length}::text = 'ALL-SKK Store')`;
+      } else {
+        params.push(store_name);
+        const sNameIdx = params.length;
+        params.push(`%${store_name}%`);
+        sNameLikeIdx = params.length;
+        layerQuery = `OR (TRIM(scope) = 'HN' AND (SELECT layer02 FROM stores WHERE store_name = $${sNameIdx}::text LIMIT 1) = 'ALL-SKK Store')`;
+      }
+      
+      query += ` AND (
+        TRIM(scope) = 'Toàn hệ thống' 
+        ${layerQuery}
+        OR scope ILIKE $${sNameLikeIdx}::text
+      )`;
+    }
+    
+    console.log('QUERY:', query);
+    console.log('PARAMS:', params);
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error('ERROR in /api/promotions:', err);
     res.status(500).json({ error: 'Database error' });
   }
 });

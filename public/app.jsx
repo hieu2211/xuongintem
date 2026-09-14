@@ -12,6 +12,8 @@ function App() {
   const [promoType, setPromoType] = useState('Niêm yết');
   const [promoMonth, setPromoMonth] = useState('');
   const [months, setMonths] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState('');
   const [systemData, setSystemData] = useState([]);
   
   // Special Size Selector
@@ -45,7 +47,19 @@ function App() {
         console.error('Error fetching months:', err);
       }
     };
+    const fetchStores = async () => {
+      try {
+        const response = await fetch('/api/stores');
+        if (response.ok) {
+          const data = await response.json();
+          setStores(data);
+        }
+      } catch (err) {
+        console.error('Error fetching stores:', err);
+      }
+    };
     fetchMonths();
+    fetchStores();
   }, []);
 
   useEffect(() => {
@@ -130,7 +144,12 @@ function App() {
     try {
       let url = '/api/products';
       if (promoType !== 'Niêm yết') {
+        const selectedStoreData = stores.find(s => s.store_name === selectedStore);
+        const layer02 = selectedStoreData ? selectedStoreData.layer02 : '';
         url = `/api/promotions?month=${encodeURIComponent(promoMonth)}&type=${encodeURIComponent(promoType)}`;
+        if (selectedStore) {
+            url += `&store_name=${encodeURIComponent(selectedStore)}&store_layer02=${encodeURIComponent(layer02)}`;
+        }
       }
       const response = await fetch(url);
       if (response.ok) {
@@ -179,7 +198,12 @@ function App() {
     try {
       let url = '/api/products';
       if (promoType !== 'Niêm yết') {
+        const selectedStoreData = stores.find(s => s.store_name === selectedStore);
+        const layer02 = selectedStoreData ? selectedStoreData.layer02 : '';
         url = `/api/promotions?month=${encodeURIComponent(promoMonth)}&type=${encodeURIComponent(promoType)}`;
+        if (selectedStore) {
+            url += `&store_name=${encodeURIComponent(selectedStore)}&store_layer02=${encodeURIComponent(layer02)}`;
+        }
       }
       const response = await fetch(url);
       if (response.ok) {
@@ -197,7 +221,7 @@ function App() {
     }
 
     const wsData = [
-      ["Barcode", "Tên SP", "Giá cũ", "Giá mới", "Ngày bắt đầu", "Ngày kết thúc", "Nội dung CTKM"]
+      ["Barcode", "Tên SP", "Giá cũ", "Giá mới", "Ngày bắt đầu", "Ngày kết thúc", "Nội dung CTKM", "USP"]
     ];
 
     itemsToExport.forEach(p => {
@@ -209,8 +233,9 @@ function App() {
       const startDate = parseDateValue(p.start_date || p.dateRange?.split(' - ')[0]);
       const endDate = parseDateValue(p.end_date || p.dateRange?.split(' - ')[1]);
       const content = p.promo_content || p.type || '';
+      const usp = p.usp || '';
 
-      wsData.push([barcode, name, originalPrice, newPrice, startDate, endDate, content]);
+      wsData.push([barcode, name, originalPrice, newPrice, startDate, endDate, content, usp]);
     });
 
     const ws = window.XLSX.utils.aoa_to_sheet(wsData);
@@ -276,7 +301,7 @@ function App() {
           originalPrice: row["Giá cũ"] || row["Giá gốc"] || '',
           discountPercent: row["% Giảm"] || '',
           unit: row["Đơn vị"] || '',
-          type: row["Đặc điểm (USP)"] || '',
+          type: row["USP"] || row["Đặc điểm (USP)"] || '',
           dateRange: han || (start ? `${start} - ${end}` : ''),
           promoContent: row["Nội dung CTKM"] || '',
           quantity: 1
@@ -430,7 +455,7 @@ function App() {
 
   // 1. Tem Niêm yết Thường (350x600) - KHÔNG USP
   const TemplateNormal = ({ product }) => (
-    <div className="w-full h-full bg-white rounded-3xl border-2 border-gray-300 px-6 py-5 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+    <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-6 py-5 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full">
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 38)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
@@ -445,7 +470,7 @@ function App() {
 
   // 2. Tem Niêm yết có USP (700x800)
   const TemplateNormalUSP = ({ product }) => (
-    <div className="w-full h-full bg-white rounded-[40px] border-2 border-gray-300 p-10 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+    <div className="w-full h-full bg-white rounded-[40px] border-[5px] border-gray-400 p-10 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full pt-4">
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
@@ -721,7 +746,7 @@ function App() {
                       <option value="Niêm yết">Niêm yết</option>
                       <option value="Discount">Discount</option>
                       <option value="Mua hàng tặng hàng">Mua hàng tặng hàng</option>
-                      <option value="Mua nhiều rẻ">Mua nhiều rẻ</option>
+                      <option value="Mua càng nhiều càng rẻ">Mua nhiều rẻ</option>
                       <option value="Combo">Combo</option>
                       <option value="Hóa đơn">Hóa đơn</option>
                     </select>
@@ -765,6 +790,21 @@ function App() {
                               ))}
                           </div>
                       )}
+                      <div className="flex gap-2 mt-3">
+                        <button 
+                          onClick={handleExportExcel}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                          Tải xuống
+                        </button>
+                        
+                        <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                          Tải lên (Import)
+                          <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} className="hidden" />
+                        </label>
+                      </div>
                     </div>
                   )}
 
@@ -783,6 +823,20 @@ function App() {
                         </select>
                       </div>
 
+                      <div className="mt-3">
+                        <label className="block text-xs font-bold text-[#10285B] mb-1">Cửa hàng:</label>
+                        <select 
+                          value={selectedStore} 
+                          onChange={e => setSelectedStore(e.target.value)}
+                          className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#E0376F] outline-none"
+                        >
+                          <option value="">-- Chọn cửa hàng --</option>
+                          {stores.map(s => (
+                            <option key={s.store_name} value={s.store_name}>{s.store_name}</option>
+                          ))}
+                        </select>
+                      </div>
+
                       <div className="flex gap-2">
                         <button 
                           onClick={handleExportExcel}
@@ -793,7 +847,7 @@ function App() {
                         </button>
                         
                         <label className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition-colors flex items-center justify-center gap-1 cursor-pointer">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                           Tải lên (Import)
                           <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} className="hidden" />
                         </label>
