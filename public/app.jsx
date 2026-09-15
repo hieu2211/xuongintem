@@ -431,7 +431,7 @@ function App() {
 
   const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16 }) => (
       <img 
-          src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${barcode}&includetext=true&scale=${scale}&height=${bcHeight}`} 
+          src={`/api/barcode?text=${barcode}&scale=${scale}&height=${bcHeight}`} 
           alt="barcode" 
           className={`${className} w-auto object-contain mix-blend-multiply`}
           crossOrigin="anonymous"
@@ -460,7 +460,7 @@ function App() {
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 38)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full mt-1">
-         <span className="text-[#E0376F] font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px] underline">đ</span></span>
+         <span className="text-black font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px] underline">đ</span></span>
       </div>
       <div className="flex justify-end items-end mt-auto w-full">
           <BarcodeImage barcode={product.barcode} className="h-[75px]" scale={3} bcHeight={16} />
@@ -475,7 +475,7 @@ function App() {
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full mt-4">
-         <span className="text-[#E0376F] font-bold text-[140px] tracking-tight">{formatCurrency(product.price)} <span className="text-[90px] underline">đ</span></span>
+         <span className="text-black font-bold text-[140px] tracking-tight">{formatCurrency(product.price)} <span className="text-[90px] underline">đ</span></span>
       </div>
       <div className="flex justify-between items-end mt-auto w-full pt-4 gap-6">
           {product.type ? (
@@ -920,7 +920,7 @@ function App() {
                                       <div className="text-[9px] text-gray-500 mt-0.5">{product.barcode} {product.promoContent ? `| ${product.promoContent}` : ''}</div>
                                   </div>
                                   <div className="flex justify-between items-center border-t border-gray-100 pt-1.5">
-                                      <div className="text-[#E0376F] font-bold text-[11px]">{formatCurrency(product.price)}đ</div>
+                                      <div className="text-black font-bold text-[11px]">{formatCurrency(product.price)}đ</div>
                                       <div className="flex items-center border border-gray-200 rounded">
                                           <button onClick={() => updateQuantity(product.id, -1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-100 text-[10px]">-</button>
                                           <input type="number" value={product.quantity} onChange={(e) => setExactQuantity(product.id, e.target.value)} className="w-7 text-center text-[11px] border-x border-gray-200 outline-none no-spinners" min="1"/>
