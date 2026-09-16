@@ -588,7 +588,7 @@ function App() {
         </div>
         
         <div className="mx-4 mt-auto mb-2 flex items-end">
-            <div className="w-[240px] shrink-0">
+            <div className="w-[195px] shrink-0">
                 <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={4} bcHeight={14} textsize={15} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
