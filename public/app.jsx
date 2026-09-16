@@ -584,7 +584,7 @@ function App() {
         
         <div className="mx-4 mt-auto mb-2 flex items-end">
             <div className="w-[240px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[95px] ml-[-10px]" scale={5} bcHeight={14} textsize={16} />
+                <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={4} bcHeight={14} textsize={15} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
@@ -678,7 +678,7 @@ function App() {
         
         <div className="mx-6 mt-auto mb-4 flex items-end">
             <div className="w-[320px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[135px] ml-[-10px]" scale={6} bcHeight={16} textsize={16} />
+                <BarcodeImage barcode={product.barcode} className="h-[120px] ml-[-10px]" scale={5} bcHeight={16} textsize={15} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-4 text-[24px] font-bold text-black">
                <div className="text-center flex-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
