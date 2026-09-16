@@ -445,23 +445,20 @@ function App() {
   const getTitleSize = (name, baseSize) => {
       const len = name ? name.length : 0;
       if (baseSize === 28) {
-          if (len > 75) return { c: 'line-clamp-3', s: '20px' };
-          if (len > 45) return { c: 'line-clamp-3', s: '22px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '28px' };
           return { c: 'line-clamp-2', s: '28px' };
       }
       if (baseSize === 30) {
-          if (len > 75) return { c: 'line-clamp-3', s: '22px' };
-          if (len > 45) return { c: 'line-clamp-3', s: '26px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '30px' };
           return { c: 'line-clamp-2', s: '30px' };
       }
       if (baseSize === 38) {
-          if (len > 75) return { c: 'line-clamp-3', s: '22px' };
-          if (len > 45) return { c: 'line-clamp-3', s: '26px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '38px' };
           return { c: 'line-clamp-2', s: '38px' };
       }
       if (baseSize === 60) {
-          if (len > 75) return { c: 'line-clamp-3', s: '34px' };
-          if (len > 45) return { c: 'line-clamp-3', s: '44px' };
+          if (len > 75) return { c: 'line-clamp-3', s: '50px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '55px' };
           return { c: 'line-clamp-2', s: '60px' };
       }
       return { c: 'line-clamp-2', s: `${baseSize}px` };
