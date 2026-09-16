@@ -148,6 +148,7 @@ async function sync() {
     let hasMore = true;
     let pageToken = '';
     let total = 0;
+    let skipped = 0;
 
     console.log('Syncing records...');
     
@@ -158,16 +159,17 @@ async function sync() {
     
     while (hasMore) {
       const data = await layRecords(appToken, TABLE_ID, pageToken);
-      console.log('API response keys:', Object.keys(data));
       const items = data.items || data.data?.items || [];
-      console.log('Number of items found in this page:', items.length);
       
       for (const item of items) {
         const fields = item.fields || {};
         const mapped = mapFields(fields);
         
         // Skip if no primary key (item_no)
-        if (!mapped.item_no) continue;
+        if (!mapped.item_no) {
+          skipped++;
+          continue;
+        }
 
         // Only insert columns that actually exist in the database
         const keysToInsert = Object.keys(mapped).filter(k => validColumns.includes(k));
@@ -191,8 +193,11 @@ async function sync() {
 
       hasMore = data.data && data.data.has_more;
       pageToken = data.data && data.data.page_token;
-      console.log(`Synced ${total} records...`);
+      console.log(`Synced ${total} records... (Skipped empty: ${skipped})`);
     }
+
+    const dbCountRes = await client.query("SELECT COUNT(*) FROM items");
+    console.log(`Sync completed! Total processed: ${total}. Empty rows skipped: ${skipped}. Total in DB: ${dbCountRes.rows[0].count}`);
 
     console.log(`Sync completed! Total records: ${total}`);
   } catch (err) {
