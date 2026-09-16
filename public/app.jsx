@@ -467,7 +467,7 @@ function App() {
          <span className="text-black font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px]">đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full">
-          <BarcodeImage barcode={product.barcode} className="h-[95px] w-full" scale={4} bcHeight={18} />
+          <BarcodeImage barcode={product.barcode} className="h-[95px] w-full" scale={5} bcHeight={15} textsize={12} />
       </div>
     </div>
   );
@@ -482,7 +482,7 @@ function App() {
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} textsize={16} />
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} textsize={12} />
       </div>
     </div>
   );
@@ -505,7 +505,7 @@ function App() {
               <div className="flex-1"></div>
           )}
           <div className="flex flex-col items-end shrink-0 max-w-[50%]">
-              <BarcodeImage barcode={product.barcode} className="h-[155px] w-full" scale={4} bcHeight={24} />
+              <BarcodeImage barcode={product.barcode} className="h-[155px] w-full" scale={5} bcHeight={20} textsize={12} />
           </div>
       </div>
     </div>
@@ -579,7 +579,7 @@ function App() {
         
         <div className="mx-4 mt-auto mb-2 flex items-end">
             <div className="w-[180px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[75px] ml-[-10px]" scale={3} bcHeight={16} />
+                <BarcodeImage barcode={product.barcode} className="h-[75px] ml-[-10px]" scale={4} bcHeight={14} textsize={12} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
@@ -673,7 +673,7 @@ function App() {
         
         <div className="mx-6 mt-auto mb-4 flex items-end">
             <div className="w-[260px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[110px] ml-[-10px]" scale={4} bcHeight={20} />
+                <BarcodeImage barcode={product.barcode} className="h-[110px] ml-[-10px]" scale={5} bcHeight={16} textsize={12} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-4 text-[24px] font-bold text-black">
                <div className="text-center flex-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
