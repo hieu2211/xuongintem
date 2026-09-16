@@ -444,14 +444,19 @@ function App() {
 
   const getTitleSize = (name, baseSize) => {
       const len = name ? name.length : 0;
+      if (baseSize === 28) {
+          if (len > 75) return 'text-[20px] line-clamp-3';
+          if (len > 45) return 'text-[22px] line-clamp-3';
+          return 'text-[28px] line-clamp-2';
+      }
       if (baseSize === 38) {
-          if (len > 75) return 'text-[24px] line-clamp-3';
-          if (len > 45) return 'text-[30px] line-clamp-3';
+          if (len > 75) return 'text-[22px] line-clamp-3';
+          if (len > 45) return 'text-[26px] line-clamp-3';
           return 'text-[38px] line-clamp-2';
       }
       if (baseSize === 60) {
-          if (len > 75) return 'text-[38px] line-clamp-3';
-          if (len > 45) return 'text-[48px] line-clamp-3';
+          if (len > 75) return 'text-[34px] line-clamp-3';
+          if (len > 45) return 'text-[44px] line-clamp-3';
           return 'text-[60px] line-clamp-2';
       }
       return `text-[${baseSize}px] line-clamp-2`;
@@ -476,7 +481,7 @@ function App() {
   const TemplateNormalSmall = ({ product }) => (
     <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '28px', overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 28)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
