@@ -474,15 +474,15 @@ function App() {
 
   // 1b. Tem Niêm yết Nhỏ (50x24mm)
   const TemplateNormalSmall = ({ product }) => (
-    <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-4 py-3 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+    <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '38px', overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '32px', overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
-      <div className="text-center w-full mt-1 flex-1 flex items-center justify-center">
-         <span className="text-black font-bold tracking-tight" style={{ fontSize: '80px' }}>{formatCurrency(product.price)} <span style={{ fontSize: '50px' }}>đ</span></span>
+      <div className="text-center w-full flex-1 flex items-center justify-center">
+         <span className="text-black font-bold tracking-tight" style={{ fontSize: '70px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '45px' }}>đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full">
-          <BarcodeImage barcode={product.barcode} className="h-[80px] w-full" scale={3} bcHeight={16} />
+      <div className="flex justify-center items-end mt-auto w-full h-[65px] shrink-0">
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={3} bcHeight={14} />
       </div>
     </div>
   );
