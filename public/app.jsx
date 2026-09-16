@@ -482,7 +482,7 @@ function App() {
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={4} bcHeight={18} />
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} />
       </div>
     </div>
   );
