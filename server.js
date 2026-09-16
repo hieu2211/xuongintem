@@ -18,27 +18,35 @@ const pool = new Pool({
   database: 'sakuko_tem',
 });
 
-// Proxy API để lách luật bị chặn mạng ở các siêu thị
+const bwipjs = require('bwip-js');
+
+// Proxy API để lách luật bị chặn mạng ở các siêu thị, nay chuyển sang render local để nhanh hơn
 app.get('/api/barcode', (req, res) => {
   const text = req.query.text;
-  const scale = req.query.scale || 3;
-  const height = req.query.height || 16;
+  const scale = parseInt(req.query.scale) || 3;
+  const height = parseInt(req.query.height) || 16;
+  const textsize = parseInt(req.query.textsize) || 10;
   
   if (!text) {
       return res.status(400).send('Missing text parameter');
   }
 
-  const http = require('http');
-  const textsize = req.query.textsize || '';
-  let targetUrl = `http://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&includetext=true&scale=${scale}&height=${height}`;
-  if (textsize) targetUrl += `&textsize=${textsize}`;
-
-  http.get(targetUrl, (proxyRes) => {
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      proxyRes.pipe(res);
-  }).on('error', (err) => {
-      console.error('Lỗi khi tải barcode:', err);
-      res.status(500).send('Error fetching barcode');
+  bwipjs.toBuffer({
+      bcid: 'code128',
+      text: text,
+      scale: scale,
+      height: height,
+      includetext: true,
+      textxalign: 'center',
+      textsize: textsize
+  }, function (err, png) {
+      if (err) {
+          console.error('Lỗi khi tải barcode:', err);
+          res.status(500).send('Error fetching barcode');
+      } else {
+          res.set('Content-Type', 'image/png');
+          res.send(png);
+      }
   });
 });
 
