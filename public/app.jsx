@@ -449,10 +449,10 @@ function App() {
           if (len > 45) return 'text-[22px] line-clamp-3';
           return 'text-[28px] line-clamp-2';
       }
-      if (baseSize === 32) {
+      if (baseSize === 30) {
           if (len > 75) return 'text-[22px] line-clamp-3';
           if (len > 45) return 'text-[26px] line-clamp-3';
-          return 'text-[32px] line-clamp-2';
+          return 'text-[30px] line-clamp-2';
       }
       if (baseSize === 38) {
           if (len > 75) return 'text-[22px] line-clamp-3';
@@ -471,7 +471,7 @@ function App() {
   const TemplateNormal = ({ product }) => (
     <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-4 py-3 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full flex items-center justify-center min-h-[90px]">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 32)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
