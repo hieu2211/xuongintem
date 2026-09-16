@@ -445,33 +445,33 @@ function App() {
   const getTitleSize = (name, baseSize) => {
       const len = name ? name.length : 0;
       if (baseSize === 28) {
-          if (len > 75) return 'text-[20px] line-clamp-3';
-          if (len > 45) return 'text-[22px] line-clamp-3';
-          return 'text-[28px] line-clamp-2';
+          if (len > 75) return { c: 'line-clamp-3', s: '20px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '22px' };
+          return { c: 'line-clamp-2', s: '28px' };
       }
       if (baseSize === 30) {
-          if (len > 75) return 'text-[22px] line-clamp-3';
-          if (len > 45) return 'text-[26px] line-clamp-3';
-          return 'text-[30px] line-clamp-2';
+          if (len > 75) return { c: 'line-clamp-3', s: '22px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '26px' };
+          return { c: 'line-clamp-2', s: '30px' };
       }
       if (baseSize === 38) {
-          if (len > 75) return 'text-[22px] line-clamp-3';
-          if (len > 45) return 'text-[26px] line-clamp-3';
-          return 'text-[38px] line-clamp-2';
+          if (len > 75) return { c: 'line-clamp-3', s: '22px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '26px' };
+          return { c: 'line-clamp-2', s: '38px' };
       }
       if (baseSize === 60) {
-          if (len > 75) return 'text-[34px] line-clamp-3';
-          if (len > 45) return 'text-[44px] line-clamp-3';
-          return 'text-[60px] line-clamp-2';
+          if (len > 75) return { c: 'line-clamp-3', s: '34px' };
+          if (len > 45) return { c: 'line-clamp-3', s: '44px' };
+          return { c: 'line-clamp-2', s: '60px' };
       }
-      return `text-[${baseSize}px] line-clamp-2`;
+      return { c: 'line-clamp-2', s: `${baseSize}px` };
   };
 
   // 1. Tem Niêm yết (60x35mm)
   const TemplateNormal = ({ product }) => (
     <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-4 py-3 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full flex items-center justify-center min-h-[90px]">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30).c}`} style={{ fontSize: getTitleSize(product.name, 30).s, overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
@@ -486,7 +486,7 @@ function App() {
   const TemplateNormalSmall = ({ product }) => (
     <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full flex items-center justify-center min-h-[70px]">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30).c}`} style={{ fontSize: getTitleSize(product.name, 30).s, overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
@@ -501,7 +501,7 @@ function App() {
   const TemplateNormalUSP = ({ product }) => (
     <div className="w-full h-full bg-white rounded-[40px] border-[5px] border-gray-400 p-10 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full pt-4">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60).c}`} style={{ fontSize: getTitleSize(product.name, 60).s, overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full mt-4">
          <span className="text-black font-bold text-[140px] tracking-tight">{formatCurrency(product.price)} <span className="text-[90px]">đ</span></span>
