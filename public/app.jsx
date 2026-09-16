@@ -486,7 +486,7 @@ function App() {
   const TemplateNormalSmall = ({ product }) => (
     <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full flex items-center justify-center min-h-[70px]">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 28)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 30)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
