@@ -370,7 +370,7 @@ function App() {
   
   const currentPaper = paperDimensions[paperSize];
   let pagePadding = { x: 20, y: 30 }; 
-  let tagGap = 14; 
+  let tagGap = 0; 
   let baseTag = { w: 600, h: 350 };
   
   let scaledTagWidth = 0;
@@ -460,10 +460,10 @@ function App() {
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 38)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full mt-1">
-         <span className="text-black font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px] underline">đ</span></span>
+         <span className="text-black font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px]">đ</span></span>
       </div>
-      <div className="flex justify-end items-end mt-auto w-full">
-          <BarcodeImage barcode={product.barcode} className="h-[75px]" scale={3} bcHeight={16} />
+      <div className="flex justify-center items-end mt-auto w-full">
+          <BarcodeImage barcode={product.barcode} className="h-[95px] w-full" scale={4} bcHeight={18} />
       </div>
     </div>
   );
@@ -475,9 +475,9 @@ function App() {
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 60)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full mt-4">
-         <span className="text-black font-bold text-[140px] tracking-tight">{formatCurrency(product.price)} <span className="text-[90px] underline">đ</span></span>
+         <span className="text-black font-bold text-[140px] tracking-tight">{formatCurrency(product.price)} <span className="text-[90px]">đ</span></span>
       </div>
-      <div className="flex justify-between items-end mt-auto w-full pt-4 gap-6">
+      <div className="flex justify-between items-end mt-auto w-full pt-4 gap-4">
           {product.type ? (
               <div className="font-bold text-[36px] text-black flex-1 min-w-0 max-h-[140px] overflow-hidden flex items-end leading-tight pb-2 break-words" style={{ overflowWrap: 'anywhere' }}>
                   <span className="line-clamp-3 w-full">*{product.type}</span>
@@ -485,8 +485,8 @@ function App() {
           ) : (
               <div className="flex-1"></div>
           )}
-          <div className="flex flex-col items-end shrink-0">
-              <BarcodeImage barcode={product.barcode} className="h-[135px]" scale={4} bcHeight={20} />
+          <div className="flex flex-col items-end shrink-0 max-w-[50%]">
+              <BarcodeImage barcode={product.barcode} className="h-[155px] w-full" scale={4} bcHeight={24} />
           </div>
       </div>
     </div>
@@ -559,8 +559,8 @@ function App() {
         </div>
         
         <div className="mx-4 mt-auto mb-2 flex items-end">
-            <div className="w-[140px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[60px] ml-[-10px]" scale={2} bcHeight={12} />
+            <div className="w-[180px] shrink-0">
+                <BarcodeImage barcode={product.barcode} className="h-[75px] ml-[-10px]" scale={3} bcHeight={16} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
@@ -653,8 +653,8 @@ function App() {
         </div>
         
         <div className="mx-6 mt-auto mb-4 flex items-end">
-            <div className="w-[200px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={3} bcHeight={14} />
+            <div className="w-[260px] shrink-0">
+                <BarcodeImage barcode={product.barcode} className="h-[110px] ml-[-10px]" scale={4} bcHeight={20} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-4 text-[24px] font-bold text-black">
                <div className="text-center flex-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
