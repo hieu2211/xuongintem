@@ -29,7 +29,9 @@ app.get('/api/barcode', (req, res) => {
   }
 
   const http = require('http');
-  const targetUrl = `http://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&includetext=true&scale=${scale}&height=${height}`;
+  const textsize = req.query.textsize || '';
+  let targetUrl = `http://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&includetext=true&scale=${scale}&height=${height}`;
+  if (textsize) targetUrl += `&textsize=${textsize}`;
 
   http.get(targetUrl, (proxyRes) => {
       res.writeHead(proxyRes.statusCode, proxyRes.headers);

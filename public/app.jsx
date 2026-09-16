@@ -433,9 +433,9 @@ function App() {
       return pages;
   };
 
-  const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16 }) => (
+  const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => (
       <img 
-          src={`/api/barcode?text=${barcode}&scale=${scale}&height=${bcHeight}`} 
+          src={`/api/barcode?text=${barcode}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
           alt="barcode" 
           className={`${className} w-auto object-contain mix-blend-multiply`}
           crossOrigin="anonymous"
@@ -482,7 +482,7 @@ function App() {
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} />
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} textsize={16} />
       </div>
     </div>
   );
