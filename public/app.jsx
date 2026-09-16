@@ -476,8 +476,8 @@ function App() {
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={15} textsize={12} />
+      <div className="flex justify-center items-end mt-auto w-full h-[110px] shrink-0">
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={15} textsize={16} />
       </div>
     </div>
   );
@@ -515,7 +515,7 @@ function App() {
               <div className="flex-1"></div>
           )}
           <div className="flex flex-col items-end shrink-0 max-w-[50%]">
-              <BarcodeImage barcode={product.barcode} className="h-[155px] w-full" scale={5} bcHeight={20} textsize={12} />
+              <BarcodeImage barcode={product.barcode} className="h-[155px] w-full" scale={5} bcHeight={18} textsize={16} />
           </div>
       </div>
     </div>
