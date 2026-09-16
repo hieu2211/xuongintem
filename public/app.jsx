@@ -449,6 +449,11 @@ function App() {
           if (len > 45) return 'text-[22px] line-clamp-3';
           return 'text-[28px] line-clamp-2';
       }
+      if (baseSize === 32) {
+          if (len > 75) return 'text-[22px] line-clamp-3';
+          if (len > 45) return 'text-[26px] line-clamp-3';
+          return 'text-[32px] line-clamp-2';
+      }
       if (baseSize === 38) {
           if (len > 75) return 'text-[22px] line-clamp-3';
           if (len > 45) return 'text-[26px] line-clamp-3';
@@ -462,17 +467,17 @@ function App() {
       return `text-[${baseSize}px] line-clamp-2`;
   };
 
-  // 1. Tem Niêm yết Thường (350x600) - KHÔNG USP
+  // 1. Tem Niêm yết (60x35mm)
   const TemplateNormal = ({ product }) => (
-    <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-6 py-5 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
-      <div className="text-center w-full">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 38)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
+    <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-4 py-3 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+      <div className="text-center w-full flex items-center justify-center min-h-[90px]">
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 32)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
-      <div className="text-center w-full mt-1">
-         <span className="text-black font-bold text-[85px] tracking-tight">{formatCurrency(product.price)} <span className="text-[60px]">đ</span></span>
+      <div className="text-center w-full flex-1 flex items-center justify-center">
+         <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full">
-          <BarcodeImage barcode={product.barcode} className="h-[95px] w-full" scale={5} bcHeight={15} textsize={12} />
+      <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={15} textsize={12} />
       </div>
     </div>
   );
@@ -480,7 +485,7 @@ function App() {
   // 1b. Tem Niêm yết Nhỏ (50x24mm)
   const TemplateNormalSmall = ({ product }) => (
     <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
-      <div className="text-center w-full">
+      <div className="text-center w-full flex items-center justify-center min-h-[70px]">
         <h3 className={`text-[#10285B] font-bold leading-tight break-words ${getTitleSize(product.name, 28)}`} style={{ overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
