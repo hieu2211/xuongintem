@@ -572,7 +572,7 @@ function App() {
                   <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[65px]' : priceMain.length > 5 ? 'text-[80px]' : 'text-[95px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
                   <span className={`font-bold ml-1 shrink-0 ${priceMain.length > 5 ? 'text-[32px]' : 'text-[40px]'}`}>{priceSub}</span>
               </div>
-              <div className="text-right text-black text-[22px] shrink-0 leading-tight mt-1">
+              <div className="text-right text-black text-[26px] shrink-0 leading-tight mt-1">
                  {product.originalPrice ? (
                      <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                  ) : (
@@ -656,7 +656,7 @@ function App() {
                       <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[90px]' : priceMain.length > 5 ? 'text-[110px]' : 'text-[130px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
                       <span className={`font-bold ml-2 shrink-0 ${priceMain.length > 5 ? 'text-[40px]' : 'text-[50px]'}`}>{priceSub}</span>
                   </div>
-                  <div className="text-right text-black text-[30px] shrink-0 leading-tight mt-2">
+                  <div className="text-right text-black text-[36px] shrink-0 leading-tight mt-2">
                      {product.originalPrice ? (
                          <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                      ) : (
