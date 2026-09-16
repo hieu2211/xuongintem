@@ -476,7 +476,7 @@ function App() {
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full h-[110px] shrink-0">
+      <div className="flex justify-center items-end mt-auto w-full h-[100px] shrink-0">
           <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={15} textsize={16} />
       </div>
     </div>
