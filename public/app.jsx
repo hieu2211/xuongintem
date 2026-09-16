@@ -476,13 +476,13 @@ function App() {
   const TemplateNormalSmall = ({ product }) => (
     <div className="w-full h-full bg-white rounded-2xl border-[4px] border-gray-400 px-3 py-2 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
       <div className="text-center w-full">
-        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '32px', overflowWrap: 'anywhere' }}>{product.name}</h3>
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '28px', overflowWrap: 'anywhere' }}>{product.name}</h3>
       </div>
       <div className="text-center w-full flex-1 flex items-center justify-center">
-         <span className="text-black font-bold tracking-tight" style={{ fontSize: '70px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '45px' }}>đ</span></span>
+         <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full h-[65px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={3} bcHeight={14} />
+      <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={4} bcHeight={18} />
       </div>
     </div>
   );
