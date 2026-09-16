@@ -386,6 +386,10 @@ function App() {
         baseTag = { w: 800, h: 700 };
         targetWidthMm = 80;
         targetHeightMm = 70;
+    } else if (selectedTemplate === 'normal_small') {
+        baseTag = { w: 600, h: 300 };
+        targetWidthMm = 50;
+        targetHeightMm = 24.15;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -464,6 +468,21 @@ function App() {
       </div>
       <div className="flex justify-center items-end mt-auto w-full">
           <BarcodeImage barcode={product.barcode} className="h-[95px] w-full" scale={4} bcHeight={18} />
+      </div>
+    </div>
+  );
+
+  // 1b. Tem Niêm yết Nhỏ (50x24mm)
+  const TemplateNormalSmall = ({ product }) => (
+    <div className="w-full h-full bg-white rounded-3xl border-[5px] border-gray-400 px-4 py-3 flex flex-col justify-between overflow-hidden shadow-sm box-border relative">
+      <div className="text-center w-full">
+        <h3 className={`text-[#10285B] font-bold leading-tight break-words line-clamp-2`} style={{ fontSize: '38px', overflowWrap: 'anywhere' }}>{product.name}</h3>
+      </div>
+      <div className="text-center w-full mt-1 flex-1 flex items-center justify-center">
+         <span className="text-black font-bold tracking-tight" style={{ fontSize: '80px' }}>{formatCurrency(product.price)} <span style={{ fontSize: '50px' }}>đ</span></span>
+      </div>
+      <div className="flex justify-center items-end mt-auto w-full">
+          <BarcodeImage barcode={product.barcode} className="h-[80px] w-full" scale={3} bcHeight={16} />
       </div>
     </div>
   );
@@ -708,6 +727,7 @@ function App() {
   let TemplateComponent = TemplateNormal;
   if (!isSpecialPromo) {
       if (selectedTemplate === 'normal_usp') TemplateComponent = TemplateNormalUSP;
+      else if (selectedTemplate === 'normal_small') TemplateComponent = TemplateNormalSmall;
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
   } else {
@@ -867,6 +887,7 @@ function App() {
                         {[
                             { id: 'normal', label: 'Niêm yết (60x35)', type: 'Niêm yết' },
                             { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
+                            { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                             { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                             { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' }
                         ].filter(tpl => tpl.type === promoType).map(tpl => (
