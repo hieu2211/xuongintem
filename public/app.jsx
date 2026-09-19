@@ -437,7 +437,7 @@ function App() {
       <img 
           src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${barcode}&scale=${scale}&height=${bcHeight}&includetext=true${textsize ? `&textsize=${textsize}` : ''}`} 
           alt="barcode" 
-          className={`${className} mix-blend-multiply`} 
+          className={`${className} w-full object-contain mix-blend-multiply`} 
           crossOrigin="anonymous" 
       />
   );
@@ -474,7 +474,7 @@ function App() {
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full h-[100px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={15} textsize={16} />
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={10} textsize={16} />
       </div>
     </div>
   );
@@ -488,8 +488,8 @@ function App() {
       <div className="text-center w-full flex-1 flex items-center justify-center">
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
-      <div className="flex justify-center items-end mt-auto w-full h-[85px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={12} textsize={12} />
+      <div className="w-full flex-1 flex justify-center items-end pb-1 overflow-hidden mt-1 px-2 h-[85px]">
+        <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={8} textsize={12} />
       </div>
     </div>
   );
