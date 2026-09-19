@@ -474,7 +474,7 @@ function App() {
          <span className="text-black font-bold text-[85px] tracking-tight leading-none">{formatCurrency(product.price)} <span className="text-[55px]">đ</span></span>
       </div>
       <div className="flex justify-center items-end mt-auto w-full h-[100px] shrink-0">
-          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={10} textsize={16} />
+          <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={5} bcHeight={10} textsize={10} />
       </div>
     </div>
   );
@@ -489,7 +489,7 @@ function App() {
          <span className="text-black font-bold tracking-tight" style={{ fontSize: '60px', lineHeight: '1' }}>{formatCurrency(product.price)} <span style={{ fontSize: '40px' }}>đ</span></span>
       </div>
       <div className="w-full flex-1 flex justify-center items-end pb-1 overflow-hidden mt-1 px-2 h-[85px]">
-        <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={8} textsize={12} />
+        <BarcodeImage barcode={product.barcode} className="h-full w-full" scale={6} bcHeight={8} textsize={8} />
       </div>
     </div>
   );
