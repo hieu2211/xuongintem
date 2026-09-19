@@ -437,7 +437,7 @@ function App() {
       <img 
           src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${barcode}&scale=${scale}&height=${bcHeight}&includetext=true${textsize ? `&textsize=${textsize}` : ''}`} 
           alt="barcode" 
-          className={`${className} w-auto object-contain mix-blend-multiply`} 
+          className={`${className} mix-blend-multiply`} 
           crossOrigin="anonymous" 
       />
   );
