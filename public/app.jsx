@@ -435,10 +435,10 @@ function App() {
 
   const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => (
       <img 
-          src={`/api/barcode?text=${barcode}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
+          src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${barcode}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
           alt="barcode" 
-          className={`${className} w-auto object-contain mix-blend-multiply`}
-          crossOrigin="anonymous"
+          className={`${className} w-auto object-contain mix-blend-multiply`} 
+          crossOrigin="anonymous" 
       />
   );
 
