@@ -20,8 +20,8 @@ const pool = new Pool({
 
 const bwipjs = require('bwip-js');
 
-// Proxy API để lách luật bị chặn mạng ở các siêu thị, nay chuyển sang render local để nhanh hơn
-app.get('/api/barcode', (req, res) => {
+// Proxy API để lách luật bị chặn mạng ở các siêu thị
+app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
   const scale = parseInt(req.query.scale) || 3;
   const height = parseInt(req.query.height) || 16;
@@ -31,23 +31,21 @@ app.get('/api/barcode', (req, res) => {
       return res.status(400).send('Missing text parameter');
   }
 
-  bwipjs.toBuffer({
-      bcid: 'code128',
-      text: text,
-      scale: scale,
-      height: height,
-      includetext: true,
-      textxalign: 'center',
-      textsize: textsize
-  }, function (err, png) {
-      if (err) {
-          console.error('Lỗi khi tải barcode:', err);
-          res.status(500).send('Error fetching barcode');
-      } else {
-          res.set('Content-Type', 'image/png');
-          res.send(png);
+  try {
+      const url = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&scale=${scale}&height=${height}&includetext=true&textsize=${textsize}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+          throw new Error(`Metafloor API responded with status: ${response.status}`);
       }
-  });
+
+      res.set('Content-Type', 'image/png');
+      const arrayBuffer = await response.arrayBuffer();
+      res.send(Buffer.from(arrayBuffer));
+  } catch (err) {
+      console.error('Lỗi khi tải barcode qua proxy:', err);
+      res.status(500).send('Error fetching barcode');
+  }
 });
 
 // API tìm kiếm sản phẩm (hỗ trợ search theo tên hoặc mã vạch)
