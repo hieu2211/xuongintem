@@ -40,6 +40,7 @@ async function init() {
 
     CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON user_access_logs(user_id);
     CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON user_access_logs(created_at DESC);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(32) DEFAULT 'user';
   `);
   console.log('✅ Khởi tạo cơ sở dữ liệu thành công!');
   process.exit(0);

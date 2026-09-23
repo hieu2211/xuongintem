@@ -52,6 +52,7 @@ async function initAuthTables() {
       );
       CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON user_access_logs(user_id);
       CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON user_access_logs(created_at DESC);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(32) DEFAULT 'user';
     `);
   } catch (err) {
     console.error('Lỗi khởi tạo bảng auth:', err);
@@ -339,18 +340,30 @@ app.get('/api/auth/lark/callback', async (req, res) => {
     }
     const profile = userData.data;
 
-    // 4. Lưu hoặc cập nhật người dùng vào bảng users
+    // 4. Lưu hoặc cập nhật người dùng vào bảng users (Tự động cấp quyền Admin cho tài khoản đầu tiên hoặc email cấu hình)
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const adminOpenIds = (process.env.ADMIN_OPEN_IDS || '').split(',').map(e => e.trim()).filter(Boolean);
+    const adminCountRes = await pool.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
+    const isFirstAdmin = parseInt(adminCountRes.rows[0].count, 10) === 0;
+
+    const shouldBeAdmin = isFirstAdmin || 
+      (profile.email && adminEmails.includes(profile.email.toLowerCase())) ||
+      adminOpenIds.includes(profile.open_id);
+
+    const initialRole = shouldBeAdmin ? 'admin' : 'user';
+
     const upsertQuery = `
-      INSERT INTO users (open_id, union_id, name, avatar_url, email, mobile, first_login_at, last_login_at, login_count)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), 1)
+      INSERT INTO users (open_id, union_id, name, avatar_url, email, mobile, role, first_login_at, last_login_at, login_count)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 1)
       ON CONFLICT (open_id) DO UPDATE SET
         name = EXCLUDED.name,
         avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
         email = COALESCE(EXCLUDED.email, users.email),
         mobile = COALESCE(EXCLUDED.mobile, users.mobile),
+        role = CASE WHEN users.role = 'admin' OR EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END,
         last_login_at = NOW(),
         login_count = users.login_count + 1
-      RETURNING id, open_id, name, avatar_url, email, login_count;
+      RETURNING id, open_id, name, avatar_url, email, role, login_count;
     `;
     const dbUserRes = await pool.query(upsertQuery, [
       profile.open_id,
@@ -358,7 +371,8 @@ app.get('/api/auth/lark/callback', async (req, res) => {
       profile.name || profile.en_name || 'Người dùng Lark',
       profile.avatar_url || profile.avatar_thumb || null,
       profile.email || null,
-      profile.mobile || null
+      profile.mobile || null,
+      initialRole
     ]);
     const user = dbUserRes.rows[0];
 
@@ -387,7 +401,7 @@ app.get('/api/auth/lark/callback', async (req, res) => {
   }
 });
 
-// Endpoint kiểm tra người dùng hiện tại
+// Endpoint kiểm tra người dùng hiện tại (Kèm quyền Admin)
 app.get('/api/auth/me', async (req, res) => {
   const token = getCookie(req, 'sakuko_session');
   const session = verifySessionToken(token);
@@ -396,13 +410,20 @@ app.get('/api/auth/me', async (req, res) => {
   }
   try {
     const userRes = await pool.query(
-      'SELECT id, open_id, name, avatar_url, email, login_count, last_login_at FROM users WHERE id = $1',
+      'SELECT id, open_id, name, avatar_url, email, role, login_count, last_login_at FROM users WHERE id = $1',
       [session.id]
     );
     if (userRes.rows.length === 0) {
       return res.json({ loggedIn: false });
     }
-    res.json({ loggedIn: true, user: userRes.rows[0] });
+    const user = userRes.rows[0];
+    res.json({
+      loggedIn: true,
+      user: {
+        ...user,
+        isAdmin: user.role === 'admin'
+      }
+    });
   } catch (err) {
     console.error('Lỗi truy vấn auth/me:', err);
     res.status(500).json({ loggedIn: false, error: 'DB error' });
@@ -444,31 +465,74 @@ app.post('/api/tracking/action', async (req, res) => {
   }
 });
 
-// Thống kê tổng hợp lượt truy cập & danh sách hoạt động
+// Thống kê tổng hợp lượt truy cập & danh sách hoạt động (Chỉ Admin + Lọc theo ngày)
 app.get('/api/tracking/stats', async (req, res) => {
+  const token = getCookie(req, 'sakuko_session');
+  const session = verifySessionToken(token);
+  if (!session) {
+    return res.status(401).json({ error: 'Chưa đăng nhập' });
+  }
+
+  // Kiểm tra quyền Admin
+  const adminCheck = await pool.query('SELECT role FROM users WHERE id = $1', [session.id]);
+  if (adminCheck.rows.length === 0 || adminCheck.rows[0].role !== 'admin') {
+    return res.status(403).json({ error: 'Bạn không có quyền xem thống kê (chỉ dành cho Admin)' });
+  }
+
+  // Bộ lọc theo ngày (startDate, endDate: YYYY-MM-DD)
+  const { startDate, endDate } = req.query;
+  let dateFilterLogs = '';
+  let dateFilterPrints = '';
+  let dateFilterLogins = '';
+  const params = [];
+
+  if (startDate && endDate) {
+    params.push(`${startDate} 00:00:00`);
+    params.push(`${endDate} 23:59:59`);
+    dateFilterLogs = `AND created_at >= $1 AND created_at <= $2`;
+    dateFilterPrints = `AND l.created_at >= $1 AND l.created_at <= $2`;
+    dateFilterLogins = `WHERE action = 'LOGIN' AND created_at >= $1 AND created_at <= $2`;
+  } else if (startDate) {
+    params.push(`${startDate} 00:00:00`);
+    dateFilterLogs = `AND created_at >= $1`;
+    dateFilterPrints = `AND l.created_at >= $1`;
+    dateFilterLogins = `WHERE action = 'LOGIN' AND created_at >= $1`;
+  } else if (endDate) {
+    params.push(`${endDate} 23:59:59`);
+    dateFilterLogs = `AND created_at <= $1`;
+    dateFilterPrints = `AND l.created_at <= $1`;
+    dateFilterLogins = `WHERE action = 'LOGIN' AND created_at <= $1`;
+  } else {
+    dateFilterLogins = `WHERE action = 'LOGIN'`;
+  }
+
   try {
     const totalUsersRes = await pool.query('SELECT COUNT(*) as count FROM users');
-    const totalLoginsRes = await pool.query("SELECT COUNT(*) as count FROM user_access_logs WHERE action = 'LOGIN'");
-    const totalPrintsRes = await pool.query("SELECT COUNT(*) as count FROM user_access_logs WHERE action = 'PRINT_TEM'");
+    const totalLoginsRes = await pool.query(`SELECT COUNT(*) as count FROM user_access_logs ${dateFilterLogins}`, params);
+    const totalPrintsRes = await pool.query(
+      `SELECT COUNT(*) as count FROM user_access_logs WHERE action = 'PRINT_TEM' ${dateFilterLogs}`,
+      params
+    );
 
     const usersQuery = `
       SELECT 
-        u.id, u.open_id, u.name, u.avatar_url, u.email, u.login_count, u.first_login_at, u.last_login_at,
-        COALESCE(COUNT(l.id) FILTER (WHERE l.action = 'PRINT_TEM'), 0)::int as print_count
+        u.id, u.open_id, u.name, u.avatar_url, u.email, u.role, u.login_count, u.first_login_at, u.last_login_at,
+        COALESCE(COUNT(l.id) FILTER (WHERE l.action = 'PRINT_TEM' ${dateFilterPrints}), 0)::int as print_count
       FROM users u
       LEFT JOIN user_access_logs l ON u.id = l.user_id
       GROUP BY u.id
       ORDER BY u.last_login_at DESC
     `;
-    const usersRes = await pool.query(usersQuery);
+    const usersRes = await pool.query(usersQuery, params);
 
     const logsQuery = `
       SELECT id, user_id, user_name, action, details, ip_address, created_at
       FROM user_access_logs
+      WHERE 1=1 ${dateFilterLogs}
       ORDER BY created_at DESC
-      LIMIT 100
+      LIMIT 1000
     `;
-    const logsRes = await pool.query(logsQuery);
+    const logsRes = await pool.query(logsQuery, params);
 
     res.json({
       summary: {
@@ -481,6 +545,31 @@ app.get('/api/tracking/stats', async (req, res) => {
     });
   } catch (err) {
     console.error('Lỗi lấy thống kê tracking:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+// Endpoint cho phép Admin đổi quyền người dùng
+app.post('/api/tracking/set-role', async (req, res) => {
+  const token = getCookie(req, 'sakuko_session');
+  const session = verifySessionToken(token);
+  if (!session) return res.status(401).json({ error: 'Chưa đăng nhập' });
+
+  const adminCheck = await pool.query('SELECT role FROM users WHERE id = $1', [session.id]);
+  if (adminCheck.rows.length === 0 || adminCheck.rows[0].role !== 'admin') {
+    return res.status(403).json({ error: 'Chỉ Admin mới có quyền phân quyền người dùng' });
+  }
+
+  const { targetUserId, newRole } = req.body;
+  if (!['admin', 'user'].includes(newRole)) {
+    return res.status(400).json({ error: 'Quyền không hợp lệ' });
+  }
+
+  try {
+    await pool.query('UPDATE users SET role = $1 WHERE id = $2', [newRole, targetUserId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Lỗi đổi quyền:', err);
     res.status(500).json({ error: 'DB error' });
   }
 });
