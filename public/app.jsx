@@ -398,6 +398,8 @@ function App() {
         baseTag = { w: 500, h: 800 };
         targetWidthMm = 50;
         targetHeightMm = 80;
+        pagePadding = { x: 15, y: 20 };
+        tagGap = 2;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
