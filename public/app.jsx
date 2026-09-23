@@ -27,7 +27,7 @@ function App() {
 
   // Manual Input state
   const [inputMode, setInputMode] = useState('search');
-  const [manualForm, setManualForm] = useState({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
+  const [manualForm, setManualForm] = useState({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', discountAmount: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
   const [editingId, setEditingId] = useState(null);
 
   // Print Configuration
@@ -165,6 +165,7 @@ function App() {
           dateRange: p.dateRange || (parseDateValue(p.start_date) ? `${parseDateValue(p.start_date)} - ${parseDateValue(p.end_date)}` : ''),
           promoContent: p.promo_content || p.type || '',
           discountPercent: p.discount_percent || p.discountPercent || '',
+          discountAmount: p.discount_amount || p.discountAmount || '',
           unit: p.unit || p.uom || ''
         }));
 
@@ -262,7 +263,7 @@ function App() {
       } else {
           addToQueue(manualForm);
       }
-      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
+      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', discountAmount: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
   };
 
   const handleDownloadTemplate = () => {
@@ -305,6 +306,7 @@ function App() {
           type: row["USP"] || row["Đặc điểm (USP)"] || '',
           dateRange: han || (start ? `${start} - ${end}` : ''),
           promoContent: row["Nội dung CTKM"] || '',
+          discountAmount: row["Tiền giảm"] || row["Tiết kiệm"] || row["discount_amount"] || '',
           quantity: 1
         };
       }).filter(p => p.name && p.barcode);
@@ -325,6 +327,7 @@ function App() {
       setManualForm({ 
           name: product.name || '', price: product.price || '', barcode: product.barcode || '', 
           originalPrice: product.originalPrice || '', discountPercent: product.discountPercent !== undefined ? product.discountPercent : '',
+          discountAmount: product.discountAmount !== undefined ? product.discountAmount : '',
           location: product.location || '', supplier: product.supplier || '', type: product.type || '', 
           unit: product.unit || '', dateRange: product.dateRange || '', promoContent: product.promoContent || ''
       });
@@ -333,7 +336,7 @@ function App() {
 
   const cancelEdit = () => {
       setEditingId(null);
-      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
+      setManualForm({ name: '', price: '', barcode: '', originalPrice: '', discountPercent: '', discountAmount: '', location: '', supplier: '', type: '', unit: '', dateRange: '', promoContent: '' });
       setInputMode('search');
   };
 
@@ -391,6 +394,10 @@ function App() {
         baseTag = { w: 600, h: 300 };
         targetWidthMm = 50;
         targetHeightMm = 24.15;
+    } else if (selectedTemplate === 'sale_50x80') {
+        baseTag = { w: 500, h: 800 };
+        targetWidthMm = 50;
+        targetHeightMm = 80;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -435,13 +442,13 @@ function App() {
   };
 
   const uniqueBarcodes = React.useMemo(() => {
-    if (isSpecialPromo) return [];
+    if (isSpecialPromo || selectedTemplate === 'sale_50x80') return [];
     return [...new Set(products.map(p => p.barcode).filter(Boolean))];
-  }, [products, isSpecialPromo]);
+  }, [products, isSpecialPromo, selectedTemplate]);
 
   const loadedBarcodesCount = uniqueBarcodes.filter(bc => loadedBarcodes.has(bc)).length;
   const totalBarcodesCount = uniqueBarcodes.length;
-  const isAllBarcodesLoaded = isSpecialPromo || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
+  const isAllBarcodesLoaded = isSpecialPromo || selectedTemplate === 'sale_50x80' || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
 
   // Preloader chạy nền bằng nhiều luồng đồng thời
   useEffect(() => {
@@ -772,6 +779,98 @@ function App() {
     );
   };
 
+  const TemplateSale50x80 = ({ product }) => {
+    const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
+    const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
+    
+    // Phần nghìn (in to khổng lồ) và phần lẻ
+    let mainThousands = '0';
+    let remainderDisplay = '000';
+    if (numPrice >= 1000) {
+      mainThousands = Math.floor(numPrice / 1000);
+      const rem = numPrice % 1000;
+      remainderDisplay = rem > 0 ? String(rem).padStart(3, '0') : '000';
+    } else if (numPrice > 0) {
+      mainThousands = numPrice;
+      remainderDisplay = '000';
+    }
+
+    // Giá cũ gạch ngang (lấy phần nghìn nếu tròn 3 số 0, hoặc format đầy đủ nếu lẻ)
+    let oldPriceDisplay = '';
+    if (numOriginalPrice > 0) {
+      if (numOriginalPrice % 1000 === 0) {
+        oldPriceDisplay = Math.floor(numOriginalPrice / 1000);
+      } else {
+        oldPriceDisplay = numOriginalPrice.toLocaleString('en-US');
+      }
+    }
+
+    // Số tiền tiết kiệm (ưu tiên discountAmount từ database: discount_amount)
+    let savingDisplay = '';
+    if (product.discountAmount) {
+      const numSaving = parseFloat(String(product.discountAmount).replace(/[^\d]/g, '')) || 0;
+      if (numSaving > 0) savingDisplay = numSaving.toLocaleString('en-US');
+    }
+    if (!savingDisplay && numOriginalPrice > numPrice) {
+      savingDisplay = (numOriginalPrice - numPrice).toLocaleString('en-US');
+    }
+
+    return (
+      <div className="w-full h-full bg-white flex flex-col p-2.5 box-border relative font-sans text-black select-none">
+        <div className="w-full h-full border-[2.5px] border-black rounded-[8px] flex flex-col p-2.5 relative overflow-hidden bg-white">
+            {/* Tên sản phẩm */}
+            <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pb-2 pt-0.5 text-black">
+              {product.name}
+            </div>
+
+            {/* Vạch ngang ngăn cách */}
+            <div className="w-full border-b-[2px] border-black mb-2 shrink-0"></div>
+
+            {/* Mã sản phẩm */}
+            <div className="flex items-center gap-4 px-2 font-serif text-[26px] text-black shrink-0">
+               <span className="font-bold">Mã SP</span>
+               <span className="font-bold tracking-wide">{product.barcode}</span>
+            </div>
+
+            {/* Khu vực giá khuyến mãi to khổng lồ */}
+            <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto">
+               <div className="text-black font-black text-[165px] leading-none tracking-tighter text-center">
+                 {mainThousands}
+               </div>
+
+               <div className="flex justify-between items-baseline w-full px-4 mt-2">
+                 <div className="font-serif font-bold text-[40px] text-black line-through">
+                   {oldPriceDisplay}
+                 </div>
+                 <div className="font-serif font-bold text-[44px] text-black">
+                   {remainderDisplay} <span className="text-[32px] align-super font-bold">Đ</span>
+                 </div>
+               </div>
+            </div>
+
+            {/* Ô tiết kiệm (discount_amount) */}
+            {savingDisplay ? (
+              <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1 px-3 flex items-center justify-center gap-2 mb-2 shrink-0">
+                <span className="font-serif text-[24px] text-black">Tiết kiệm</span>
+                <span className="font-serif font-bold text-[30px] text-black">{savingDisplay}</span>
+                <span className="font-serif font-bold text-[24px] text-black">Đ</span>
+              </div>
+            ) : (
+              <div className="h-2"></div>
+            )}
+
+            {/* Thời gian áp dụng */}
+            <div className="text-center font-serif text-black mb-1 shrink-0">
+               <div className="text-[20px] text-gray-800 leading-tight">Thời gian áp dụng:</div>
+               <div className="text-[22px] font-bold leading-tight mt-0.5">
+                 {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+               </div>
+            </div>
+        </div>
+      </div>
+    );
+  };
+
   const getPromoContentInfo = (rawContent, size) => {
     // Tự động thêm khoảng trắng sau dấu phẩy/chấm phẩy nếu viết liền (VD: "102332,102336" -> "102332, 102336")
     const formatted = (rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
@@ -900,6 +999,7 @@ function App() {
       else if (selectedTemplate === 'normal_small') TemplateComponent = TemplateNormalSmall;
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
+      else if (selectedTemplate === 'sale_50x80') TemplateComponent = TemplateSale50x80;
   } else {
       TemplateComponent = TemplateSpecialPromo;
   }
@@ -1059,7 +1159,8 @@ function App() {
                             { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
                             { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                             { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
-                            { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' }
+                            { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' },
+                            { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' }
                         ].filter(tpl => tpl.type === promoType).map(tpl => (
                             <button
                                 key={tpl.id}
