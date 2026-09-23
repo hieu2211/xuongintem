@@ -695,34 +695,108 @@ function App() {
     );
   };
 
+  const getPromoContentInfo = (rawContent, size) => {
+    // Tự động thêm khoảng trắng sau dấu phẩy/chấm phẩy nếu viết liền (VD: "102332,102336" -> "102332, 102336")
+    const formatted = (rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
+    const len = formatted.length;
+    
+    let fontSize = 52;
+    let lineHeight = 1.3;
+
+    if (size === 'A6') {
+      // Khổ A6 dọc (1000px x 1414px), vùng nội dung rộng ~840px, cao ~850px
+      if (len <= 20) {
+        fontSize = 76;
+      } else if (len <= 45) {
+        fontSize = 62;
+      } else if (len <= 75) {
+        fontSize = 52;
+      } else if (len <= 110) {
+        fontSize = 44;
+      } else if (len <= 160) {
+        fontSize = 36;
+      } else {
+        fontSize = 30;
+      }
+    } else {
+      // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~840px, cao ~380px
+      if (len <= 20) {
+        fontSize = 48;
+      } else if (len <= 45) {
+        fontSize = 38;
+      } else if (len <= 75) {
+        fontSize = 30;
+      } else if (len <= 110) {
+        fontSize = 25;
+      } else if (len <= 160) {
+        fontSize = 21;
+      } else {
+        fontSize = 18;
+      }
+    }
+
+    return {
+      text: formatted,
+      style: {
+        fontSize: `${fontSize}px`,
+        lineHeight: lineHeight,
+        overflowWrap: 'anywhere',
+        wordBreak: 'break-word',
+        whiteSpace: 'pre-line'
+      }
+    };
+  };
+
   const TemplateSpecialPromo = ({ product }) => {
+    const isA6 = promoSize === 'A6';
+    const promoInfo = getPromoContentInfo(product.promoContent, promoSize);
+
     return (
       <div className="w-full h-full bg-white flex flex-col p-4 box-border relative">
-        <div className="w-full h-full border-[8px] border-black rounded-[40px] p-8 flex flex-col relative overflow-hidden">
+        <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden`}>
             {/* Top Name */}
-            <div className="text-center text-black font-bold text-[55px] leading-tight line-clamp-2 px-8 mb-8 mt-2">
+            <div 
+              className={`text-center text-black font-bold leading-tight line-clamp-2 px-6 ${isA6 ? 'mb-6 mt-2' : 'mb-3 mt-1'}`}
+              style={{ 
+                fontSize: isA6 ? '48px' : '34px',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word'
+              }}
+            >
               {product.name}
             </div>
             
             {/* Divider */}
-            <div className="w-full h-[6px] bg-black mb-8 rounded-full shrink-0"></div>
+            <div className={`w-full ${isA6 ? 'h-[6px] mb-6' : 'h-[4px] mb-3'} bg-black rounded-full shrink-0`}></div>
             
             {/* Promo Content */}
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-              <div className={`text-black font-extrabold leading-[1.3] ${promoSize === 'A6' ? 'text-[95px]' : 'text-[60px]'}`}>
-                {product.promoContent}
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-6 w-full overflow-hidden">
+              <div 
+                className="text-black font-extrabold text-center w-full max-w-full"
+                style={promoInfo.style}
+              >
+                {promoInfo.text}
               </div>
             </div>
             
             {/* Bottom Section */}
-            <div className="flex justify-between items-end w-full px-2 pb-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden">
-               <div className="font-bold text-[36px] text-black">
+            <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-2' : 'pb-1'}`}>
+               <div 
+                 className="font-bold text-black"
+                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+               >
                   {product.barcode}
                </div>
-               <div className="font-bold text-[36px] text-black mx-2">
+               <div 
+                 className="font-bold text-black mx-2"
+                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+               >
                   |
                </div>
-               <div className="font-bold text-[36px] text-black">
+               <div 
+                 className="font-bold text-black"
+                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+               >
                   {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
             </div>
