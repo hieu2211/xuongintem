@@ -18,11 +18,23 @@ const pool = new Pool({
   database: 'sakuko_tem',
 });
 
+const fs = require('fs');
 const bwipjs = require('bwip-js');
 
+// Thư mục lưu trữ vĩnh viễn barcode trên ổ cứng máy chủ
+const barcodeCacheDir = path.join(__dirname, 'cache_barcodes');
+if (!fs.existsSync(barcodeCacheDir)) {
+    try {
+        fs.mkdirSync(barcodeCacheDir, { recursive: true });
+    } catch (e) {
+        console.error('Không thể tạo thư mục cache_barcodes:', e);
+    }
+}
+
+// Bộ nhớ đệm RAM siêu nhanh cho các mã vừa dùng
 const barcodeCache = new Map();
 
-// Proxy API kèm Cache bộ nhớ đệm và Fallback cục bộ
+// API tạo Barcode đa tầng (RAM Cache -> Disk Cache -> bwip-js Local Render)
 app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
   const scale = parseInt(req.query.scale) || 3;
@@ -34,54 +46,55 @@ app.get('/api/barcode', async (req, res) => {
   }
 
   const cacheKey = `${text}_${scale}_${height}_${textsize}`;
+  const safeFileName = `${String(text).replace(/[^a-zA-Z0-9_-]/g, '_')}_s${scale}_h${height}_t${textsize}.png`;
+  const filePath = path.join(barcodeCacheDir, safeFileName);
+
+  res.set('Content-Type', 'image/png');
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+
+  // TẦNG 1: Kiểm tra RAM cache (tốc độ 0ms)
   if (barcodeCache.has(cacheKey)) {
-      res.set('Content-Type', 'image/png');
-      res.set('Cache-Control', 'public, max-age=604800, immutable');
       return res.send(barcodeCache.get(cacheKey));
   }
 
+  // TẦNG 2: Kiểm tra Disk cache trên ổ cứng (tốc độ ~0.2ms - không bao giờ mất kể cả khi khởi động lại server)
   try {
-      const url = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&scale=${scale}&height=${height}&includetext=true&textsize=${textsize}`;
-      
-      let buffer = null;
-      try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4000);
-          const response = await fetch(url, { signal: controller.signal });
-          clearTimeout(timeoutId);
-          if (response.ok) {
-              const arrayBuffer = await response.arrayBuffer();
-              buffer = Buffer.from(arrayBuffer);
-          }
-      } catch (fetchErr) {
-          // Metafloor API bị chậm hoặc lỗi mạng, tự động chuyển sang render cục bộ
+      if (fs.existsSync(filePath)) {
+          const diskBuffer = await fs.promises.readFile(filePath);
+          if (barcodeCache.size < 10000) barcodeCache.set(cacheKey, diskBuffer);
+          return res.send(diskBuffer);
       }
+  } catch (readErr) {
+      console.warn('Lỗi đọc disk cache barcode:', readErr);
+  }
 
-      // Fallback tự sinh mã vạch cục bộ bằng thư viện bwip-js nếu mạng bên ngoài lỗi
-      if (!buffer) {
-          buffer = await bwipjs.toBuffer({
-              bcid: 'code128',
-              text: text,
-              scale: scale,
-              height: height,
-              includetext: true,
-              textxalign: 'center',
-              textsize: textsize
-          });
-      }
+  // TẦNG 3: Sinh mã cục bộ trực tiếp bằng bwip-js (offline 100%, không phụ thuộc mạng ngoài, mất ~5ms)
+  try {
+      const buffer = await bwipjs.toBuffer({
+          bcid: 'code128',
+          text: text,
+          scale: scale,
+          height: height,
+          includetext: true,
+          textxalign: 'center',
+          textsize: textsize
+      });
 
-      // Lưu vào cache bộ nhớ đệm (giới hạn tối đa 5000 mã)
-      if (barcodeCache.size > 5000) {
+      // Lưu song song vào RAM cache
+      if (barcodeCache.size >= 10000) {
           const firstKey = barcodeCache.keys().next().value;
           barcodeCache.delete(firstKey);
       }
       barcodeCache.set(cacheKey, buffer);
 
-      res.set('Content-Type', 'image/png');
-      res.set('Cache-Control', 'public, max-age=604800, immutable');
-      res.send(buffer);
+      // Lưu bất đồng bộ xuống ổ cứng để lần sau không bao giờ phải tạo lại
+      fs.promises.writeFile(filePath, buffer).catch(writeErr => {
+          console.error('Lỗi ghi disk cache barcode:', writeErr);
+      });
+
+      return res.send(buffer);
   } catch (err) {
-      console.error('Lỗi khi tạo barcode:', err);
+      console.error('Lỗi khi tạo barcode cục bộ:', err);
       res.status(500).send('Error generating barcode');
   }
 });
