@@ -777,38 +777,50 @@ function App() {
     const formatted = (rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
     const len = formatted.length;
     
-    let fontSize = 52;
-    let lineHeight = 1.3;
+    let fontSize = 68;
+    let lineHeight = 1.38;
 
     if (size === 'A6') {
-      // Khổ A6 dọc (1000px x 1414px), vùng nội dung rộng ~840px, cao ~850px
-      if (len <= 20) {
-        fontSize = 76;
-      } else if (len <= 45) {
+      // Khổ A6 dọc (1000px x 1414px), vùng nội dung rộng ~850px, cao ~950px
+      if (len <= 30) {
+        fontSize = 92;
+        lineHeight = 1.35;
+      } else if (len <= 55) {
+        fontSize = 82;
+        lineHeight = 1.38;
+      } else if (len <= 85) {
+        fontSize = 72;
+        lineHeight = 1.4;
+      } else if (len <= 125) {
         fontSize = 62;
-      } else if (len <= 75) {
-        fontSize = 52;
-      } else if (len <= 110) {
-        fontSize = 44;
-      } else if (len <= 160) {
-        fontSize = 36;
+        lineHeight = 1.38;
+      } else if (len <= 170) {
+        fontSize = 50;
+        lineHeight = 1.35;
       } else {
-        fontSize = 30;
+        fontSize = 42;
+        lineHeight = 1.32;
       }
     } else {
-      // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~840px, cao ~380px
-      if (len <= 20) {
-        fontSize = 48;
-      } else if (len <= 45) {
-        fontSize = 38;
-      } else if (len <= 75) {
-        fontSize = 30;
-      } else if (len <= 110) {
-        fontSize = 25;
-      } else if (len <= 160) {
-        fontSize = 21;
+      // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~850px, cao ~420px
+      if (len <= 30) {
+        fontSize = 62;
+        lineHeight = 1.28;
+      } else if (len <= 55) {
+        fontSize = 52;
+        lineHeight = 1.3;
+      } else if (len <= 85) {
+        fontSize = 42;
+        lineHeight = 1.32;
+      } else if (len <= 125) {
+        fontSize = 35;
+        lineHeight = 1.32;
+      } else if (len <= 170) {
+        fontSize = 28;
+        lineHeight = 1.3;
       } else {
-        fontSize = 18;
+        fontSize = 23;
+        lineHeight = 1.28;
       }
     }
 
@@ -833,9 +845,9 @@ function App() {
         <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden`}>
             {/* Top Name */}
             <div 
-              className={`text-center text-black font-bold leading-tight line-clamp-2 px-6 ${isA6 ? 'mb-6 mt-2' : 'mb-3 mt-1'}`}
+              className={`text-center text-black font-extrabold leading-tight line-clamp-2 px-6 ${isA6 ? 'mb-8 mt-3' : 'mb-3 mt-1'}`}
               style={{ 
-                fontSize: isA6 ? '48px' : '34px',
+                fontSize: isA6 ? '54px' : '36px',
                 overflowWrap: 'anywhere',
                 wordBreak: 'break-word'
               }}
@@ -844,12 +856,12 @@ function App() {
             </div>
             
             {/* Divider */}
-            <div className={`w-full ${isA6 ? 'h-[6px] mb-6' : 'h-[4px] mb-3'} bg-black rounded-full shrink-0`}></div>
+            <div className={`w-full ${isA6 ? 'h-[6px] mb-8' : 'h-[4px] mb-3'} bg-black rounded-full shrink-0`}></div>
             
-            {/* Promo Content */}
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6 w-full overflow-hidden">
+            {/* Promo Content Body */}
+            <div className={`flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden ${isA6 ? 'px-8 py-4' : 'px-6 py-2'}`}>
               <div 
-                className="text-black font-extrabold text-center w-full max-w-full"
+                className="text-black font-black text-center w-full max-w-full tracking-wide"
                 style={promoInfo.style}
               >
                 {promoInfo.text}
@@ -857,22 +869,22 @@ function App() {
             </div>
             
             {/* Bottom Section */}
-            <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-2' : 'pb-1'}`}>
+            <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-3' : 'pb-1'}`}>
                <div 
                  className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   {product.barcode}
                </div>
                <div 
                  className="font-bold text-black mx-2"
-                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   |
                </div>
                <div 
                  className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '32px' : '24px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
