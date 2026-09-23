@@ -817,7 +817,7 @@ function App() {
             <div className="w-full border-b-[2px] border-black mb-2 shrink-0"></div>
 
             {/* Mã sản phẩm */}
-            <div className="flex items-center gap-3 px-2 font-sans text-black shrink-0">
+            <div className="flex items-center justify-center gap-3 px-2 font-sans text-black shrink-0 text-center">
                <span className="font-bold text-[24px]">Mã SP</span>
                <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
             </div>
