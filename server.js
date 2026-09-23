@@ -1,7 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const bwipjs = require('bwip-js');
 
 const app = express();
 const port = 4200;
@@ -18,8 +22,79 @@ const pool = new Pool({
   database: 'sakuko_tem',
 });
 
-const fs = require('fs');
-const bwipjs = require('bwip-js');
+// Khởi tạo bảng Users và User Access Logs nếu chưa có
+async function initAuthTables() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          open_id VARCHAR(128) UNIQUE NOT NULL,
+          union_id VARCHAR(128),
+          name VARCHAR(255) NOT NULL,
+          avatar_url TEXT,
+          email VARCHAR(255),
+          mobile VARCHAR(64),
+          first_login_at TIMESTAMP DEFAULT NOW(),
+          last_login_at TIMESTAMP DEFAULT NOW(),
+          login_count INT DEFAULT 1,
+          created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS user_access_logs (
+          id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES users(id) ON DELETE SET NULL,
+          open_id VARCHAR(128),
+          user_name VARCHAR(255),
+          ip_address VARCHAR(128),
+          user_agent TEXT,
+          action VARCHAR(64) NOT NULL,
+          details JSONB,
+          created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON user_access_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON user_access_logs(created_at DESC);
+    `);
+  } catch (err) {
+    console.error('Lỗi khởi tạo bảng auth:', err);
+  }
+}
+initAuthTables();
+
+// Cơ chế phiên làm việc (Session Token signed HMAC)
+const SESSION_SECRET = process.env.SESSION_SECRET || 'sakuko_lark_session_key_2026';
+
+function createSessionToken(user) {
+  const payload = JSON.stringify({
+    id: user.id,
+    open_id: user.open_id,
+    name: user.name,
+    exp: Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 ngày
+  });
+  const b64 = Buffer.from(payload).toString('base64url');
+  const hmac = crypto.createHmac('sha256', SESSION_SECRET).update(b64).digest('base64url');
+  return `${b64}.${hmac}`;
+}
+
+function verifySessionToken(token) {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  const [b64, hmac] = token.split('.');
+  const expectedHmac = crypto.createHmac('sha256', SESSION_SECRET).update(b64).digest('base64url');
+  if (hmac !== expectedHmac) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(b64, 'base64url').toString('utf8'));
+    if (Date.now() > payload.exp) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+function getCookie(req, name) {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 
 // Thư mục lưu trữ vĩnh viễn barcode trên ổ cứng máy chủ
 const barcodeCacheDir = path.join(__dirname, 'cache_barcodes');
@@ -196,6 +271,217 @@ app.get('/api/promotions', async (req, res) => {
   } catch (err) {
     console.error('ERROR in /api/promotions:', err);
     res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// ==========================================
+// 1. CÁC API XÁC THỰC LARK OAUTH 2.0 (SSO)
+// ==========================================
+
+// Endpoint khởi tạo đăng nhập bằng Lark
+app.get('/api/auth/lark/login', (req, res) => {
+  const redirectUri = process.env.LARK_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/auth/lark/callback`;
+  const state = crypto.randomBytes(16).toString('hex');
+  const authUrl = `https://open.larksuite.com/open-apis/authen/v1/authorize?app_id=${process.env.LARK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+  res.redirect(authUrl);
+});
+
+// Endpoint Callback khi người dùng đồng ý uỷ quyền trên Lark
+app.get('/api/auth/lark/callback', async (req, res) => {
+  const code = req.query.code;
+  const error = req.query.error;
+  if (error || !code) {
+    console.error('Lark OAuth callback error:', error);
+    return res.redirect('/?error=' + encodeURIComponent(error || 'missing_code'));
+  }
+
+  try {
+    // 1. Lấy app_access_token từ Lark
+    const tokenRes = await fetch('https://open.larksuite.com/open-apis/auth/v3/app_access_token/internal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app_id: process.env.LARK_APP_ID,
+        app_secret: process.env.LARK_APP_SECRET
+      })
+    });
+    const tokenData = await tokenRes.json();
+    if (tokenData.code !== 0) {
+      throw new Error('Lỗi lấy app_access_token: ' + tokenData.msg);
+    }
+    const appAccessToken = tokenData.app_access_token;
+
+    // 2. Đổi mã code lấy user_access_token qua OIDC endpoint
+    const oidcRes = await fetch('https://open.larksuite.com/open-apis/authen/v1/oidc/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${appAccessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        grant_type: 'authorization_code',
+        code: code
+      })
+    });
+    const oidcData = await oidcRes.json();
+    if (oidcData.code !== 0) {
+      throw new Error('Lỗi đổi mã code Lark: ' + (oidcData.message || oidcData.msg));
+    }
+    const userAccessToken = oidcData.data.access_token;
+
+    // 3. Lấy thông tin tài khoản người dùng Lark
+    const userRes = await fetch('https://open.larksuite.com/open-apis/authen/v1/user_info', {
+      headers: { 'Authorization': `Bearer ${userAccessToken}` }
+    });
+    const userData = await userRes.json();
+    if (userData.code !== 0) {
+      throw new Error('Lỗi lấy user_info từ Lark: ' + userData.msg);
+    }
+    const profile = userData.data;
+
+    // 4. Lưu hoặc cập nhật người dùng vào bảng users
+    const upsertQuery = `
+      INSERT INTO users (open_id, union_id, name, avatar_url, email, mobile, first_login_at, last_login_at, login_count)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), 1)
+      ON CONFLICT (open_id) DO UPDATE SET
+        name = EXCLUDED.name,
+        avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
+        email = COALESCE(EXCLUDED.email, users.email),
+        mobile = COALESCE(EXCLUDED.mobile, users.mobile),
+        last_login_at = NOW(),
+        login_count = users.login_count + 1
+      RETURNING id, open_id, name, avatar_url, email, login_count;
+    `;
+    const dbUserRes = await pool.query(upsertQuery, [
+      profile.open_id,
+      profile.union_id || null,
+      profile.name || profile.en_name || 'Người dùng Lark',
+      profile.avatar_url || profile.avatar_thumb || null,
+      profile.email || null,
+      profile.mobile || null
+    ]);
+    const user = dbUserRes.rows[0];
+
+    // 5. Ghi nhận log đăng nhập
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ua = req.headers['user-agent'] || '';
+    await pool.query(
+      `INSERT INTO user_access_logs (user_id, open_id, user_name, ip_address, user_agent, action, details)
+       VALUES ($1, $2, $3, $4, $5, 'LOGIN', $6)`,
+      [user.id, user.open_id, user.name, String(ip), String(ua), JSON.stringify({ via: 'lark_oauth' })]
+    );
+
+    // 6. Cấp cookie phiên làm việc
+    const token = createSessionToken(user);
+    res.cookie('sakuko_session', token, {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/',
+      sameSite: 'lax'
+    });
+
+    res.redirect('/');
+  } catch (err) {
+    console.error('Lỗi quy trình Lark OAuth:', err);
+    res.redirect('/?error=' + encodeURIComponent(err.message));
+  }
+});
+
+// Endpoint kiểm tra người dùng hiện tại
+app.get('/api/auth/me', async (req, res) => {
+  const token = getCookie(req, 'sakuko_session');
+  const session = verifySessionToken(token);
+  if (!session) {
+    return res.json({ loggedIn: false });
+  }
+  try {
+    const userRes = await pool.query(
+      'SELECT id, open_id, name, avatar_url, email, login_count, last_login_at FROM users WHERE id = $1',
+      [session.id]
+    );
+    if (userRes.rows.length === 0) {
+      return res.json({ loggedIn: false });
+    }
+    res.json({ loggedIn: true, user: userRes.rows[0] });
+  } catch (err) {
+    console.error('Lỗi truy vấn auth/me:', err);
+    res.status(500).json({ loggedIn: false, error: 'DB error' });
+  }
+});
+
+// Endpoint đăng xuất
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('sakuko_session', { path: '/' });
+  res.json({ success: true });
+});
+
+// ==========================================
+// 2. CÁC API TRACKING LƯỢT TRUY CẬP & HOẠT ĐỘNG
+// ==========================================
+
+// Ghi nhận một hành vi (ví dụ bấm in tem, xuất excel, xem trang...)
+app.post('/api/tracking/action', async (req, res) => {
+  const token = getCookie(req, 'sakuko_session');
+  const session = verifySessionToken(token);
+  const { action, details } = req.body;
+
+  const userId = session ? session.id : null;
+  const openId = session ? session.open_id : null;
+  const userName = session ? session.name : 'Chưa đăng nhập';
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  const ua = req.headers['user-agent'] || '';
+
+  try {
+    await pool.query(
+      `INSERT INTO user_access_logs (user_id, open_id, user_name, ip_address, user_agent, action, details)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [userId, openId, userName, String(ip), String(ua), action || 'VISIT', JSON.stringify(details || {})]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Lỗi ghi tracking action:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+// Thống kê tổng hợp lượt truy cập & danh sách hoạt động
+app.get('/api/tracking/stats', async (req, res) => {
+  try {
+    const totalUsersRes = await pool.query('SELECT COUNT(*) as count FROM users');
+    const totalLoginsRes = await pool.query("SELECT COUNT(*) as count FROM user_access_logs WHERE action = 'LOGIN'");
+    const totalPrintsRes = await pool.query("SELECT COUNT(*) as count FROM user_access_logs WHERE action = 'PRINT_TEM'");
+
+    const usersQuery = `
+      SELECT 
+        u.id, u.open_id, u.name, u.avatar_url, u.email, u.login_count, u.first_login_at, u.last_login_at,
+        COALESCE(COUNT(l.id) FILTER (WHERE l.action = 'PRINT_TEM'), 0)::int as print_count
+      FROM users u
+      LEFT JOIN user_access_logs l ON u.id = l.user_id
+      GROUP BY u.id
+      ORDER BY u.last_login_at DESC
+    `;
+    const usersRes = await pool.query(usersQuery);
+
+    const logsQuery = `
+      SELECT id, user_id, user_name, action, details, ip_address, created_at
+      FROM user_access_logs
+      ORDER BY created_at DESC
+      LIMIT 100
+    `;
+    const logsRes = await pool.query(logsQuery);
+
+    res.json({
+      summary: {
+        totalUsers: parseInt(totalUsersRes.rows[0].count, 10),
+        totalLogins: parseInt(totalLoginsRes.rows[0].count, 10),
+        totalPrints: parseInt(totalPrintsRes.rows[0].count, 10)
+      },
+      users: usersRes.rows,
+      recentLogs: logsRes.rows
+    });
+  } catch (err) {
+    console.error('Lỗi lấy thống kê tracking:', err);
+    res.status(500).json({ error: 'DB error' });
   }
 });
 

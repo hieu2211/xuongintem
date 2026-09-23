@@ -1,6 +1,272 @@
 const { useState, useEffect, useRef } = React;
 
+const LoginScreen = ({ onGuestLogin }) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-100 via-gray-100 to-pink-50 p-4 font-sans select-none">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col items-center text-center">
+        {/* Logo / Brand */}
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#10285B] to-[#E0376F] flex items-center justify-center shadow-lg shadow-pink-500/20 mb-6">
+          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+        </div>
+
+        <h1 className="text-2xl font-black text-[#10285B] mb-2 tracking-tight">XƯỞNG IN TEM SAKUKO</h1>
+        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+          Hệ thống in tem giá và tem khuyến mại nội bộ Sakuko Store. Vui lòng đăng nhập bằng tài khoản Lark để tiếp tục.
+        </p>
+
+        {error && (
+          <div className="w-full mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-xs font-semibold text-red-700 text-left">
+            ⚠️ Đăng nhập không thành công: {error}
+          </div>
+        )}
+
+        {/* Nút đăng nhập Lark */}
+        <a
+          href="/api/auth/lark/login"
+          className="w-full flex items-center justify-center gap-3 bg-[#3370ff] hover:bg-[#2860e1] active:scale-[0.99] text-white py-3.5 px-6 rounded-xl font-bold shadow-md shadow-blue-500/25 transition-all text-base mb-4 cursor-pointer"
+        >
+          <svg className="w-6 h-6 shrink-0 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12c0 4.41 2.87 8.14 6.84 9.47.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10.02 10.02 0 0022 12c0-5.52-4.48-10-10-10z"/>
+          </svg>
+          Đăng nhập bằng Lark
+        </a>
+
+        {onGuestLogin && (
+          <button
+            onClick={onGuestLogin}
+            className="text-xs text-gray-500 hover:text-gray-800 underline transition-colors"
+          >
+            Dùng thử với tài khoản Khách
+          </button>
+        )}
+
+        <div className="mt-8 pt-6 border-t border-gray-100 w-full flex items-center justify-center gap-2 text-xs text-gray-400 font-medium">
+          <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          Xác thực an toàn qua Lark Suite Sakuko
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StatsModal = ({ isOpen, onClose }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('users');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    fetch('/api/tracking/stats')
+      .then(r => r.json())
+      .then(d => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-gray-100 animate-in fade-in duration-200">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📊</span>
+            <div>
+              <h2 className="text-base font-bold text-[#10285B]">Thống kê Lượt truy cập & In tem</h2>
+              <p className="text-xs text-gray-500">Dữ liệu tracking người dùng theo thời gian thực</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+              <div className="w-10 h-10 border-4 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-3"></div>
+              <span>Đang tải số liệu thống kê...</span>
+            </div>
+          ) : data ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500 text-white flex items-center justify-center text-2xl font-bold shadow-md shadow-blue-500/20">👥</div>
+                  <div>
+                    <div className="text-2xl font-black text-blue-900">{data.summary.totalUsers}</div>
+                    <div className="text-xs font-semibold text-blue-700">Tổng nhân viên đã đăng nhập</div>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-2xl font-bold shadow-md shadow-emerald-500/20">🔑</div>
+                  <div>
+                    <div className="text-2xl font-black text-emerald-900">{data.summary.totalLogins}</div>
+                    <div className="text-xs font-semibold text-emerald-700">Tổng số lượt đăng nhập</div>
+                  </div>
+                </div>
+
+                <div className="bg-pink-50 border border-pink-100 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-[#E0376F] text-white flex items-center justify-center text-2xl font-bold shadow-md shadow-pink-500/20">🖨️</div>
+                  <div>
+                    <div className="text-2xl font-black text-pink-900">{data.summary.totalPrints}</div>
+                    <div className="text-xs font-semibold text-pink-700">Tổng số lần in tem</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex border-b border-gray-200">
+                <button
+                  onClick={() => setTab('users')}
+                  className={`py-2.5 px-4 font-bold text-sm border-b-2 transition-colors ${tab === 'users' ? 'border-[#E0376F] text-[#E0376F]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  Danh sách Nhân viên ({data.users.length})
+                </button>
+                <button
+                  onClick={() => setTab('logs')}
+                  className={`py-2.5 px-4 font-bold text-sm border-b-2 transition-colors ${tab === 'logs' ? 'border-[#E0376F] text-[#E0376F]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  Nhật ký hoạt động gần đây ({data.recentLogs.length})
+                </button>
+              </div>
+
+              {tab === 'users' ? (
+                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-gray-600 font-bold text-xs uppercase border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Nhân viên</th>
+                        <th className="py-3 px-4">Email</th>
+                        <th className="py-3 px-4 text-center">Lượt đăng nhập</th>
+                        <th className="py-3 px-4 text-center">Số lần in tem</th>
+                        <th className="py-3 px-4 text-right">Lần truy cập cuối</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {data.users.length === 0 ? (
+                        <tr><td colSpan="5" className="text-center py-8 text-gray-400">Chưa có người dùng nào đăng nhập</td></tr>
+                      ) : (
+                        data.users.map(u => (
+                          <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="py-3 px-4 flex items-center gap-3">
+                              <img
+                                src={u.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
+                                className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                                alt=""
+                              />
+                              <span className="font-bold text-gray-800">{u.name}</span>
+                            </td>
+                            <td className="py-3 px-4 text-gray-500 text-xs">{u.email || '—'}</td>
+                            <td className="py-3 px-4 text-center font-bold text-blue-600">{u.login_count}</td>
+                            <td className="py-3 px-4 text-center font-bold text-pink-600">{u.print_count}</td>
+                            <td className="py-3 px-4 text-right text-xs text-gray-500 font-mono">
+                              {new Date(u.last_login_at).toLocaleString('vi-VN')}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-gray-600 font-bold text-xs uppercase border-b border-gray-200">
+                      <tr>
+                        <th className="py-3 px-4">Thời gian</th>
+                        <th className="py-3 px-4">Người dùng</th>
+                        <th className="py-3 px-4">Hành động</th>
+                        <th className="py-3 px-4">Chi tiết</th>
+                        <th className="py-3 px-4 text-right">IP</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs">
+                      {data.recentLogs.length === 0 ? (
+                        <tr><td colSpan="5" className="text-center py-8 text-gray-400">Chưa có nhật ký hoạt động nào</td></tr>
+                      ) : (
+                        data.recentLogs.map(l => (
+                          <tr key={l.id} className="hover:bg-gray-50">
+                            <td className="py-2.5 px-4 text-gray-500 font-mono whitespace-nowrap">
+                              {new Date(l.created_at).toLocaleString('vi-VN')}
+                            </td>
+                            <td className="py-2.5 px-4 font-bold text-gray-800 whitespace-nowrap">{l.user_name}</td>
+                            <td className="py-2.5 px-4">
+                              <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                l.action === 'LOGIN' ? 'bg-blue-100 text-blue-800' :
+                                l.action === 'PRINT_TEM' ? 'bg-pink-100 text-pink-800' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {l.action === 'LOGIN' ? 'Đăng nhập' : l.action === 'PRINT_TEM' ? 'In tem' : l.action}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-4 text-gray-600 font-mono max-w-xs truncate">
+                              {l.details ? JSON.stringify(l.details) : '—'}
+                            </td>
+                            <td className="py-2.5 px-4 text-right text-gray-400 font-mono whitespace-nowrap">
+                              {l.ip_address || '—'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-10 text-red-500">Lỗi nạp dữ liệu thống kê</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
+  // Lark Auth & Tracking State
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.loggedIn && data.user) {
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      })
+      .catch(err => {
+        console.error('Lỗi auth/me:', err);
+        setCurrentUser(null);
+      })
+      .finally(() => {
+        setAuthLoading(false);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      setCurrentUser(null);
+    } catch (err) {
+      console.error('Lỗi logout:', err);
+    }
+  };
+
   const [products, setProducts] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('normal');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -996,6 +1262,19 @@ function App() {
       TemplateComponent = TemplateSpecialPromo;
   }
 
+  if (authLoading) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 font-sans select-none">
+        <div className="w-12 h-12 border-4 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="text-[#10285B] font-bold text-base tracking-wide">Đang khởi động Xưởng in tem...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return <LoginScreen onGuestLogin={() => setCurrentUser({ id: 0, name: 'Khách (Dùng thử)', avatar_url: '', email: 'guest@sakuko.vn', login_count: 1 })} />;
+  }
+
   const pages = getPaginatedTags();
   const totalTags = products.reduce((sum, p) => sum + p.quantity, 0);
 
@@ -1267,6 +1546,21 @@ function App() {
                                     return;
                                 }
                             }
+                            // Ghi nhận log tracking sự kiện in tem
+                            fetch('/api/tracking/action', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'PRINT_TEM',
+                                details: {
+                                  template: selectedTemplate,
+                                  tagCount: totalTags,
+                                  store: selectedStore || 'Toàn hệ thống',
+                                  promoType: promoType
+                                }
+                              })
+                            }).catch(err => console.error('Lỗi tracking print:', err));
+
                             window.print();
                         }}
                         disabled={products.length === 0}
@@ -1288,6 +1582,39 @@ function App() {
                         )}
                         {!isAllBarcodesLoaded && products.length > 0 ? `ĐANG NẠP MÃ (${loadedBarcodesCount}/${totalBarcodesCount})` : 'IN TEM'}
                     </button>
+
+                    {/* Góc thông tin tài khoản Lark & Nút Thống kê */}
+                    {currentUser && (
+                      <div className="flex items-center gap-2.5 border-l border-gray-200 pl-3">
+                        <button
+                          onClick={() => setShowStatsModal(true)}
+                          title="Xem thống kê lượt truy cập & in ấn của nhân viên"
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 px-2.5 rounded-lg flex items-center gap-1.5 transition-colors text-xs"
+                        >
+                          <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                          <span className="hidden sm:inline">Thống kê</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <img
+                            src={currentUser.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.name)}`}
+                            className="w-7 h-7 rounded-full border border-gray-200 object-cover shadow-sm"
+                            alt=""
+                          />
+                          <span className="text-xs font-bold text-gray-800 hidden md:inline max-w-[120px] truncate" title={currentUser.name}>
+                            {currentUser.name}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={handleLogout}
+                          title="Đăng xuất khỏi hệ thống"
+                          className="text-gray-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                      </div>
+                    )}
                 </div>
             </div>
 
@@ -1396,6 +1723,9 @@ function App() {
             margin: 0; 
           }
         `}} />
+
+        {/* Modal Thống kê Tracking */}
+        <StatsModal isOpen={showStatsModal} onClose={() => setShowStatsModal(false)} />
     </div>
   );
 }
