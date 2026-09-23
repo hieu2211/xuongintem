@@ -49,6 +49,7 @@ const LoginScreen = ({ onGuestLogin }) => {
 const StatsModal = ({ isOpen, onClose }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [tab, setTab] = useState('users'); // 'users' or 'logs'
 
   // Bộ lọc theo ngày (mặc định 30 ngày qua)
@@ -59,6 +60,7 @@ const StatsModal = ({ isOpen, onClose }) => {
 
   const fetchStats = (sDate, eDate) => {
     setLoading(true);
+    setErrorMsg(null);
     let url = '/api/tracking/stats';
     const params = new URLSearchParams();
     if (sDate) params.append('startDate', sDate);
@@ -66,8 +68,11 @@ const StatsModal = ({ isOpen, onClose }) => {
     if (params.toString()) url += '?' + params.toString();
 
     fetch(url)
-      .then(r => {
-        if (!r.ok) throw new Error('Không có quyền hoặc lỗi server');
+      .then(async r => {
+        if (!r.ok) {
+          const errJson = await r.json().catch(() => ({}));
+          throw new Error(errJson.error || `Lỗi tải dữ liệu (${r.status})`);
+        }
         return r.json();
       })
       .then(d => {
@@ -76,6 +81,7 @@ const StatsModal = ({ isOpen, onClose }) => {
       })
       .catch(err => {
         console.error(err);
+        setErrorMsg(err.message);
         setLoading(false);
       });
   };
@@ -417,8 +423,8 @@ const StatsModal = ({ isOpen, onClose }) => {
               )}
             </>
           ) : (
-            <div className="text-center py-10 text-red-500">
-              Bạn không có quyền xem thống kê hoặc phiên làm việc đã hết hạn.
+            <div className="text-center py-10 text-red-500 font-medium">
+              {errorMsg || 'Bạn không có quyền xem thống kê hoặc phiên làm việc đã hết hạn.'}
             </div>
           )}
         </div>
