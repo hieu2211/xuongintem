@@ -637,8 +637,8 @@ function App() {
         
         <div className="flex-1 min-h-0 px-6 flex items-start justify-between relative mt-1">
            {showPromoText ? (
-              <div className="relative flex flex-col items-center justify-center w-[140px] shrink-0 border-[3px] border-black bg-white px-2 py-1 min-h-[80px] self-start mt-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                  <span className="text-black font-bold text-[15px] leading-tight text-center break-words w-full uppercase">
+              <div className="relative flex flex-col items-center justify-center w-[185px] shrink-0 border-[3px] border-black bg-white px-2 py-1 min-h-[60px] max-h-[85px] self-start mt-0.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] overflow-hidden">
+                  <span className={`text-black font-bold leading-tight text-center break-words w-full uppercase ${(product.promoContent || '').length > 45 ? 'text-[13px]' : 'text-[14px]'}`}>
                       {product.promoContent}
                   </span>
               </div>
@@ -653,7 +653,7 @@ function App() {
            ) : (
               <div className="w-[90px] shrink-0"></div>
            )}
-           <div className="flex flex-col items-end justify-start flex-1 ml-4 overflow-hidden relative top-[0px]">
+           <div className="flex flex-col items-end justify-start flex-1 ml-3 overflow-hidden relative top-[0px]">
               <div className="flex items-baseline text-black justify-end w-full mt-1">
                   <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[65px]' : priceMain.length > 5 ? 'text-[80px]' : 'text-[95px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
                   <span className={`font-bold ml-1 shrink-0 ${priceMain.length > 5 ? 'text-[32px]' : 'text-[40px]'}`}>{priceSub}</span>
