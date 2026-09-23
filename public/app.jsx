@@ -36,18 +36,94 @@ const LoginScreen = ({ onGuestLogin }) => {
           Đăng nhập bằng Lark
         </a>
 
-        {onGuestLogin && (
-          <button
-            onClick={onGuestLogin}
-            className="text-xs text-gray-500 hover:text-gray-800 underline transition-colors"
-          >
-            Dùng thử với tài khoản Khách
-          </button>
-        )}
 
         <div className="mt-8 pt-6 border-t border-gray-100 w-full flex items-center justify-center gap-2 text-xs text-gray-400 font-medium">
           <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
           Xác thực an toàn qua Lark Suite Sakuko
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PendingApprovalScreen = ({ currentUser, onCheckAgain, onLogout }) => {
+  const isBlocked = currentUser && currentUser.status === 'blocked';
+
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-100 via-gray-100 to-pink-50 p-4 font-sans select-none">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 flex flex-col items-center text-center">
+        {/* Icon & Status */}
+        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg mb-5 ${
+          isBlocked 
+            ? 'bg-gradient-to-tr from-red-600 to-rose-400 text-white shadow-red-500/25' 
+            : 'bg-gradient-to-tr from-amber-500 to-yellow-400 text-white shadow-amber-500/25'
+        }`}>
+          {isBlocked ? (
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+            </svg>
+          ) : (
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          )}
+        </div>
+
+        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3 ${
+          isBlocked ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
+        }`}>
+          {isBlocked ? 'Tài khoản đã bị tạm khóa' : 'Đang chờ phê duyệt'}
+        </span>
+
+        <h2 className="text-xl font-black text-[#10285B] mb-2">
+          {isBlocked ? 'Truy cập bị từ chối' : 'Chờ Admin cấp quyền truy cập'}
+        </h2>
+
+        {/* User Card */}
+        <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3 my-4 text-left">
+          <img
+            src={currentUser.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.name)}`}
+            className="w-11 h-11 rounded-full border border-gray-200 object-cover shadow-sm shrink-0"
+            alt=""
+          />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold text-gray-800 truncate">{currentUser.name}</div>
+            <div className="text-xs text-gray-500 truncate">{currentUser.email || 'Lark ID: ' + currentUser.open_id}</div>
+          </div>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+          {isBlocked ? (
+            <span>Tài khoản của bạn hiện đang bị khóa truy cập bởi Quản trị viên <strong>Hoàng Văn Hiếu</strong>. Vui lòng liên hệ trực tiếp để được mở khóa.</span>
+          ) : (
+            <span>
+              Xin chào <strong>{currentUser.name}</strong>! Tài khoản của bạn đã được ghi nhận trên hệ thống nhưng cần được Quản trị viên <strong>Hoàng Văn Hiếu</strong> phê duyệt (add vào) trước khi có thể sử dụng xưởng in tem.
+            </span>
+          )}
+        </p>
+
+        {/* Buttons */}
+        <div className="w-full space-y-2.5">
+          {!isBlocked && (
+            <button
+              onClick={onCheckAgain}
+              className="w-full bg-[#10285B] hover:bg-[#0c1f47] active:scale-[0.99] text-white py-2.5 px-4 rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              Kiểm tra lại trạng thái
+            </button>
+          )}
+
+          <button
+            onClick={onLogout}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-bold transition-all text-sm cursor-pointer"
+          >
+            Đăng xuất
+          </button>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-gray-100 w-full text-center text-xs text-gray-400">
+          Hệ thống Quản lý Xưởng in tem Sakuko
         </div>
       </div>
     </div>
@@ -64,6 +140,12 @@ const StatsModal = ({ isOpen, onClose }) => {
   const thirtyDaysAgoStr = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(thirtyDaysAgoStr);
   const [endDate, setEndDate] = useState(todayStr);
+
+  // State thêm nhân viên vào danh sách duyệt trước (Whitelist)
+  const [whitelistEmail, setWhitelistEmail] = useState('');
+  const [whitelistNote, setWhitelistNote] = useState('');
+  const [whitelistMsg, setWhitelistMsg] = useState('');
+  const [whitelistLoading, setWhitelistLoading] = useState(false);
 
   const fetchStats = (sDate, eDate) => {
     setLoading(true);
@@ -114,24 +196,70 @@ const StatsModal = ({ isOpen, onClose }) => {
     }
   };
 
-  // Đổi quyền Admin / User
-  const handleToggleRole = async (user) => {
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
-    const confirmMsg = newRole === 'admin' 
-      ? `Bạn có chắc chắn muốn cấp quyền Quản trị viên (Admin) cho "${user.name}" không?` 
-      : `Bạn có chắc chắn muốn chuyển "${user.name}" về tài khoản Nhân viên thường không?`;
-    if (!confirm(confirmMsg)) return;
+  // Duyệt hoặc khóa tài khoản nhân viên
+  const handleSetStatus = async (user, newStatus) => {
+    const actionLabel = newStatus === 'approved' ? 'duyệt cho phép sử dụng' : 'tạm khóa tài khoản';
+    if (!confirm(`Bạn có chắc chắn muốn ${actionLabel} của "${user.name}" không?`)) return;
 
     try {
-      const res = await fetch('/api/tracking/set-role', {
+      const res = await fetch('/api/admin/set-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetUserId: user.id, newRole })
+        body: JSON.stringify({ targetUserId: user.id, newStatus })
       });
+      const json = await res.json();
       if (res.ok) {
         fetchStats(startDate, endDate);
       } else {
-        alert('Không thể cập nhật quyền');
+        alert(json.error || 'Lỗi cập nhật trạng thái');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // Thêm email vào danh sách duyệt trước (Whitelist)
+  const handleAddWhitelist = async (e) => {
+    if (e) e.preventDefault();
+    if (!whitelistEmail || !whitelistEmail.includes('@')) {
+      return alert('Vui lòng nhập địa chỉ email Lark hợp lệ (ví dụ: nhanvien@sakukovietnam.com.vn)');
+    }
+    setWhitelistLoading(true);
+    setWhitelistMsg('');
+    try {
+      const res = await fetch('/api/admin/whitelist/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: whitelistEmail, note: whitelistNote })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setWhitelistEmail('');
+        setWhitelistNote('');
+        setWhitelistMsg(json.message || 'Đã thêm thành công!');
+        fetchStats(startDate, endDate);
+        setTimeout(() => setWhitelistMsg(''), 5000);
+      } else {
+        alert(json.error || 'Không thể thêm nhân viên');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setWhitelistLoading(false);
+    }
+  };
+
+  // Xóa email khỏi danh sách duyệt trước
+  const handleRemoveWhitelist = async (item) => {
+    if (!confirm(`Bạn có chắc muốn xóa email "${item.email}" khỏi danh sách được phép dùng không?`)) return;
+    try {
+      const res = await fetch('/api/admin/whitelist/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id })
+      });
+      if (res.ok) {
+        fetchStats(startDate, endDate);
       }
     } catch (e) {
       console.error(e);
@@ -145,14 +273,19 @@ const StatsModal = ({ isOpen, onClose }) => {
 
     // Sheet 1: Tổng hợp nhân viên
     const wsUsersData = [
-      ['STT', 'Họ và tên', 'Email', 'Vai trò', 'Lượt đăng nhập', 'Số lần in tem (trong kỳ)', 'Lần truy cập cuối', 'Lần đầu đăng nhập']
+      ['STT', 'Họ và tên', 'Email', 'Vai trò', 'Trạng thái', 'Lượt đăng nhập', 'Số lần in tem (trong kỳ)', 'Lần truy cập cuối', 'Lần đầu đăng nhập']
     ];
     data.users.forEach((u, idx) => {
+      const isHieu = u.open_id === 'ou_07ff157813f7a579760d5e076f2e0860' || (u.email && u.email.toLowerCase() === 'hieuhv2@sakukovietnam.com.vn') || (u.name && u.name.includes('Hoàng Văn Hiếu'));
+      const isApproved = isHieu || u.status === 'approved';
+      const statusLabel = isApproved ? 'Đã duyệt' : (u.status === 'blocked' ? 'Đã khóa' : 'Chờ duyệt');
+
       wsUsersData.push([
         idx + 1,
         u.name || '',
         u.email || '',
-        u.role === 'admin' ? 'Quản trị viên (Admin)' : 'Nhân viên',
+        isHieu ? 'Quản trị viên (Hoàng Văn Hiếu)' : 'Nhân viên',
+        statusLabel,
         u.login_count || 0,
         u.print_count || 0,
         u.last_login_at ? new Date(u.last_login_at).toLocaleString('vi-VN') : '',
@@ -195,15 +328,15 @@ const StatsModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-gray-100 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-gray-100 animate-in fade-in duration-200">
         
         {/* Header */}
         <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-xl">📊</span>
             <div>
-              <h2 className="text-base font-bold text-[#10285B]">Thống kê Lượt truy cập & In tem</h2>
-              <p className="text-xs text-gray-500">Phân quyền Quản trị viên & Theo dõi hoạt động theo ngày</p>
+              <h2 className="text-base font-bold text-[#10285B]">Quản lý Phân quyền & Thống kê Hoạt động</h2>
+              <p className="text-xs text-gray-500">Quản trị viên: Hoàng Văn Hiếu — Quản lý nhân viên & Xuất báo cáo</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100">
@@ -295,7 +428,7 @@ const StatsModal = ({ isOpen, onClose }) => {
                   onClick={() => setTab('users')}
                   className={`py-2.5 px-4 font-bold text-sm border-b-2 transition-colors ${tab === 'users' ? 'border-[#E0376F] text-[#E0376F]' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                 >
-                  Danh sách Nhân viên ({data.users.length})
+                  Danh sách Nhân viên & Phân quyền ({data.users.length})
                 </button>
                 <button
                   onClick={() => setTab('logs')}
@@ -306,63 +439,183 @@ const StatsModal = ({ isOpen, onClose }) => {
               </div>
 
               {tab === 'users' ? (
-                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 text-gray-600 font-bold text-xs uppercase border-b border-gray-200">
-                      <tr>
-                        <th className="py-3 px-4">Nhân viên</th>
-                        <th className="py-3 px-4">Email</th>
-                        <th className="py-3 px-4 text-center">Vai trò</th>
-                        <th className="py-3 px-4 text-center">Lượt đăng nhập</th>
-                        <th className="py-3 px-4 text-center">Số lần in tem</th>
-                        <th className="py-3 px-4 text-right">Lần truy cập cuối</th>
-                        <th className="py-3 px-4 text-center">Phân quyền</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {data.users.length === 0 ? (
-                        <tr><td colSpan="7" className="text-center py-8 text-gray-400">Chưa có người dùng nào đăng nhập</td></tr>
-                      ) : (
-                        data.users.map(u => (
-                          <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="py-3 px-4 flex items-center gap-3">
-                              <img
-                                src={u.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
-                                className="w-8 h-8 rounded-full border border-gray-200 object-cover"
-                                alt=""
-                              />
-                              <span className="font-bold text-gray-800">{u.name}</span>
-                            </td>
-                            <td className="py-3 px-4 text-gray-500 text-xs">{u.email || '—'}</td>
-                            <td className="py-3 px-4 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                                u.role === 'admin' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {u.role === 'admin' ? '👑 Admin' : 'Nhân viên'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-center font-bold text-blue-600">{u.login_count}</td>
-                            <td className="py-3 px-4 text-center font-bold text-pink-600">{u.print_count}</td>
-                            <td className="py-3 px-4 text-right text-xs text-gray-500 font-mono">
-                              {new Date(u.last_login_at).toLocaleString('vi-VN')}
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <button
-                                onClick={() => handleToggleRole(u)}
-                                className={`text-[11px] font-bold px-2 py-1 rounded transition-colors ${
-                                  u.role === 'admin' 
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                    : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
-                                }`}
-                              >
-                                {u.role === 'admin' ? 'Hạ quyền' : 'Thăng Admin'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                <div className="space-y-6">
+                  {/* Form thêm nhân viên được phép dùng (Whitelist trước) */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-base">➕</span>
+                      <h3 className="font-bold text-sm text-[#10285B]">Thêm nhân viên được phép dùng (Thêm vào danh sách duyệt trước)</h3>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Nhập email Lark của nhân viên. Khi tài khoản này đăng nhập qua Lark, hệ thống sẽ tự động cấp quyền sử dụng ngay lập tức mà không cần chờ duyệt.
+                    </p>
+                    <form onSubmit={handleAddWhitelist} className="flex flex-wrap items-center gap-2">
+                      <input
+                        type="email"
+                        placeholder="Nhập email Lark (vd: abc@sakukovietnam.com.vn)..."
+                        value={whitelistEmail}
+                        onChange={e => setWhitelistEmail(e.target.value)}
+                        required
+                        className="flex-1 min-w-[240px] bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 shadow-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Ghi chú (bộ phận / cửa hàng)..."
+                        value={whitelistNote}
+                        onChange={e => setWhitelistNote(e.target.value)}
+                        className="w-48 bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-blue-500 shadow-sm"
+                      />
+                      <button
+                        type="submit"
+                        disabled={whitelistLoading}
+                        className="bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold px-4 py-2 rounded-lg text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer disabled:bg-gray-400"
+                      >
+                        {whitelistLoading ? 'Đang thêm...' : '➕ Thêm nhân viên'}
+                      </button>
+                    </form>
+                    {whitelistMsg && (
+                      <div className="mt-2 text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                        <span>✅</span> {whitelistMsg}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bảng nhân viên */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                      <span className="font-bold text-xs text-gray-700 uppercase">Tài khoản nhân viên trong hệ thống ({data.users.length})</span>
+                    </div>
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-gray-50 text-gray-600 font-bold text-xs uppercase border-b border-gray-200">
+                        <tr>
+                          <th className="py-3 px-4">Nhân viên</th>
+                          <th className="py-3 px-4">Email</th>
+                          <th className="py-3 px-4 text-center">Vai trò</th>
+                          <th className="py-3 px-4 text-center">Trạng thái</th>
+                          <th className="py-3 px-4 text-center">Đăng nhập</th>
+                          <th className="py-3 px-4 text-center">In tem</th>
+                          <th className="py-3 px-4 text-right">Lần truy cập cuối</th>
+                          <th className="py-3 px-4 text-center">Thao tác duyệt</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {data.users.length === 0 ? (
+                          <tr><td colSpan="8" className="text-center py-8 text-gray-400">Chưa có người dùng nào đăng nhập</td></tr>
+                        ) : (
+                          data.users.map(u => {
+                            const isHieu = u.open_id === 'ou_07ff157813f7a579760d5e076f2e0860' || (u.email && u.email.toLowerCase() === 'hieuhv2@sakukovietnam.com.vn') || (u.name && u.name.includes('Hoàng Văn Hiếu'));
+                            const isApproved = isHieu || u.status === 'approved';
+                            const isPending = !isHieu && (!u.status || u.status === 'pending');
+                            const isBlocked = !isHieu && u.status === 'blocked';
+
+                            return (
+                              <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="py-3 px-4 flex items-center gap-3">
+                                  <img
+                                    src={u.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`}
+                                    className="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                                    alt=""
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-gray-800">{u.name}</span>
+                                    {isHieu && <span className="text-[10px] text-purple-600 font-bold">Admin hệ thống</span>}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4 text-gray-500 text-xs">{u.email || '—'}</td>
+                                <td className="py-3 px-4 text-center">
+                                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                    isHieu ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {isHieu ? '👑 Admin' : 'Nhân viên'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 text-center">
+                                  {isApproved ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                      🟢 Đã duyệt
+                                    </span>
+                                  ) : isPending ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                                      🟡 Chờ duyệt
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
+                                      🔴 Đã khóa
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-4 text-center font-bold text-blue-600">{u.login_count}</td>
+                                <td className="py-3 px-4 text-center font-bold text-pink-600">{u.print_count}</td>
+                                <td className="py-3 px-4 text-right text-xs text-gray-500 font-mono">
+                                  {new Date(u.last_login_at).toLocaleString('vi-VN')}
+                                </td>
+                                <td className="py-3 px-4 text-center">
+                                  {isHieu ? (
+                                    <span className="text-xs text-gray-400 font-medium italic">Toàn quyền</span>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-1.5">
+                                      {isPending && (
+                                        <button
+                                          onClick={() => handleSetStatus(u, 'approved')}
+                                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded shadow-sm transition-all"
+                                          title="Duyệt cho phép nhân viên này vào xưởng in tem"
+                                        >
+                                          ✅ Duyệt cho dùng
+                                        </button>
+                                      )}
+                                      {isApproved && (
+                                        <button
+                                          onClick={() => handleSetStatus(u, 'blocked')}
+                                          className="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2 py-1 rounded transition-colors"
+                                          title="Tạm khóa quyền sử dụng của nhân viên này"
+                                        >
+                                          ⛔ Khóa lại
+                                        </button>
+                                      )}
+                                      {isBlocked && (
+                                        <button
+                                          onClick={() => handleSetStatus(u, 'approved')}
+                                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] px-2 py-1 rounded transition-colors"
+                                          title="Mở khóa cho nhân viên này"
+                                        >
+                                          🔓 Mở lại
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Danh sách email đã được Hiếu duyệt trước (Whitelist) */}
+                  {data.whitelist && data.whitelist.length > 0 && (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                      <div className="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                        <span className="font-bold text-xs text-gray-700 uppercase">Danh sách Email đã được duyệt trước ({data.whitelist.length})</span>
+                        <span className="text-[11px] text-gray-500">Các tài khoản này khi vào Lark sẽ được dùng ngay</span>
+                      </div>
+                      <div className="p-3 bg-white flex flex-wrap gap-2">
+                        {data.whitelist.map(w => (
+                          <div key={w.id} className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 text-xs text-blue-900 shadow-sm">
+                            <span className="font-semibold">{w.email}</span>
+                            {w.note && <span className="text-[10px] text-blue-600 italic">({w.note})</span>}
+                            <button
+                              onClick={() => handleRemoveWhitelist(w)}
+                              className="text-gray-400 hover:text-red-600 ml-1 font-bold text-sm cursor-pointer"
+                              title="Xóa khỏi danh sách duyệt trước"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -426,23 +679,25 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
-        if (data.loggedIn && data.user) {
-          setCurrentUser(data.user);
-        } else {
-          setCurrentUser(null);
-        }
-      })
-      .catch(err => {
-        console.error('Lỗi auth/me:', err);
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.loggedIn && data.user) {
+        setCurrentUser(data.user);
+      } else {
         setCurrentUser(null);
-      })
-      .finally(() => {
-        setAuthLoading(false);
-      });
+      }
+    } catch (err) {
+      console.error('Lỗi auth/me:', err);
+      setCurrentUser(null);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
   }, []);
 
   const handleLogout = async () => {
@@ -1459,7 +1714,18 @@ function App() {
   }
 
   if (!currentUser) {
-    return <LoginScreen onGuestLogin={() => setCurrentUser({ id: 0, name: 'Khách (Dùng thử)', avatar_url: '', email: 'guest@sakuko.vn', role: 'user', isAdmin: false, login_count: 1 })} />;
+    return <LoginScreen />;
+  }
+
+  // Nếu tài khoản không phải Admin và chưa được Admin phê duyệt
+  if (!currentUser.isAdmin && currentUser.status !== 'approved') {
+    return (
+      <PendingApprovalScreen
+        currentUser={currentUser}
+        onCheckAgain={checkAuth}
+        onLogout={handleLogout}
+      />
+    );
   }
 
   const pages = getPaginatedTags();

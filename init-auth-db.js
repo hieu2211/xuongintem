@@ -39,8 +39,16 @@ async function init() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON user_access_logs(user_id);
-    CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON user_access_logs(created_at DESC);
     ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(32) DEFAULT 'user';
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'pending';
+
+    CREATE TABLE IF NOT EXISTS whitelist_users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        note VARCHAR(255),
+        added_by INT REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
   `);
   console.log('✅ Khởi tạo cơ sở dữ liệu thành công!');
   process.exit(0);
