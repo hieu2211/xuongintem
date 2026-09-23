@@ -399,7 +399,7 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 80;
         pagePadding = { x: 15, y: 20 };
-        tagGap = 2;
+        tagGap = 1;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -806,60 +806,58 @@ function App() {
     }
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-2.5 box-border relative font-sans text-black select-none">
-        <div className="w-full h-full border-[2.5px] border-black rounded-[8px] flex flex-col p-2.5 relative overflow-hidden bg-white">
-            {/* Tên sản phẩm */}
-            <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pb-2 pt-0.5 text-black font-sans">
-              {product.name}
-            </div>
+      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3 box-border relative font-sans text-black select-none overflow-hidden">
+        {/* Tên sản phẩm */}
+        <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pb-2 pt-0.5 text-black font-sans">
+          {product.name}
+        </div>
 
-            {/* Vạch ngang ngăn cách */}
-            <div className="w-full border-b-[2px] border-black mb-2 shrink-0"></div>
+        {/* Vạch ngang ngăn cách */}
+        <div className="w-full border-b-[2px] border-black mb-2 shrink-0"></div>
 
-            {/* Mã sản phẩm */}
-            <div className="flex items-center justify-center gap-3 px-2 font-sans text-black shrink-0 text-center">
-               <span className="font-bold text-[24px]">Mã SP</span>
-               <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
-            </div>
+        {/* Mã sản phẩm */}
+        <div className="flex items-center justify-center gap-3 px-2 font-sans text-black shrink-0 text-center">
+           <span className="font-bold text-[24px]">Mã SP</span>
+           <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
+        </div>
 
-            {/* Khu vực giá khuyến mãi ghi rõ ràng */}
-            <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
-               <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
-                 <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'}>
-                   {priceText}
-                 </span>
-                 <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
-                   đ
-                 </span>
-               </div>
+        {/* Khu vực giá khuyến mãi ghi rõ ràng */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
+           <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
+             <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'}>
+               {priceText}
+             </span>
+             <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
+               đ
+             </span>
+           </div>
 
-               {oldPriceText ? (
-                 <div className="mt-3 text-center text-gray-700 font-bold text-[38px] tracking-tight leading-none">
-                   <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
-                 </div>
-               ) : (
-                 <div className="h-6"></div>
-               )}
-            </div>
+           {oldPriceText ? (
+             <div className="mt-3 text-center text-gray-700 font-bold text-[38px] tracking-tight leading-none">
+               <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
+             </div>
+           ) : (
+             <div className="h-6"></div>
+           )}
+        </div>
 
-            {/* Ô tiết kiệm (discount_amount) */}
-            {savingDisplay ? (
-              <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1.5 px-3 flex items-center justify-center gap-2 mb-2 shrink-0 font-sans">
-                <span className="text-[24px] font-bold text-black">Tiết kiệm:</span>
-                <span className="text-[28px] font-black text-black">{savingDisplay}</span>
-                <span className="text-[22px] font-bold text-black">đ</span>
-              </div>
-            ) : (
-              <div className="h-2"></div>
-            )}
+        {/* Ô tiết kiệm (discount_amount) */}
+        {savingDisplay ? (
+          <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1.5 px-3 flex items-center justify-center gap-2 mb-2 shrink-0 font-sans">
+            <span className="text-[24px] font-bold text-black">Tiết kiệm:</span>
+            <span className="text-[28px] font-black text-black">{savingDisplay}</span>
+            <span className="text-[22px] font-bold text-black">đ</span>
+          </div>
+        ) : (
+          <div className="h-2"></div>
+        )}
 
-            {/* Thời gian áp dụng */}
-            <div className="text-center font-sans text-black mb-1 shrink-0">
-               <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
-               <div className="text-[22px] font-bold leading-tight mt-0.5">
-                 {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
-               </div>
-            </div>
+        {/* Thời gian áp dụng */}
+        <div className="text-center font-sans text-black mb-1 shrink-0">
+           <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
+           <div className="text-[22px] font-bold leading-tight mt-0.5">
+             {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+           </div>
         </div>
       </div>
     );
