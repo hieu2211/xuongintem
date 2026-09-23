@@ -789,36 +789,20 @@ function App() {
     const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
     const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
     
-    // Phần nghìn (in to khổng lồ) và phần lẻ
-    let mainThousands = '0';
-    let remainderDisplay = '000';
-    if (numPrice >= 1000) {
-      mainThousands = Math.floor(numPrice / 1000);
-      const rem = numPrice % 1000;
-      remainderDisplay = rem > 0 ? String(rem).padStart(3, '0') : '000';
-    } else if (numPrice > 0) {
-      mainThousands = numPrice;
-      remainderDisplay = '000';
-    }
+    // Giá mới hiển thị đầy đủ: ví dụ 135.000đ
+    const priceText = formatCurrency(product.price);
 
-    // Giá cũ gạch ngang (lấy phần nghìn nếu tròn 3 số 0, hoặc format đầy đủ nếu lẻ)
-    let oldPriceDisplay = '';
-    if (numOriginalPrice > 0) {
-      if (numOriginalPrice % 1000 === 0) {
-        oldPriceDisplay = Math.floor(numOriginalPrice / 1000);
-      } else {
-        oldPriceDisplay = numOriginalPrice.toLocaleString('en-US');
-      }
-    }
+    // Giá cũ gạch ngang rõ ràng: ví dụ 150.000đ
+    const oldPriceText = numOriginalPrice > 0 ? formatCurrency(product.originalPrice) : '';
 
     // Số tiền tiết kiệm (ưu tiên discountAmount từ database: discount_amount)
     let savingDisplay = '';
     if (product.discountAmount) {
       const numSaving = parseFloat(String(product.discountAmount).replace(/[^\d]/g, '')) || 0;
-      if (numSaving > 0) savingDisplay = numSaving.toLocaleString('en-US');
+      if (numSaving > 0) savingDisplay = formatCurrency(numSaving);
     }
     if (!savingDisplay && numOriginalPrice > numPrice) {
-      savingDisplay = (numOriginalPrice - numPrice).toLocaleString('en-US');
+      savingDisplay = formatCurrency(numOriginalPrice - numPrice);
     }
 
     return (
@@ -838,20 +822,24 @@ function App() {
                <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
             </div>
 
-            {/* Khu vực giá khuyến mãi to khổng lồ */}
+            {/* Khu vực giá khuyến mãi ghi rõ ràng */}
             <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
-               <div className="text-black font-black text-[175px] leading-none tracking-tighter text-center">
-                 {mainThousands}
+               <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
+                 <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'}>
+                   {priceText}
+                 </span>
+                 <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
+                   đ
+                 </span>
                </div>
 
-               <div className="flex justify-between items-baseline w-full px-4 mt-2">
-                 <div className="font-bold text-[38px] text-gray-800 line-through">
-                   {oldPriceDisplay}
+               {oldPriceText ? (
+                 <div className="mt-3 text-center text-gray-700 font-bold text-[38px] tracking-tight leading-none">
+                   <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
                  </div>
-                 <div className="font-black text-[42px] text-black tracking-tight">
-                   {remainderDisplay} <span className="text-[28px] font-bold align-baseline">đ</span>
-                 </div>
-               </div>
+               ) : (
+                 <div className="h-6"></div>
+               )}
             </div>
 
             {/* Ô tiết kiệm (discount_amount) */}
