@@ -676,9 +676,11 @@ function App() {
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
                   {product.dateRange ? `Áp dụng ${product.dateRange}` : 'Áp dụng 01/07 - 31/07'}
                </div>
-               <div className="text-right min-w-[50px] mb-1">
-                  {product.unit || '/Gói'}
-               </div>
+               {product.unit ? (
+                  <div className="text-right min-w-[50px] mb-1">
+                     {product.unit.startsWith('/') ? product.unit : `/${product.unit}`}
+                  </div>
+               ) : null}
             </div>
         </div>
       </div>
@@ -770,9 +772,11 @@ function App() {
                <div className="text-center flex-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
                   {product.dateRange ? `Áp dụng ${product.dateRange}` : 'Áp dụng 01/07 - 31/07'}
                </div>
-               <div className="text-right min-w-[70px] mb-1">
-                  {product.unit || '/Gói'}
-               </div>
+               {product.unit ? (
+                  <div className="text-right min-w-[70px] mb-1">
+                     {product.unit.startsWith('/') ? product.unit : `/${product.unit}`}
+                  </div>
+               ) : null}
             </div>
         </div>
       </div>
