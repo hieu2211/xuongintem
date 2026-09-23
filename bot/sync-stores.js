@@ -2,11 +2,11 @@ const { Client } = require('pg');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
 const dbConfig = {
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',
-  password: 'password',
-  database: 'sakuko_tem',
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'password',
+  database: process.env.DB_NAME || 'sakuko_tem',
 };
 
 const APP_ID = process.env.LARK_APP_ID || 'cli_aac4ca97b1389ee6';
