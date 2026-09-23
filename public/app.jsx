@@ -1987,7 +1987,21 @@ function App() {
                         <span className="text-[#10285B] font-bold">A4 (Dọc)</span>
                     </div>
                     
-                    <button onClick={() => setProducts([])} className="text-gray-500 hover:text-[#E0376F] flex items-center gap-1 border-r border-gray-200 pr-4">
+                    <button 
+                        onClick={() => {
+                            if (products.length === 0) return;
+                            if (window.confirm("Bạn có chắc chắn muốn xóa tất cả sản phẩm trong danh sách in không?")) {
+                                setProducts([]);
+                            }
+                        }} 
+                        disabled={products.length === 0}
+                        className={`flex items-center gap-1 border-r border-gray-200 pr-4 transition-colors ${
+                            products.length === 0 
+                                ? 'text-gray-300 cursor-not-allowed' 
+                                : 'text-gray-500 hover:text-[#E0376F] cursor-pointer'
+                        }`}
+                        title={products.length === 0 ? 'Danh sách trống' : 'Xóa toàn bộ sản phẩm chờ in'}
+                    >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         Xóa <span className="hidden sm:inline">tất cả</span>
                     </button>
