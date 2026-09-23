@@ -20,7 +20,9 @@ const pool = new Pool({
 
 const bwipjs = require('bwip-js');
 
-// Proxy API để lách luật bị chặn mạng ở các siêu thị
+const barcodeCache = new Map();
+
+// Proxy API kèm Cache bộ nhớ đệm và Fallback cục bộ
 app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
   const scale = parseInt(req.query.scale) || 3;
@@ -31,20 +33,56 @@ app.get('/api/barcode', async (req, res) => {
       return res.status(400).send('Missing text parameter');
   }
 
+  const cacheKey = `${text}_${scale}_${height}_${textsize}`;
+  if (barcodeCache.has(cacheKey)) {
+      res.set('Content-Type', 'image/png');
+      res.set('Cache-Control', 'public, max-age=604800, immutable');
+      return res.send(barcodeCache.get(cacheKey));
+  }
+
   try {
       const url = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(text)}&scale=${scale}&height=${height}&includetext=true&textsize=${textsize}`;
-      const response = await fetch(url);
       
-      if (!response.ok) {
-          throw new Error(`Metafloor API responded with status: ${response.status}`);
+      let buffer = null;
+      try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const response = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (response.ok) {
+              const arrayBuffer = await response.arrayBuffer();
+              buffer = Buffer.from(arrayBuffer);
+          }
+      } catch (fetchErr) {
+          // Metafloor API bị chậm hoặc lỗi mạng, tự động chuyển sang render cục bộ
       }
 
+      // Fallback tự sinh mã vạch cục bộ bằng thư viện bwip-js nếu mạng bên ngoài lỗi
+      if (!buffer) {
+          buffer = await bwipjs.toBuffer({
+              bcid: 'code128',
+              text: text,
+              scale: scale,
+              height: height,
+              includetext: true,
+              textxalign: 'center',
+              textsize: textsize
+          });
+      }
+
+      // Lưu vào cache bộ nhớ đệm (giới hạn tối đa 5000 mã)
+      if (barcodeCache.size > 5000) {
+          const firstKey = barcodeCache.keys().next().value;
+          barcodeCache.delete(firstKey);
+      }
+      barcodeCache.set(cacheKey, buffer);
+
       res.set('Content-Type', 'image/png');
-      const arrayBuffer = await response.arrayBuffer();
-      res.send(Buffer.from(arrayBuffer));
+      res.set('Cache-Control', 'public, max-age=604800, immutable');
+      res.send(buffer);
   } catch (err) {
-      console.error('Lỗi khi tải barcode qua proxy:', err);
-      res.status(500).send('Error fetching barcode');
+      console.error('Lỗi khi tạo barcode:', err);
+      res.status(500).send('Error generating barcode');
   }
 });
 

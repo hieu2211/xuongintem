@@ -32,6 +32,7 @@ function App() {
 
   // Print Configuration
   const [paperSize, setPaperSize] = useState('A4_portrait');
+  const [loadedBarcodes, setLoadedBarcodes] = useState(new Set());
 
   // Fetch months
   useEffect(() => {
@@ -433,12 +434,88 @@ function App() {
       return pages;
   };
 
+  const uniqueBarcodes = React.useMemo(() => {
+    if (isSpecialPromo) return [];
+    return [...new Set(products.map(p => p.barcode).filter(Boolean))];
+  }, [products, isSpecialPromo]);
+
+  const loadedBarcodesCount = uniqueBarcodes.filter(bc => loadedBarcodes.has(bc)).length;
+  const totalBarcodesCount = uniqueBarcodes.length;
+  const isAllBarcodesLoaded = isSpecialPromo || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
+
+  // Preloader chạy nền bằng nhiều luồng đồng thời
+  useEffect(() => {
+    if (uniqueBarcodes.length === 0) return;
+
+    let isMounted = true;
+    let scale = 5, bcHeight = 10, textsize = 10;
+    if (selectedTemplate === 'normal_small') {
+      scale = 6; bcHeight = 8; textsize = 8;
+    } else if (selectedTemplate === 'sale') {
+      scale = 4; bcHeight = 14; textsize = 15;
+    } else if (selectedTemplate === 'sale_usp') {
+      scale = 5; bcHeight = 16; textsize = 15;
+    }
+
+    const queue = uniqueBarcodes.filter(bc => !loadedBarcodes.has(bc));
+    if (queue.length === 0) return;
+
+    const runWorker = async () => {
+      while (queue.length > 0 && isMounted) {
+        const bc = queue.shift();
+        if (!bc) break;
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            if (isMounted) {
+              setLoadedBarcodes(prev => {
+                const next = new Set(prev);
+                next.add(bc);
+                return next;
+              });
+            }
+            resolve();
+          };
+          img.onerror = () => {
+            if (isMounted) {
+              setLoadedBarcodes(prev => {
+                const next = new Set(prev);
+                next.add(bc);
+                return next;
+              });
+            }
+            resolve();
+          };
+          img.src = `/api/barcode?text=${encodeURIComponent(bc)}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`;
+        });
+      }
+    };
+
+    // Chạy 8 luồng tải song song cực nhanh
+    for (let i = 0; i < 8; i++) {
+      runWorker();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [uniqueBarcodes, selectedTemplate]);
+
   const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => (
       <img 
-          src={`/api/barcode?text=${barcode}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
+          src={`/api/barcode?text=${encodeURIComponent(barcode)}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
           alt="barcode" 
           className={`${className} w-full object-contain mix-blend-multiply`} 
           crossOrigin="anonymous" 
+          onLoad={() => {
+            if (barcode && !loadedBarcodes.has(barcode)) {
+              setLoadedBarcodes(prev => {
+                const next = new Set(prev);
+                next.add(barcode);
+                return next;
+              });
+            }
+          }}
       />
   );
 
@@ -1047,6 +1124,24 @@ function App() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     <h2 className="text-sm font-bold text-[#10285B]">Bản xem trước <span className="text-[#E0376F]">({totalTags} tem)</span></h2>
+                    
+                    {/* Tiến độ tải mã vạch */}
+                    {!isSpecialPromo && totalBarcodesCount > 0 && (
+                      !isAllBarcodesLoaded ? (
+                        <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse">
+                          <svg className="w-3.5 h-3.5 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                          </svg>
+                          <span>Đang nạp barcode: {loadedBarcodesCount}/{totalBarcodesCount} loại ({Math.round(loadedBarcodesCount / totalBarcodesCount * 100)}%)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 text-green-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                          <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                          <span>Mã vạch đã sẵn sàng 100%</span>
+                        </div>
+                      )
+                    )}
                 </div>
                 
                 <div className="flex gap-4 text-xs font-medium items-center">
@@ -1061,12 +1156,32 @@ function App() {
                     </button>
 
                     <button 
-                        onClick={() => window.print()}
+                        onClick={() => {
+                            if (!isAllBarcodesLoaded) {
+                                if (!confirm(`Hệ thống đang tải mã vạch (${loadedBarcodesCount}/${totalBarcodesCount} loại đã xong). Bạn có chắc chắn muốn in ngay bây giờ không? (Một số tem chưa xong có thể chưa hiện mã vạch)`)) {
+                                    return;
+                                }
+                            }
+                            window.print();
+                        }}
                         disabled={products.length === 0}
-                        className="bg-[#E0376F] hover:bg-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-1.5 px-4 rounded shadow-sm flex items-center gap-2"
+                        className={`font-bold py-1.5 px-4 rounded shadow-sm flex items-center gap-2 transition-all ${
+                            products.length === 0 
+                                ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
+                                : !isAllBarcodesLoaded 
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-white animate-pulse' 
+                                    : 'bg-[#E0376F] hover:bg-pink-700 text-white'
+                        }`}
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        IN TEM
+                        {!isAllBarcodesLoaded && products.length > 0 ? (
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        )}
+                        {!isAllBarcodesLoaded && products.length > 0 ? `ĐANG NẠP MÃ (${loadedBarcodesCount}/${totalBarcodesCount})` : 'IN TEM'}
                     </button>
                 </div>
             </div>
@@ -1097,27 +1212,38 @@ function App() {
                                 justifyContent: 'center',
                                 alignContent: 'start'
                             }}>
-                                {page.map(tag => (
-                                    <div 
-                                        key={tag.renderId} 
-                                        className="tag-wrapper relative break-inside-avoid origin-top-left overflow-hidden" 
-                                        style={{ 
-                                            width: `${scaledTagWidth}px`, 
-                                            height: `${scaledTagHeight}px`,
-                                            breakInside: 'avoid', 
-                                            pageBreakInside: 'avoid' 
-                                        }}
-                                    >
-                                        <div style={{
-                                            transform: `scale(${scaleFactor})`,
-                                            transformOrigin: 'top left',
-                                            width: `${baseTag.w}px`,
-                                            height: `${baseTag.h}px`
-                                        }}>
-                                            <TemplateComponent product={tag} />
-                                        </div>
-                                    </div>
-                                ))}
+                                 {page.map(tag => {
+                                     const isTagReady = isSpecialPromo || !tag.barcode || loadedBarcodes.has(tag.barcode);
+                                     return (
+                                         <div 
+                                             key={tag.renderId} 
+                                             className="tag-wrapper relative break-inside-avoid origin-top-left overflow-hidden" 
+                                             style={{ 
+                                                 width: `${scaledTagWidth}px`, 
+                                                 height: `${scaledTagHeight}px`,
+                                                 breakInside: 'avoid', 
+                                                 pageBreakInside: 'avoid' 
+                                             }}
+                                         >
+                                             <div style={{
+                                                 transform: `scale(${scaleFactor})`,
+                                                 transformOrigin: 'top left',
+                                                 width: `${baseTag.w}px`,
+                                                 height: `${baseTag.h}px`
+                                             }}>
+                                                 {isTagReady ? (
+                                                     <TemplateComponent product={tag} />
+                                                 ) : (
+                                                     <div className="w-full h-full bg-white border border-dashed border-gray-300 rounded-[20px] flex flex-col items-center justify-center p-6 text-center select-none print:hidden">
+                                                         <div className="w-12 h-12 border-4 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-4"></div>
+                                                         <div className="font-bold text-[32px] text-[#10285B] line-clamp-1 px-4">{tag.name}</div>
+                                                         <div className="text-[24px] text-gray-500 font-mono mt-2 bg-gray-50 px-4 py-1 rounded">Đang tạo barcode: {tag.barcode}</div>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     );
+                                 })}
                             </div>
                             
                             <div className="absolute bottom-4 right-6 text-[12px] font-bold text-gray-400 print:hidden">
