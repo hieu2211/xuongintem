@@ -53,31 +53,13 @@ async function initAuthTables() {
       CREATE INDEX IF NOT EXISTS idx_access_logs_user_id ON user_access_logs(user_id);
       CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON user_access_logs(created_at DESC);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(32) DEFAULT 'user';
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(32) DEFAULT 'pending';
 
-      CREATE TABLE IF NOT EXISTS whitelist_users (
-          id SERIAL PRIMARY KEY,
-          email VARCHAR(255) UNIQUE NOT NULL,
-          note VARCHAR(255),
-          added_by INT REFERENCES users(id) ON DELETE SET NULL,
-          created_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Đảm bảo Hoàng Văn Hiếu luôn là Admin và được duyệt
+      -- Đảm bảo Hoàng Văn Hiếu luôn luôn là Quản trị viên (Admin)
       UPDATE users 
-      SET role = 'admin', status = 'approved' 
+      SET role = 'admin' 
       WHERE open_id = 'ou_07ff157813f7a579760d5e076f2e0860' 
          OR LOWER(email) = 'hieuhv2@sakukovietnam.com.vn' 
          OR name ILIKE '%Hoàng Văn Hiếu%';
-
-      -- Các tài khoản khác mặc định quyền 'user' (nhân viên)
-      UPDATE users 
-      SET role = 'user' 
-      WHERE NOT (
-        open_id = 'ou_07ff157813f7a579760d5e076f2e0860' 
-        OR LOWER(email) = 'hieuhv2@sakukovietnam.com.vn' 
-        OR name ILIKE '%Hoàng Văn Hiếu%'
-      );
     `);
   } catch (err) {
     console.error('Lỗi khởi tạo bảng auth:', err);
@@ -366,43 +348,30 @@ app.get('/api/auth/lark/callback', async (req, res) => {
     const profile = userData.data;
 
     // 4. Lưu hoặc cập nhật người dùng vào bảng users
-    // QUY TẮC: Hoàng Văn Hiếu luôn luôn là Admin duy nhất
+    // QUY TẮC: Mọi người dùng đăng nhập Lark đều được sử dụng ngay (vai trò mặc định là Nhân viên)
+    // Riêng Hoàng Văn Hiếu luôn luôn là Quản trị viên (Admin)
     const isHieu = 
       (profile.email && profile.email.toLowerCase() === 'hieuhv2@sakukovietnam.com.vn') ||
       profile.open_id === 'ou_07ff157813f7a579760d5e076f2e0860' ||
       (profile.name && profile.name.trim() === 'Hoàng Văn Hiếu');
 
-    // Kiểm tra xem email có được Hiếu add vào whitelist_users trước hay không
-    let isWhitelisted = false;
-    if (profile.email) {
-      const wlRes = await pool.query(
-        'SELECT id FROM whitelist_users WHERE LOWER(email) = LOWER($1)',
-        [profile.email]
-      );
-      isWhitelisted = wlRes.rows.length > 0;
-    }
-
-    const assignedRole = isHieu ? 'admin' : 'user';
-    const initialStatus = isHieu ? 'approved' : (isWhitelisted ? 'approved' : 'pending');
+    const defaultRole = isHieu ? 'admin' : 'user';
 
     const upsertQuery = `
-      INSERT INTO users (open_id, union_id, name, avatar_url, email, mobile, role, status, first_login_at, last_login_at, login_count)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), 1)
+      INSERT INTO users (open_id, union_id, name, avatar_url, email, mobile, role, first_login_at, last_login_at, login_count)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 1)
       ON CONFLICT (open_id) DO UPDATE SET
         name = EXCLUDED.name,
         avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
         email = COALESCE(EXCLUDED.email, users.email),
         mobile = COALESCE(EXCLUDED.mobile, users.mobile),
-        role = $7,
-        status = CASE 
-          WHEN $7 = 'admin' THEN 'approved'
-          WHEN users.status = 'approved' THEN 'approved'
-          WHEN $8 = 'approved' THEN 'approved'
-          ELSE users.status
+        role = CASE 
+          WHEN $7 = 'admin' THEN 'admin'
+          ELSE COALESCE(users.role, 'user')
         END,
         last_login_at = NOW(),
         login_count = users.login_count + 1
-      RETURNING id, open_id, name, avatar_url, email, role, status, login_count;
+      RETURNING id, open_id, name, avatar_url, email, role, login_count;
     `;
     const dbUserRes = await pool.query(upsertQuery, [
       profile.open_id,
@@ -411,8 +380,7 @@ app.get('/api/auth/lark/callback', async (req, res) => {
       profile.avatar_url || profile.avatar_thumb || null,
       profile.email || null,
       profile.mobile || null,
-      assignedRole,
-      initialStatus
+      defaultRole
     ]);
     const user = dbUserRes.rows[0];
 
@@ -422,7 +390,7 @@ app.get('/api/auth/lark/callback', async (req, res) => {
     await pool.query(
       `INSERT INTO user_access_logs (user_id, open_id, user_name, ip_address, user_agent, action, details)
        VALUES ($1, $2, $3, $4, $5, 'LOGIN', $6)`,
-      [user.id, user.open_id, user.name, String(ip), String(ua), JSON.stringify({ via: 'lark_oauth', role: user.role, status: user.status })]
+      [user.id, user.open_id, user.name, String(ip), String(ua), JSON.stringify({ via: 'lark_oauth', role: user.role })]
     );
 
     // 6. Cấp cookie phiên làm việc
@@ -441,7 +409,7 @@ app.get('/api/auth/lark/callback', async (req, res) => {
   }
 });
 
-// Endpoint kiểm tra người dùng hiện tại (Kèm quyền Admin & trạng thái phê duyệt)
+// Endpoint kiểm tra người dùng hiện tại (Kèm cờ isAdmin)
 app.get('/api/auth/me', async (req, res) => {
   const token = getCookie(req, 'sakuko_session');
   const session = verifySessionToken(token);
@@ -450,7 +418,7 @@ app.get('/api/auth/me', async (req, res) => {
   }
   try {
     const userRes = await pool.query(
-      'SELECT id, open_id, name, avatar_url, email, role, status, login_count, last_login_at FROM users WHERE id = $1',
+      'SELECT id, open_id, name, avatar_url, email, role, login_count, last_login_at FROM users WHERE id = $1',
       [session.id]
     );
     if (userRes.rows.length === 0) {
@@ -461,16 +429,13 @@ app.get('/api/auth/me', async (req, res) => {
                    user.open_id === 'ou_07ff157813f7a579760d5e076f2e0860' ||
                    (user.name && user.name.trim() === 'Hoàng Văn Hiếu');
     const isAdmin = isHieu || user.role === 'admin';
-    const isApproved = isAdmin || user.status === 'approved';
 
     res.json({
       loggedIn: true,
       user: {
         ...user,
-        role: isAdmin ? 'admin' : 'user',
-        isAdmin,
-        status: isApproved ? 'approved' : (user.status || 'pending'),
-        isApproved
+        role: isAdmin ? 'admin' : (user.role || 'user'),
+        isAdmin
       }
     });
   } catch (err) {
@@ -574,14 +539,6 @@ app.get('/api/tracking/stats', async (req, res) => {
     `;
     const usersRes = await pool.query(usersQuery, params);
 
-    // Lấy danh sách email được duyệt trước (whitelist)
-    const whitelistRes = await pool.query(
-      `SELECT w.id, w.email, w.note, w.created_at, u.name as added_by_name 
-       FROM whitelist_users w 
-       LEFT JOIN users u ON w.added_by = u.id 
-       ORDER BY w.created_at DESC`
-    );
-
     const logsQuery = `
       SELECT id, user_id, user_name, action, details, ip_address, created_at
       FROM user_access_logs
@@ -598,7 +555,6 @@ app.get('/api/tracking/stats', async (req, res) => {
         totalPrints: parseInt(totalPrintsRes.rows[0].count, 10)
       },
       users: usersRes.rows,
-      whitelist: whitelistRes.rows,
       recentLogs: logsRes.rows
     });
   } catch (err) {
@@ -607,103 +563,7 @@ app.get('/api/tracking/stats', async (req, res) => {
   }
 });
 
-// Endpoint cho phép Admin duyệt hoặc khóa tài khoản người dùng
-app.post('/api/admin/set-status', async (req, res) => {
-  const token = getCookie(req, 'sakuko_session');
-  const session = verifySessionToken(token);
-  if (!session) return res.status(401).json({ error: 'Chưa đăng nhập' });
-
-  const adminCheck = await pool.query('SELECT role, email, name FROM users WHERE id = $1', [session.id]);
-  if (adminCheck.rows.length === 0 || adminCheck.rows[0].role !== 'admin') {
-    return res.status(403).json({ error: 'Chỉ Admin mới có quyền duyệt tài khoản' });
-  }
-
-  const { targetUserId, newStatus } = req.body;
-  if (!['approved', 'pending', 'blocked'].includes(newStatus)) {
-    return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
-  }
-
-  // Không cho phép khóa Admin Hoàng Văn Hiếu
-  const targetCheck = await pool.query('SELECT open_id, email, name FROM users WHERE id = $1', [targetUserId]);
-  if (targetCheck.rows.length > 0) {
-    const t = targetCheck.rows[0];
-    if (t.open_id === 'ou_07ff157813f7a579760d5e076f2e0860' || (t.email && t.email.toLowerCase() === 'hieuhv2@sakukovietnam.com.vn')) {
-      return res.status(400).json({ error: 'Không thể thay đổi trạng thái của Admin Hoàng Văn Hiếu' });
-    }
-  }
-
-  try {
-    await pool.query('UPDATE users SET status = $1 WHERE id = $2', [newStatus, targetUserId]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Lỗi cập nhật trạng thái:', err);
-    res.status(500).json({ error: 'DB error' });
-  }
-});
-
-// Endpoint cho phép Admin thêm trước email nhân viên (Whitelist)
-app.post('/api/admin/whitelist/add', async (req, res) => {
-  const token = getCookie(req, 'sakuko_session');
-  const session = verifySessionToken(token);
-  if (!session) return res.status(401).json({ error: 'Chưa đăng nhập' });
-
-  const adminCheck = await pool.query('SELECT role FROM users WHERE id = $1', [session.id]);
-  if (adminCheck.rows.length === 0 || adminCheck.rows[0].role !== 'admin') {
-    return res.status(403).json({ error: 'Chỉ Admin mới có quyền thêm nhân viên' });
-  }
-
-  const { email, note } = req.body;
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return res.status(400).json({ error: 'Vui lòng nhập địa chỉ email hợp lệ' });
-  }
-
-  const cleanEmail = email.trim().toLowerCase();
-
-  try {
-    await pool.query(`
-      INSERT INTO whitelist_users (email, note, added_by) 
-      VALUES ($1, $2, $3) 
-      ON CONFLICT (email) DO UPDATE SET note = EXCLUDED.note
-    `, [cleanEmail, note || 'Hiếu thêm', session.id]);
-
-    // Nếu người dùng đã từng đăng nhập trước đó và đang pending -> duyệt ngay thành approved
-    await pool.query(`
-      UPDATE users SET status = 'approved' WHERE LOWER(email) = $1
-    `, [cleanEmail]);
-
-    res.json({ success: true, message: `Đã thêm ${cleanEmail} vào danh sách nhân viên được phép dùng.` });
-  } catch (err) {
-    console.error('Lỗi thêm whitelist:', err);
-    res.status(500).json({ error: 'DB error' });
-  }
-});
-
-// Endpoint cho phép Admin xóa email khỏi Whitelist
-app.post('/api/admin/whitelist/remove', async (req, res) => {
-  const token = getCookie(req, 'sakuko_session');
-  const session = verifySessionToken(token);
-  if (!session) return res.status(401).json({ error: 'Chưa đăng nhập' });
-
-  const adminCheck = await pool.query('SELECT role FROM users WHERE id = $1', [session.id]);
-  if (adminCheck.rows.length === 0 || adminCheck.rows[0].role !== 'admin') {
-    return res.status(403).json({ error: 'Chỉ Admin mới có quyền thao tác' });
-  }
-
-  const { id, email } = req.body;
-  try {
-    if (id) {
-      await pool.query('DELETE FROM whitelist_users WHERE id = $1', [id]);
-    } else if (email) {
-      await pool.query('DELETE FROM whitelist_users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
-    }
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Lỗi xóa whitelist:', err);
-    res.status(500).json({ error: 'DB error' });
-  }
-});
-
-// Endpoint cho phép Admin đổi quyền người dùng
+// Endpoint cho phép Admin phân quyền: thăng cấp Admin hoặc chuyển về Nhân viên
 app.post('/api/tracking/set-role', async (req, res) => {
   const token = getCookie(req, 'sakuko_session');
   const session = verifySessionToken(token);
