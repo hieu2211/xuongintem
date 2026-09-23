@@ -823,7 +823,7 @@ function App() {
       <div className="w-full h-full bg-white flex flex-col p-2.5 box-border relative font-sans text-black select-none">
         <div className="w-full h-full border-[2.5px] border-black rounded-[8px] flex flex-col p-2.5 relative overflow-hidden bg-white">
             {/* Tên sản phẩm */}
-            <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pb-2 pt-0.5 text-black">
+            <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pb-2 pt-0.5 text-black font-sans">
               {product.name}
             </div>
 
@@ -831,41 +831,41 @@ function App() {
             <div className="w-full border-b-[2px] border-black mb-2 shrink-0"></div>
 
             {/* Mã sản phẩm */}
-            <div className="flex items-center gap-4 px-2 font-serif text-[26px] text-black shrink-0">
-               <span className="font-bold">Mã SP</span>
-               <span className="font-bold tracking-wide">{product.barcode}</span>
+            <div className="flex items-center gap-3 px-2 font-sans text-black shrink-0">
+               <span className="font-bold text-[24px]">Mã SP</span>
+               <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
             </div>
 
             {/* Khu vực giá khuyến mãi to khổng lồ */}
-            <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto">
-               <div className="text-black font-black text-[165px] leading-none tracking-tighter text-center">
+            <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
+               <div className="text-black font-black text-[175px] leading-none tracking-tighter text-center">
                  {mainThousands}
                </div>
 
                <div className="flex justify-between items-baseline w-full px-4 mt-2">
-                 <div className="font-serif font-bold text-[40px] text-black line-through">
+                 <div className="font-bold text-[38px] text-gray-800 line-through">
                    {oldPriceDisplay}
                  </div>
-                 <div className="font-serif font-bold text-[44px] text-black">
-                   {remainderDisplay} <span className="text-[32px] align-super font-bold">Đ</span>
+                 <div className="font-black text-[42px] text-black tracking-tight">
+                   {remainderDisplay} <span className="text-[28px] font-bold align-baseline">đ</span>
                  </div>
                </div>
             </div>
 
             {/* Ô tiết kiệm (discount_amount) */}
             {savingDisplay ? (
-              <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1 px-3 flex items-center justify-center gap-2 mb-2 shrink-0">
-                <span className="font-serif text-[24px] text-black">Tiết kiệm</span>
-                <span className="font-serif font-bold text-[30px] text-black">{savingDisplay}</span>
-                <span className="font-serif font-bold text-[24px] text-black">Đ</span>
+              <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1.5 px-3 flex items-center justify-center gap-2 mb-2 shrink-0 font-sans">
+                <span className="text-[24px] font-bold text-black">Tiết kiệm:</span>
+                <span className="text-[28px] font-black text-black">{savingDisplay}</span>
+                <span className="text-[22px] font-bold text-black">đ</span>
               </div>
             ) : (
               <div className="h-2"></div>
             )}
 
             {/* Thời gian áp dụng */}
-            <div className="text-center font-serif text-black mb-1 shrink-0">
-               <div className="text-[20px] text-gray-800 leading-tight">Thời gian áp dụng:</div>
+            <div className="text-center font-sans text-black mb-1 shrink-0">
+               <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
                <div className="text-[22px] font-bold leading-tight mt-0.5">
                  {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
