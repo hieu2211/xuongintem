@@ -765,16 +765,16 @@ function App() {
         
         return {
           id: `imported-${Date.now()}-${idx}`,
-          name: row["Tên SP"] || row["Tên sản phẩm"] || '',
-          price: row["Giá mới"] || row["Giá bán"] || '',
-          barcode: row["Barcode"] || row["Mã vạch"] || '',
-          originalPrice: row["Giá cũ"] || row["Giá gốc"] || '',
-          discountPercent: row["% Giảm"] || '',
-          unit: row["Đơn vị"] || '',
-          type: row["USP"] || row["Đặc điểm (USP)"] || '',
-          dateRange: han || (start ? `${start} - ${end}` : ''),
-          promoContent: row["Nội dung CTKM"] || '',
-          discountAmount: row["Tiền giảm"] || row["Tiết kiệm"] || row["discount_amount"] || '',
+          name: row["Tên SP"] || row["Tên sản phẩm"] || row["Tên hàng"] || row["Tên hàng hóa"] || row["Sản phẩm"] || '',
+          price: row["Giá mới"] || row["Giá bán"] || row["Giá KM"] || row["Giá khuyến mãi"] || row["Đơn giá"] || row["Giá"] || '',
+          barcode: row["Barcode"] || row["Mã vạch"] || row["Mã SP"] || row["Mã sản phẩm"] || row["Mã hàng"] || '',
+          originalPrice: row["Giá cũ"] || row["Giá gốc"] || row["Giá niêm yết"] || row["Giá niêm yet"] || '',
+          discountPercent: row["% Giảm"] || row["% giảm"] || row["Phần trăm giảm"] || '',
+          unit: row["Đơn vị"] || row["ĐVT"] || row["Đơn vị tính"] || '',
+          type: row["USP"] || row["Đặc điểm (USP)"] || row["Đặc điểm"] || '',
+          dateRange: han || (start ? (end ? `${start} - ${end}` : start) : (row["Thời gian áp dụng"] || row["Hạn sử dụng"] || '')),
+          promoContent: row["Nội dung CTKM"] || row["CTKM"] || row["Nội dung khuyến mãi"] || '',
+          discountAmount: row["Tiền giảm"] || row["Tiết kiệm"] || row["discount_amount"] || row["Số tiền giảm"] || '',
           quantity: 1
         };
       }).filter(p => p.name && p.barcode);
@@ -1870,7 +1870,7 @@ function App() {
                                 alignContent: 'start'
                             }}>
                                  {page.map(tag => {
-                                     const isTagReady = isSpecialPromo || !tag.barcode || loadedBarcodes.has(tag.barcode);
+                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || !tag.barcode || loadedBarcodes.has(tag.barcode);
                                      return (
                                          <div 
                                              key={tag.renderId} 
