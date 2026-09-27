@@ -1,3 +1,40 @@
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("Lỗi giao diện React:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center font-sans">
+          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-red-200">
+            <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">⚠️</div>
+            <h2 className="text-lg font-bold text-gray-800 mb-2">Đã xảy ra lỗi hiển thị</h2>
+            <p className="text-xs text-red-600 mb-4 bg-red-50 p-3 rounded font-mono break-words text-left">
+              {this.state.error?.message || 'Lỗi không xác định'}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button 
+                onClick={() => { localStorage.clear(); window.location.reload(); }}
+                className="bg-[#E0376F] hover:bg-pink-700 text-white font-bold py-2 px-5 rounded-lg text-xs transition-all"
+              >
+                Làm mới trang
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 const { useState, useEffect, useRef } = React;
 
 const LoginScreen = ({ onGuestLogin }) => {
@@ -758,23 +795,38 @@ function App() {
       const ws = wb.Sheets[wsname];
       const data = window.XLSX.utils.sheet_to_json(ws);
       
-      const importedProducts = data.map((row, idx) => {
+            const importedProducts = data.map((row, idx) => {
         const start = parseDateValue(row["Ngày bắt đầu"]);
         const end = parseDateValue(row["Ngày kết thúc"]);
-        const han = parseDateValue(row["Hạn áp dụng"]);
+        const han = parseDateValue(row["Hạn áp dụng"] || row["Thời gian áp dụng"] || row["Hạn sử dụng"]);
         
+        const rawName = row["Tên SP"] || row["Tên sản phẩm"] || row["Tên hàng"] || row["Tên hàng hóa"] || row["Sản phẩm"] || '';
+        const rawBarcode = row["Barcode"] || row["Mã vạch"] || row["Mã SP"] || row["Mã sản phẩm"] || row["Mã hàng"] || '';
+        const rawPrice = row["Giá mới"] || row["Giá bán"] || row["Giá KM"] || row["Giá khuyến mãi"] || row["Đơn giá"] || row["Giá"] || '';
+        const rawOriginalPrice = row["Giá cũ"] || row["Giá gốc"] || row["Giá niêm yết"] || row["Giá niêm yet"] || '';
+        const rawDiscountPercent = row["% Giảm"] || row["% giảm"] || row["Phần trăm giảm"] || '';
+        const rawUnit = row["Đơn vị"] || row["ĐVT"] || row["Đơn vị tính"] || '';
+        const rawType = row["USP"] || row["Đặc điểm (USP)"] || row["Đặc điểm"] || '';
+        const rawPromo = row["Nội dung CTKM"] || row["CTKM"] || row["Nội dung khuyến mãi"] || '';
+        const rawDiscountAmount = row["Tiền giảm"] || row["Tiết kiệm"] || row["discount_amount"] || row["Số tiền giảm"] || '';
+
+        let dateStr = '';
+        if (han) dateStr = String(han);
+        else if (start && end) dateStr = `${start} - ${end}`;
+        else if (start) dateStr = String(start);
+
         return {
-          id: `imported-${Date.now()}-${idx}`,
-          name: row["Tên SP"] || row["Tên sản phẩm"] || row["Tên hàng"] || row["Tên hàng hóa"] || row["Sản phẩm"] || '',
-          price: row["Giá mới"] || row["Giá bán"] || row["Giá KM"] || row["Giá khuyến mãi"] || row["Đơn giá"] || row["Giá"] || '',
-          barcode: row["Barcode"] || row["Mã vạch"] || row["Mã SP"] || row["Mã sản phẩm"] || row["Mã hàng"] || '',
-          originalPrice: row["Giá cũ"] || row["Giá gốc"] || row["Giá niêm yết"] || row["Giá niêm yet"] || '',
-          discountPercent: row["% Giảm"] || row["% giảm"] || row["Phần trăm giảm"] || '',
-          unit: row["Đơn vị"] || row["ĐVT"] || row["Đơn vị tính"] || '',
-          type: row["USP"] || row["Đặc điểm (USP)"] || row["Đặc điểm"] || '',
-          dateRange: han || (start ? (end ? `${start} - ${end}` : start) : (row["Thời gian áp dụng"] || row["Hạn sử dụng"] || '')),
-          promoContent: row["Nội dung CTKM"] || row["CTKM"] || row["Nội dung khuyến mãi"] || '',
-          discountAmount: row["Tiền giảm"] || row["Tiết kiệm"] || row["discount_amount"] || row["Số tiền giảm"] || '',
+          id: `imported-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+          name: String(rawName).trim(),
+          barcode: String(rawBarcode).trim(),
+          price: (rawPrice !== '' && rawPrice !== null && rawPrice !== undefined) ? String(rawPrice).trim() : '0',
+          originalPrice: (rawOriginalPrice !== '' && rawOriginalPrice !== null && rawOriginalPrice !== undefined) ? String(rawOriginalPrice).trim() : '',
+          discountPercent: String(rawDiscountPercent || '').trim(),
+          unit: String(rawUnit || '').trim(),
+          type: String(rawType || '').trim(),
+          dateRange: dateStr.trim(),
+          promoContent: String(rawPromo || '').trim(),
+          discountAmount: String(rawDiscountAmount || '').trim(),
           quantity: 1
         };
       }).filter(p => p.name && p.barcode);
@@ -1078,7 +1130,7 @@ function App() {
     if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
     let priceMain = formatCurrency(product.price);
     let priceSub = "đ";
-    const priceStr = product.price.toString();
+    const priceStr = String(product.price || '');
     if (priceStr.endsWith('000') && priceStr.length > 3) {
         priceMain = formatCurrency(parseInt(priceStr.slice(0, -3)));
         priceSub = ".000đ";
@@ -1148,7 +1200,7 @@ function App() {
                </div>
                {product.unit ? (
                   <div className="text-right min-w-[50px] mb-1">
-                     {product.unit.startsWith('/') ? product.unit : `/${product.unit}`}
+                     {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
                   </div>
                ) : null}
             </div>
@@ -1163,7 +1215,7 @@ function App() {
     if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
     let priceMain = formatCurrency(product.price);
     let priceSub = "đ";
-    const priceStr = product.price.toString();
+    const priceStr = String(product.price || '');
     if (priceStr.endsWith('000') && priceStr.length > 3) {
         priceMain = formatCurrency(parseInt(priceStr.slice(0, -3)));
         priceSub = ".000đ";
@@ -1324,7 +1376,7 @@ function App() {
         <div className="text-center font-sans text-black mb-1 shrink-0">
            <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
            <div className="text-[22px] font-bold leading-tight mt-0.5">
-             {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+             {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
            </div>
         </div>
       </div>
@@ -1333,7 +1385,7 @@ function App() {
 
   const getPromoContentInfo = (rawContent, size) => {
     // Tự động thêm khoảng trắng sau dấu phẩy/chấm phẩy nếu viết liền (VD: "102332,102336" -> "102332, 102336")
-    const formatted = (rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
+    const formatted = String(rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
     const len = formatted.length;
     
     let fontSize = 68;
@@ -1445,7 +1497,7 @@ function App() {
                  className="font-bold text-black"
                  style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
-                  {product.dateRange ? product.dateRange.replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+                  {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
             </div>
         </div>
@@ -1955,4 +2007,4 @@ function App() {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<ErrorBoundary><App /></ErrorBoundary>, document.getElementById('root'));
