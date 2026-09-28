@@ -571,6 +571,7 @@ function App() {
   useEffect(() => {
     if (promoType === 'Niêm yết') setSelectedTemplate('normal');
     else if (promoType === 'Discount') setSelectedTemplate('sale');
+    else if (promoType === 'Combo') setSelectedTemplate('combo_80x100');
   }, [promoType]);
 
   // Fetch data from API based on search query (for autocomplete)
@@ -911,7 +912,7 @@ function App() {
   let scaledTagHeight = 0;
   let scaleFactor = 1;
 
-  const isSpecialPromo = !['Niêm yết', 'Discount'].includes(promoType);
+  const isSpecialPromo = !['Niêm yết', 'Discount', 'Combo'].includes(promoType);
 
   if (!isSpecialPromo) {
     let targetWidthMm = 60;
@@ -930,6 +931,18 @@ function App() {
         targetHeightMm = 80;
         pagePadding = { x: 15, y: 20 };
         tagGap = 1;
+    } else if (selectedTemplate === 'sale_60x70') {
+        baseTag = { w: 600, h: 700 };
+        targetWidthMm = 60;
+        targetHeightMm = 70;
+        pagePadding = { x: 10, y: 10 };
+        tagGap = 2;
+    } else if (selectedTemplate === 'combo_80x100') {
+        baseTag = { w: 1000, h: 800 };
+        targetWidthMm = 100;
+        targetHeightMm = 80;
+        pagePadding = { x: 8, y: 15 };
+        tagGap = 3;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -974,13 +987,14 @@ function App() {
   };
 
   const uniqueBarcodes = React.useMemo(() => {
-    if (isSpecialPromo || selectedTemplate === 'sale_50x80') return [];
+    if (isSpecialPromo && selectedTemplate !== 'combo_80x100') return [];
+    if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') return [];
     return [...new Set(products.map(p => p.barcode).filter(Boolean))];
   }, [products, isSpecialPromo, selectedTemplate]);
 
   const loadedBarcodesCount = uniqueBarcodes.filter(bc => loadedBarcodes.has(bc)).length;
   const totalBarcodesCount = uniqueBarcodes.length;
-  const isAllBarcodesLoaded = isSpecialPromo || selectedTemplate === 'sale_50x80' || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
+  const isAllBarcodesLoaded = (isSpecialPromo && selectedTemplate !== 'combo_80x100') || selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70' || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
 
   // Preloader chạy nền bằng nhiều luồng đồng thời
   useEffect(() => {
@@ -1435,6 +1449,98 @@ function App() {
     );
   };
 
+  // 6. Tem Combo In Ngang (80x100) theo mẫu Discount có BIG SALE
+  const TemplateCombo80x100 = ({ product }) => {
+    const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
+    const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
+    
+    // Giá bán/giá mới nổi bật
+    const priceText = numPrice > 0 ? formatCurrency(numPrice) : (numOriginalPrice > 0 ? formatCurrency(numOriginalPrice) : '');
+    
+    // Giá gốc/giá niêm yết (nếu có giá cũ cao hơn)
+    const oldPriceText = (numOriginalPrice > numPrice && numPrice > 0) ? formatCurrency(numOriginalPrice) : '';
+
+    // Nội dung chương trình khuyến mãi (vd: Mua 2 tặng 1)
+    const promoText = product.promoContent ? String(product.promoContent).trim() : 'MUA 2 TẶNG 1';
+
+    return (
+      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col justify-between overflow-hidden box-border relative font-sans text-black select-none">
+        
+        {/* Banner BIG SALE trên cùng kiểu mẫu Discount */}
+        <div 
+          className="bg-black text-white text-center font-black text-[50px] uppercase tracking-widest py-1.5 leading-none shrink-0 flex items-center justify-center gap-3" 
+          style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+        >
+          <span className="text-[26px] leading-none select-none">★</span>
+          <span>BIG SALE</span>
+          <span className="text-[26px] leading-none select-none">★</span>
+        </div>
+
+        {/* 1. Tên sản phẩm */}
+        <div className="px-6 pt-2 pb-1 text-center font-bold text-[34px] text-black line-clamp-2 break-words shrink-0 leading-snug min-h-[76px] flex items-center justify-center" style={{ overflowWrap: 'anywhere' }}>
+          {product.name}
+        </div>
+
+        {/* Vạch ngăn cách */}
+        <div className="w-[94%] mx-auto border-b-[2px] border-black shrink-0"></div>
+
+        {/* 2. Giá (Giá bán nổi bật + Giá gốc nếu có) */}
+        <div className="flex items-center justify-center gap-6 px-4 my-auto shrink-0">
+          {priceText ? (
+            <div className="flex items-baseline text-black justify-center">
+              <span className={`font-black tracking-tight leading-none ${priceText.length > 9 ? 'text-[75px]' : 'text-[92px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+                {priceText}
+              </span>
+              <span className="font-bold text-[52px] ml-1 leading-none">
+                đ
+              </span>
+            </div>
+          ) : null}
+
+          {oldPriceText ? (
+            <div className="flex flex-col justify-center text-gray-700">
+              <span className="text-[20px] font-semibold text-gray-600 uppercase tracking-wide">Giá gốc</span>
+              <span className="text-[38px] font-bold line-through decoration-[3px] leading-tight">
+                {oldPriceText}đ
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* 3. Nội dung CTKM (vd: Mua 2 tặng 1) */}
+        <div className="w-[94%] mx-auto my-auto shrink-0">
+          <div className="border-[3.5px] border-black bg-white py-2 px-4 rounded-[6px] shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center">
+            <span 
+              className="text-black font-black uppercase text-center leading-tight tracking-wide" 
+              style={{ 
+                fontSize: promoText.length > 35 ? '30px' : promoText.length > 20 ? '38px' : '48px', 
+                fontFamily: 'Arial Black, Impact, sans-serif' 
+              }}
+            >
+              {promoText}
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Footer: Barcode + Mã SP + Ngày áp dụng */}
+        <div className="mx-6 mt-auto mb-3 flex items-end justify-between border-t-[3px] border-black pt-2 shrink-0">
+          <div className="w-[280px] shrink-0 flex items-center">
+            <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={4} bcHeight={14} textsize={14} />
+          </div>
+          <div className="flex flex-col items-end justify-end text-black font-sans pb-0.5">
+            <div className="text-[24px] font-bold tracking-wider font-mono">
+              Mã SP: {product.barcode}
+            </div>
+            <div className="text-[22px] font-bold text-gray-800 mt-1">
+              {product.dateRange ? `Áp dụng: ${String(product.dateRange).replace(/\s*-\s*/g, ' - ')}` : 'Áp dụng: Liên hệ'}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
   const getPromoContentInfo = (rawContent, size) => {
     // Tự động thêm khoảng trắng sau dấu phẩy/chấm phẩy nếu viết liền (VD: "102332,102336" -> "102332, 102336")
     const formatted = String(rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
@@ -1563,7 +1669,8 @@ function App() {
       else if (selectedTemplate === 'normal_small') TemplateComponent = TemplateNormalSmall;
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
-      else if (selectedTemplate === 'sale_50x80') TemplateComponent = TemplateSale50x80;
+      else if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') TemplateComponent = TemplateSale50x80;
+      else if (selectedTemplate === 'combo_80x100') TemplateComponent = TemplateCombo80x100;
   } else {
       TemplateComponent = TemplateSpecialPromo;
   }
@@ -1737,7 +1844,10 @@ function App() {
                             { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                             { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                             { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' },
-                            { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' }
+                            { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
+                            { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' },
+                            { id: 'combo_80x100', label: 'Combo Ngang (80x100)', type: 'Combo' },
+                            { id: 'combo_80x100', label: 'In Ngang (80x100)', type: 'Mua hàng tặng hàng' }
                         ].filter(tpl => tpl.type === promoType).map(tpl => (
                             <button
                                 key={tpl.id}
@@ -1746,7 +1856,7 @@ function App() {
                                     selectedTemplate === tpl.id 
                                     ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
                                     : 'border-gray-200 text-gray-600 hover:bg-white'
-                                }`}
+                                } ${promoType === 'Combo' ? 'col-span-2' : ''}`}
                             >
                                 {tpl.label}
                             </button>
@@ -1975,7 +2085,7 @@ function App() {
                             }}>
                                  {page.map(tag => {
                                      const tagBarcode = String(tag.barcode || '').trim();
-                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || !tagBarcode || loadedBarcodes.has(tagBarcode);
+                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70' || !tagBarcode || loadedBarcodes.has(tagBarcode);
                                      return (
                                          <div 
                                              key={tag.renderId} 
