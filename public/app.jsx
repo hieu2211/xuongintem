@@ -1564,66 +1564,66 @@ function App() {
 
     if (size === 'A6') {
       // Khổ A6 dọc (1000px x 1414px), vùng nội dung rộng ~850px, cao ~950px
-      if (len <= 30) {
-        fontSize = 80;
-        lineHeight = 1.32;
-      } else if (len <= 55) {
-        fontSize = 70;
-        lineHeight = 1.35;
-      } else if (len <= 85) {
-        fontSize = 60;
-        lineHeight = 1.38;
-      } else if (len <= 125) {
-        fontSize = 50;
-        lineHeight = 1.35;
-      } else if (len <= 170) {
-        fontSize = 42;
-        lineHeight = 1.32;
-      } else {
-        fontSize = 35;
+      if (len <= 35) {
+        fontSize = 105;
         lineHeight = 1.3;
+      } else if (len <= 65) {
+        fontSize = 88;
+        lineHeight = 1.32;
+      } else if (len <= 100) {
+        fontSize = 75;
+        lineHeight = 1.35;
+      } else if (len <= 140) {
+        fontSize = 64;
+        lineHeight = 1.38;
+      } else if (len <= 190) {
+        fontSize = 54;
+        lineHeight = 1.4;
+      } else {
+        fontSize = 44;
+        lineHeight = 1.38;
       }
     } else if (size === '100x80') {
       // Khổ Ngang 100x80 (1000px x 800px), vùng nội dung rộng ~880px, cao ~450px
-      if (len <= 25) {
-        fontSize = 65;
+      if (len <= 30) {
+        fontSize = 75;
         lineHeight = 1.25;
-      } else if (len <= 50) {
-        fontSize = 52;
+      } else if (len <= 55) {
+        fontSize = 62;
         lineHeight = 1.28;
-      } else if (len <= 80) {
-        fontSize = 44;
+      } else if (len <= 90) {
+        fontSize = 50;
         lineHeight = 1.3;
-      } else if (len <= 120) {
-        fontSize = 38;
+      } else if (len <= 140) {
+        fontSize = 42;
         lineHeight = 1.32;
-      } else if (len <= 160) {
-        fontSize = 32;
+      } else if (len <= 190) {
+        fontSize = 36;
         lineHeight = 1.32;
       } else {
-        fontSize = 26;
-        lineHeight = 1.28;
+        fontSize = 30;
+        lineHeight = 1.3;
       }
     } else {
       // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~850px, cao ~420px
       if (len <= 30) {
-        fontSize = 58;
-        lineHeight = 1.28;
+        fontSize = 68;
+        lineHeight = 1.25;
       } else if (len <= 55) {
-        fontSize = 48;
-        lineHeight = 1.3;
-      } else if (len <= 85) {
-        fontSize = 40;
-        lineHeight = 1.32;
-      } else if (len <= 125) {
-        fontSize = 34;
-        lineHeight = 1.32;
-      } else if (len <= 170) {
-        fontSize = 28;
-        lineHeight = 1.3;
-      } else {
-        fontSize = 22;
+        fontSize = 55;
         lineHeight = 1.28;
+      } else if (len <= 90) {
+        fontSize = 46;
+        lineHeight = 1.3;
+      } else if (len <= 140) {
+        fontSize = 38;
+        lineHeight = 1.32;
+      } else if (len <= 190) {
+        fontSize = 32;
+        lineHeight = 1.32;
+      } else {
+        fontSize = 26;
+        lineHeight = 1.3;
       }
     }
 
