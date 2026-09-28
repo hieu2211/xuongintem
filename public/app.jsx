@@ -1369,13 +1369,26 @@ function App() {
            <span className="font-bold text-[26px] tracking-wider font-mono">{product.barcode}</span>
         </div>
 
-        {/* Khung đen chữ trắng BIG SALE nằm vào giữa cho nổi bật */}
-        <div className="flex justify-center items-center my-2 shrink-0">
+        {/* Khung đen chữ trắng BIG SALE cách điệu siêu nổi bật kiểu Coupon / Sale Badge */}
+        <div className="flex justify-center items-center my-2 shrink-0 w-full px-1">
            <div 
-             className="bg-black text-white px-10 py-1.5 rounded-[6px] font-black text-[34px] tracking-widest uppercase flex items-center justify-center shadow-sm" 
-             style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+             className="relative w-[94%] bg-black text-white py-2 px-4 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden"
            >
-              BIG SALE
+              {/* Vết khuyết 2 bên kiểu vé giảm giá / coupon voucher đặc trưng */}
+              <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
+              <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
+
+              {/* Khung viền đôi bên trong tạo chiều sâu và độ sắc sảo cho tem nhãn */}
+              <div className="w-full border-[1.5px] border-white/90 rounded-[5px] py-1 px-2 flex items-center justify-center gap-2.5">
+                 <span className="text-[20px] select-none text-white leading-none">★</span>
+                 <span 
+                   className="text-[46px] font-black tracking-[0.16em] uppercase italic leading-none text-center" 
+                   style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                 >
+                    BIG SALE
+                 </span>
+                 <span className="text-[20px] select-none text-white leading-none">★</span>
+              </div>
            </div>
         </div>
 
