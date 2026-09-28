@@ -921,6 +921,8 @@ function App() {
         baseTag = { w: 800, h: 700 };
         targetWidthMm = 80;
         targetHeightMm = 70;
+        pagePadding = { x: 15, y: 10 };
+        tagGap = 2;
     } else if (selectedTemplate === 'normal_small') {
         baseTag = { w: 600, h: 300 };
         targetWidthMm = 50;
@@ -1951,7 +1953,7 @@ function App() {
                             { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
                             { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                             { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
-                            { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' },
+                            { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
                             { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
                             { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' }
                         ].filter(tpl => tpl.type === promoType).map(tpl => (
