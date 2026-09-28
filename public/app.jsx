@@ -1480,7 +1480,7 @@ function App() {
     const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative text-black select-none">
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative text-black select-none" style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}>
         <div className="w-full h-full border-[6px] rounded-[28px] border-black p-6 flex flex-col relative overflow-hidden justify-between">
           
           {/* Header: BIG SALE Badge to nổi bật + Tên sản phẩm */}
@@ -1489,8 +1489,8 @@ function App() {
             <div className="bg-black text-white px-12 py-2 rounded-[10px] flex items-center justify-center gap-3 mb-2.5 shadow-sm shrink-0">
               <span className="text-[26px] leading-none select-none text-white">★</span>
               <span 
-                className="text-[48px] font-black tracking-[0.2em] uppercase italic leading-none" 
-                style={{ fontFamily: "'Montserrat', 'Segoe UI', sans-serif" }}
+                className="text-[48px] uppercase italic leading-none text-white font-bold" 
+                style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif", letterSpacing: '0.15em' }}
               >
                 BIG SALE
               </span>
@@ -1499,12 +1499,11 @@ function App() {
 
             {/* Tên sản phẩm */}
             <div 
-              className="text-center text-black text-[32px] leading-tight line-clamp-2 px-4"
+              className="text-center text-black text-[32px] leading-tight line-clamp-2 px-4 font-bold"
               style={{ 
                 overflowWrap: 'anywhere',
                 wordBreak: 'break-word',
-                fontFamily: "'Montserrat', 'Segoe UI', sans-serif",
-                fontWeight: 800
+                fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif"
               }}
             >
               {product.name}
@@ -1525,22 +1524,22 @@ function App() {
           </div>
 
           {/* Chân tem: Mã vạch | Ngày áp dụng */}
-          <div className="flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden pb-1">
+          <div className="flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden pb-1 font-bold" style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}>
             <div 
               className="text-black"
-              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+              style={{ fontSize: '26px' }}
             >
               {product.barcode}
             </div>
             <div 
               className="text-black mx-2"
-              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+              style={{ fontSize: '26px' }}
             >
               |
             </div>
             <div 
               className="text-black"
-              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+              style={{ fontSize: '26px' }}
             >
               {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
             </div>
@@ -1560,70 +1559,70 @@ function App() {
       .trim();
     const len = formatted.length;
     
-    let fontSize = 68;
-    let lineHeight = 1.38;
+    let fontSize = 50;
+    let lineHeight = 1.35;
 
     if (size === 'A6') {
       // Khổ A6 dọc (1000px x 1414px), vùng nội dung rộng ~850px, cao ~950px
       if (len <= 30) {
-        fontSize = 92;
-        lineHeight = 1.35;
+        fontSize = 80;
+        lineHeight = 1.32;
       } else if (len <= 55) {
-        fontSize = 82;
-        lineHeight = 1.38;
+        fontSize = 70;
+        lineHeight = 1.35;
       } else if (len <= 85) {
-        fontSize = 72;
-        lineHeight = 1.4;
-      } else if (len <= 125) {
-        fontSize = 62;
+        fontSize = 60;
         lineHeight = 1.38;
-      } else if (len <= 170) {
+      } else if (len <= 125) {
         fontSize = 50;
         lineHeight = 1.35;
-      } else {
+      } else if (len <= 170) {
         fontSize = 42;
         lineHeight = 1.32;
+      } else {
+        fontSize = 35;
+        lineHeight = 1.3;
       }
     } else if (size === '100x80') {
       // Khổ Ngang 100x80 (1000px x 800px), vùng nội dung rộng ~880px, cao ~450px
       if (len <= 25) {
-        fontSize = 70;
+        fontSize = 65;
         lineHeight = 1.25;
       } else if (len <= 50) {
-        fontSize = 58;
+        fontSize = 52;
         lineHeight = 1.28;
       } else if (len <= 80) {
-        fontSize = 48;
+        fontSize = 44;
         lineHeight = 1.3;
       } else if (len <= 120) {
-        fontSize = 40;
+        fontSize = 38;
         lineHeight = 1.32;
       } else if (len <= 160) {
-        fontSize = 34;
-        lineHeight = 1.3;
+        fontSize = 32;
+        lineHeight = 1.32;
       } else {
-        fontSize = 28;
+        fontSize = 26;
         lineHeight = 1.28;
       }
     } else {
       // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~850px, cao ~420px
       if (len <= 30) {
-        fontSize = 62;
+        fontSize = 58;
         lineHeight = 1.28;
       } else if (len <= 55) {
-        fontSize = 52;
+        fontSize = 48;
         lineHeight = 1.3;
       } else if (len <= 85) {
-        fontSize = 42;
+        fontSize = 40;
         lineHeight = 1.32;
       } else if (len <= 125) {
-        fontSize = 35;
+        fontSize = 34;
         lineHeight = 1.32;
       } else if (len <= 170) {
         fontSize = 28;
         lineHeight = 1.3;
       } else {
-        fontSize = 23;
+        fontSize = 22;
         lineHeight = 1.28;
       }
     }
@@ -1636,8 +1635,8 @@ function App() {
         overflowWrap: 'anywhere',
         wordBreak: 'break-word',
         whiteSpace: 'pre-line',
-        fontFamily: "'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
-        fontWeight: 800
+        fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif",
+        fontWeight: 'bold'
       }
     };
   };
@@ -1647,7 +1646,7 @@ function App() {
     const promoInfo = getPromoContentInfo(product.promoContent, promoSize);
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative select-none">
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative select-none" style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}>
         <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden justify-between`}>
             
             {/* Header: BIG SALE Badge to + Tên sản phẩm */}
@@ -1655,8 +1654,8 @@ function App() {
               <div className={`bg-black text-white ${isA6 ? 'px-16 py-3 rounded-[14px] gap-4 mb-4' : 'px-12 py-2 rounded-[10px] gap-3 mb-2.5'} flex items-center justify-center shadow-sm shrink-0`}>
                 <span className={`${isA6 ? 'text-[36px]' : 'text-[26px]'} leading-none select-none text-white`}>★</span>
                 <span 
-                  className={`${isA6 ? 'text-[64px]' : 'text-[46px]'} font-black tracking-[0.2em] uppercase italic leading-none`}
-                  style={{ fontFamily: "'Montserrat', 'Segoe UI', sans-serif" }}
+                  className={`${isA6 ? 'text-[64px]' : 'text-[46px]'} uppercase italic leading-none font-bold`}
+                  style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif", letterSpacing: '0.15em' }}
                 >
                   BIG SALE
                 </span>
@@ -1664,13 +1663,12 @@ function App() {
               </div>
 
               <div 
-                className={`text-center text-black leading-tight line-clamp-2 px-6`}
+                className={`text-center text-black leading-tight line-clamp-2 px-6 font-bold`}
                 style={{ 
                   fontSize: isA6 ? '46px' : '30px',
                   overflowWrap: 'anywhere',
                   wordBreak: 'break-word',
-                  fontFamily: "'Montserrat', 'Segoe UI', sans-serif",
-                  fontWeight: 800
+                  fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif"
                 }}
               >
                 {product.name}
@@ -1691,22 +1689,22 @@ function App() {
             </div>
             
             {/* Bottom Section */}
-            <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-3' : 'pb-1'}`}>
+            <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden pb-1 font-bold`} style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}>
                <div 
                  className="text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   {product.barcode}
                </div>
                <div 
                  className="text-black mx-2"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   |
                </div>
                <div 
                  className="text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
+                 style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
                   {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
