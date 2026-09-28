@@ -616,9 +616,10 @@ function App() {
   };
 
   const getDiscountPercent = (price, original) => {
-    const p = Number(String(price).replace(/,/g, ''));
-    const o = Number(String(original).replace(/,/g, ''));
-    if (!o || p >= o) return 0;
+    if (!price || !original) return 0;
+    const p = parseFloat(String(price).replace(/[^\d.]/g, ''));
+    const o = parseFloat(String(original).replace(/[^\d.]/g, ''));
+    if (!o || isNaN(p) || isNaN(o) || p >= o) return 0;
     return Math.round(((o - p) / o) * 100);
   };
 
@@ -662,17 +663,26 @@ function App() {
         const data = await response.json();
         
         // Map database fields to app state fields
-        const mappedData = data.map(p => ({
-          barcode: p.barcode || '',
-          name: p.item_name || p.name || '',
-          originalPrice: p.retail_price || p.originalPrice || '',
-          price: p.promo_price || p.price || '',
-          dateRange: p.dateRange || (parseDateValue(p.start_date) ? `${parseDateValue(p.start_date)} - ${parseDateValue(p.end_date)}` : ''),
-          promoContent: p.promo_content || p.type || '',
-          discountPercent: p.discount_percent || p.discountPercent || '',
-          discountAmount: p.discount_amount || p.discountAmount || '',
-          unit: p.unit || p.uom || ''
-        }));
+        const mappedData = data.map(p => {
+          const sDate = parseDateValue(p.start_date);
+          const eDate = parseDateValue(p.end_date);
+          let dateStr = '';
+          if (p.dateRange) dateStr = String(p.dateRange).trim();
+          else if (sDate && eDate) dateStr = `${sDate} - ${eDate}`;
+          else if (sDate) dateStr = String(sDate);
+
+          return {
+            barcode: String(p.barcode || '').trim(),
+            name: String(p.item_name || p.name || '').trim(),
+            originalPrice: (p.retail_price !== undefined && p.retail_price !== null && p.retail_price !== '') ? String(p.retail_price).trim() : (p.originalPrice ? String(p.originalPrice).trim() : ''),
+            price: (p.promo_price !== undefined && p.promo_price !== null && p.promo_price !== '') ? String(p.promo_price).trim() : (p.price ? String(p.price).trim() : '0'),
+            dateRange: dateStr,
+            promoContent: String(p.promo_content || p.type || '').trim(),
+            discountPercent: String(p.discount_percent || p.discountPercent || '').trim(),
+            discountAmount: String(p.discount_amount || p.discountAmount || '').trim(),
+            unit: String(p.unit || p.uom || '').trim()
+          };
+        });
 
         setSystemData(mappedData);
         addMultipleToQueue(mappedData);
@@ -1030,26 +1040,41 @@ function App() {
     };
   }, [uniqueBarcodes, selectedTemplate]);
 
-  const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => (
-      <img 
-          src={`/api/barcode?text=${encodeURIComponent(barcode)}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
-          alt="barcode" 
-          className={`${className} w-full object-contain mix-blend-multiply`} 
-          crossOrigin="anonymous" 
-          onLoad={() => {
-            if (barcode && !loadedBarcodes.has(barcode)) {
-              setLoadedBarcodes(prev => {
-                const next = new Set(prev);
-                next.add(barcode);
-                return next;
-              });
-            }
-          }}
-      />
-  );
+  const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => {
+      const cleanBarcode = String(barcode || '').trim();
+      if (!cleanBarcode) {
+        return <div className={`${className} flex items-center justify-center text-gray-400 text-xs italic`}>Không có mã vạch</div>;
+      }
+      return (
+        <img 
+            src={`/api/barcode?text=${encodeURIComponent(cleanBarcode)}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
+            alt="barcode" 
+            className={`${className} w-full object-contain mix-blend-multiply`} 
+            crossOrigin="anonymous" 
+            onLoad={() => {
+              if (!loadedBarcodes.has(cleanBarcode)) {
+                setLoadedBarcodes(prev => {
+                  const next = new Set(prev);
+                  next.add(cleanBarcode);
+                  return next;
+                });
+              }
+            }}
+            onError={() => {
+              if (!loadedBarcodes.has(cleanBarcode)) {
+                setLoadedBarcodes(prev => {
+                  const next = new Set(prev);
+                  next.add(cleanBarcode);
+                  return next;
+                });
+              }
+            }}
+        />
+      );
+  };
 
   const getTitleSize = (name, baseSize) => {
-      const len = name ? name.length : 0;
+      const len = name ? String(name).length : 0;
       if (baseSize === 28) {
           if (len > 45) return { c: 'line-clamp-3', s: '28px' };
           return { c: 'line-clamp-2', s: '28px' };
@@ -1140,9 +1165,10 @@ function App() {
     let ribbonSub = discount + '%';
     
     if (product.promoContent) {
-        const pc = product.promoContent.trim().toLowerCase();
+        const rawPC = String(product.promoContent || '');
+        const pc = rawPC.trim().toLowerCase();
         if (/^(giảm\s*)?\d+%$/.test(pc)) {
-            ribbonSub = product.promoContent.replace(/[^\d%]/g, '');
+            ribbonSub = rawPC.replace(/[^\d%]/g, '');
         } else {
             showPromoText = true;
         }
@@ -1225,9 +1251,10 @@ function App() {
     let ribbonSub = discount + '%';
     
     if (product.promoContent) {
-        const pc = product.promoContent.trim().toLowerCase();
+        const rawPC = String(product.promoContent || '');
+        const pc = rawPC.trim().toLowerCase();
         if (/^(giảm\s*)?\d+%$/.test(pc)) {
-            ribbonSub = product.promoContent.replace(/[^\d%]/g, '');
+            ribbonSub = rawPC.replace(/[^\d%]/g, '');
         } else {
             showPromoText = true;
         }
@@ -1296,7 +1323,7 @@ function App() {
                </div>
                {product.unit ? (
                   <div className="text-right min-w-[70px] mb-1">
-                     {product.unit.startsWith('/') ? product.unit : `/${product.unit}`}
+                     {String(product.unit).startsWith('/') ? String(product.unit) : `/${product.unit}`}
                   </div>
                ) : null}
             </div>
@@ -1922,7 +1949,8 @@ function App() {
                                 alignContent: 'start'
                             }}>
                                  {page.map(tag => {
-                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || !tag.barcode || loadedBarcodes.has(tag.barcode);
+                                     const tagBarcode = String(tag.barcode || '').trim();
+                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || !tagBarcode || loadedBarcodes.has(tagBarcode);
                                      return (
                                          <div 
                                              key={tag.renderId} 
