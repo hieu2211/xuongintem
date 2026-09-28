@@ -1368,6 +1368,13 @@ function App() {
            <span className="font-bold text-[26px] tracking-wider">{product.barcode}</span>
         </div>
 
+        {/* Khung BIG SALE nổi bật */}
+        <div className="flex justify-center items-center mt-3 mb-1 shrink-0">
+           <div className="bg-black text-white px-8 py-1.5 rounded-[8px] font-black text-[32px] tracking-widest uppercase flex items-center justify-center shadow-sm" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+              BIG SALE
+           </div>
+        </div>
+
         {/* Khu vực giá khuyến mãi ghi rõ ràng */}
         <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
