@@ -1202,7 +1202,7 @@ function App() {
         <div className="bg-black text-white text-center font-black text-[55px] uppercase tracking-widest py-1 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
-        <div className="px-6 pt-1 pb-0 text-center font-bold text-[26px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[66px]" style={{ overflowWrap: 'anywhere' }}>
+        <div className="px-6 pt-1 pb-0 text-center font-bold text-[30px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[66px]" style={{ overflowWrap: 'anywhere' }}>
           {product.name}
         </div>
         
@@ -1305,7 +1305,7 @@ function App() {
         <div className="bg-black text-white text-center font-black text-[80px] uppercase tracking-widest py-2 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
-        <div className="px-6 pt-2 pb-0 text-center font-bold text-[28px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[72px]" style={{ overflowWrap: 'anywhere' }}>
+        <div className="px-6 pt-2 pb-0 text-center font-bold text-[32px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[72px]" style={{ overflowWrap: 'anywhere' }}>
           {product.name}
         </div>
         
@@ -1376,8 +1376,17 @@ function App() {
     const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
     const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
     
-    // Giá mới hiển thị đầy đủ: ví dụ 135.000đ
-    const priceText = formatCurrency(product.price);
+    // Tách phần số chính và 3 chữ số đằng sau để hiển thị nhỏ gọn cân đối
+    const priceStr = formatCurrency(product.price);
+    let priceMain = priceStr;
+    let priceDec = '';
+    let hasDec = false;
+    const lastDotIndex = priceStr.lastIndexOf('.');
+    if (lastDotIndex !== -1 && priceStr.length - lastDotIndex === 4) {
+      priceMain = priceStr.slice(0, lastDotIndex);
+      priceDec = priceStr.slice(lastDotIndex); // ví dụ: ".000"
+      hasDec = true;
+    }
 
     // Giá cũ gạch ngang rõ ràng: ví dụ 150.000đ
     const oldPriceText = numOriginalPrice > 0 ? formatCurrency(product.originalPrice) : '';
@@ -1395,8 +1404,11 @@ function App() {
     return (
       <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
         
-        {/* Tên sản phẩm */}
-        <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pt-0.5 pb-2 text-black font-sans shrink-0">
+        {/* Tên sản phẩm - phóng to rõ ràng hơn */}
+        <div 
+          className="text-center font-bold text-[34px] leading-tight line-clamp-2 px-1 pt-0.5 pb-1 text-black font-sans shrink-0"
+          style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+        >
           {product.name}
         </div>
 
@@ -1432,19 +1444,36 @@ function App() {
            </div>
         </div>
 
-        {/* Khu vực giá khuyến mãi ghi to rõ ràng */}
+        {/* Khu vực giá khuyến mãi: số chính to, 3 chữ số đằng sau (.000đ) nhỏ lại */}
         <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
-             <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
-               {priceText}
+             <span 
+               className={priceMain.length > 8 ? 'text-[78px]' : priceMain.length > 5 ? 'text-[92px]' : priceMain.length > 3 ? 'text-[110px]' : 'text-[125px]'} 
+               style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+             >
+               {priceMain}
              </span>
-             <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
-               đ
-             </span>
+             {hasDec ? (
+               <span className="flex items-baseline ml-0.5">
+                 <span 
+                   className={priceMain.length > 8 ? 'text-[38px]' : priceMain.length > 5 ? 'text-[46px]' : 'text-[54px]'}
+                   style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                 >
+                   {priceDec}
+                 </span>
+                 <span className={`font-bold ml-1 ${priceMain.length > 8 ? 'text-[30px]' : priceMain.length > 5 ? 'text-[36px]' : 'text-[42px]'}`}>
+                   đ
+                 </span>
+               </span>
+             ) : (
+               <span className={`font-bold ml-1 ${priceMain.length > 8 ? 'text-[38px]' : priceMain.length > 5 ? 'text-[46px]' : 'text-[54px]'}`}>
+                 đ
+               </span>
+             )}
            </div>
 
            {oldPriceText ? (
-             <div className="mt-2 text-center text-gray-700 font-bold text-[36px] tracking-tight leading-none">
+             <div className="mt-2 text-center text-gray-700 font-bold text-[34px] tracking-tight leading-none">
                <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
              </div>
            ) : (
