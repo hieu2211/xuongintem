@@ -1399,12 +1399,12 @@ function App() {
            )}
         </div>
 
-        {/* Ô tiết kiệm (discount_amount) */}
+        {/* Ô tiết kiệm (discount_amount) to rõ ràng */}
         {savingDisplay ? (
-          <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1.5 px-3 flex items-center justify-center gap-2 mb-2 shrink-0 font-sans">
-            <span className="text-[24px] font-bold text-black">Tiết kiệm:</span>
-            <span className="text-[28px] font-black text-black">{savingDisplay}</span>
-            <span className="text-[22px] font-bold text-black">đ</span>
+          <div className="w-[94%] mx-auto border-[2.5px] border-black rounded-[6px] py-2 px-3 flex items-baseline justify-center gap-2 mb-2 shrink-0 font-sans shadow-sm">
+            <span className="text-[28px] font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
+            <span className="text-[36px] font-black text-black leading-none" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{savingDisplay}</span>
+            <span className="text-[26px] font-bold text-black">đ</span>
           </div>
         ) : (
           <div className="h-2"></div>
