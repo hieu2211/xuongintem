@@ -1480,7 +1480,7 @@ function App() {
     const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative font-sans text-black select-none">
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative text-black select-none">
         <div className="w-full h-full border-[6px] rounded-[28px] border-black p-6 flex flex-col relative overflow-hidden justify-between">
           
           {/* Header: BIG SALE Badge to nổi bật + Tên sản phẩm */}
@@ -1490,7 +1490,7 @@ function App() {
               <span className="text-[26px] leading-none select-none text-white">★</span>
               <span 
                 className="text-[48px] font-black tracking-[0.2em] uppercase italic leading-none" 
-                style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+                style={{ fontFamily: "'Montserrat', 'Segoe UI', sans-serif" }}
               >
                 BIG SALE
               </span>
@@ -1499,11 +1499,12 @@ function App() {
 
             {/* Tên sản phẩm */}
             <div 
-              className="text-center text-black font-extrabold text-[32px] leading-tight line-clamp-2 px-4"
+              className="text-center text-black text-[32px] leading-tight line-clamp-2 px-4"
               style={{ 
                 overflowWrap: 'anywhere',
                 wordBreak: 'break-word',
-                fontFamily: 'Arial, Helvetica, sans-serif'
+                fontFamily: "'Montserrat', 'Segoe UI', sans-serif",
+                fontWeight: 800
               }}
             >
               {product.name}
@@ -1514,13 +1515,10 @@ function App() {
           <div className="w-full h-[4px] bg-black rounded-full shrink-0 my-2"></div>
 
           {/* Nội dung chương trình khuyến mãi (Hero Center) */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden px-4 py-2">
+          <div className="flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden px-6 py-2 my-auto">
             <div 
-              className="text-black font-black text-center w-full max-w-full tracking-wide"
-              style={{
-                ...promoInfo.style,
-                fontFamily: 'Arial, Helvetica, sans-serif'
-              }}
+              className="text-black text-center w-full max-w-full tracking-wide"
+              style={promoInfo.style}
             >
               {promoInfo.text}
             </div>
@@ -1529,20 +1527,20 @@ function App() {
           {/* Chân tem: Mã vạch | Ngày áp dụng */}
           <div className="flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden pb-1">
             <div 
-              className="font-bold text-black"
-              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+              className="text-black"
+              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
             >
               {product.barcode}
             </div>
             <div 
-              className="font-bold text-black mx-2"
-              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+              className="text-black mx-2"
+              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
             >
               |
             </div>
             <div 
-              className="font-bold text-black"
-              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+              className="text-black"
+              style={{ fontSize: '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
             >
               {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
             </div>
@@ -1554,8 +1552,12 @@ function App() {
   };
 
   const getPromoContentInfo = (rawContent, size) => {
-    // Tự động thêm khoảng trắng sau dấu phẩy/chấm phẩy nếu viết liền (VD: "102332,102336" -> "102332, 102336")
-    const formatted = String(rawContent || '').replace(/([,;])([^\s])/g, '$1 $2').trim();
+    // Tự động chuẩn hóa dấu xuống dòng và khoảng trắng
+    const formatted = String(rawContent || '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{2,}/g, '\n')
+      .replace(/([,;])([^\s])/g, '$1 $2')
+      .trim();
     const len = formatted.length;
     
     let fontSize = 68;
@@ -1584,23 +1586,23 @@ function App() {
       }
     } else if (size === '100x80') {
       // Khổ Ngang 100x80 (1000px x 800px), vùng nội dung rộng ~880px, cao ~450px
-      if (len <= 30) {
-        fontSize = 66;
+      if (len <= 25) {
+        fontSize = 70;
+        lineHeight = 1.25;
+      } else if (len <= 50) {
+        fontSize = 58;
+        lineHeight = 1.28;
+      } else if (len <= 80) {
+        fontSize = 48;
         lineHeight = 1.3;
-      } else if (len <= 55) {
-        fontSize = 54;
+      } else if (len <= 120) {
+        fontSize = 40;
         lineHeight = 1.32;
-      } else if (len <= 85) {
-        fontSize = 44;
-        lineHeight = 1.32;
-      } else if (len <= 125) {
-        fontSize = 36;
-        lineHeight = 1.32;
-      } else if (len <= 170) {
-        fontSize = 30;
+      } else if (len <= 160) {
+        fontSize = 34;
         lineHeight = 1.3;
       } else {
-        fontSize = 25;
+        fontSize = 28;
         lineHeight = 1.28;
       }
     } else {
@@ -1633,7 +1635,9 @@ function App() {
         lineHeight: lineHeight,
         overflowWrap: 'anywhere',
         wordBreak: 'break-word',
-        whiteSpace: 'pre-line'
+        whiteSpace: 'pre-line',
+        fontFamily: "'Montserrat', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+        fontWeight: 800
       }
     };
   };
@@ -1643,7 +1647,7 @@ function App() {
     const promoInfo = getPromoContentInfo(product.promoContent, promoSize);
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative font-sans text-black select-none">
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative select-none">
         <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden justify-between`}>
             
             {/* Header: BIG SALE Badge to + Tên sản phẩm */}
@@ -1652,7 +1656,7 @@ function App() {
                 <span className={`${isA6 ? 'text-[36px]' : 'text-[26px]'} leading-none select-none text-white`}>★</span>
                 <span 
                   className={`${isA6 ? 'text-[64px]' : 'text-[46px]'} font-black tracking-[0.2em] uppercase italic leading-none`}
-                  style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+                  style={{ fontFamily: "'Montserrat', 'Segoe UI', sans-serif" }}
                 >
                   BIG SALE
                 </span>
@@ -1660,12 +1664,13 @@ function App() {
               </div>
 
               <div 
-                className={`text-center text-black font-extrabold leading-tight line-clamp-2 px-6`}
+                className={`text-center text-black leading-tight line-clamp-2 px-6`}
                 style={{ 
                   fontSize: isA6 ? '46px' : '30px',
                   overflowWrap: 'anywhere',
                   wordBreak: 'break-word',
-                  fontFamily: 'Arial, Helvetica, sans-serif'
+                  fontFamily: "'Montserrat', 'Segoe UI', sans-serif",
+                  fontWeight: 800
                 }}
               >
                 {product.name}
@@ -1676,13 +1681,10 @@ function App() {
             <div className={`w-full ${isA6 ? 'h-[6px] mb-4' : 'h-[4px] my-2'} bg-black rounded-full shrink-0`}></div>
             
             {/* Promo Content Body */}
-            <div className={`flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden ${isA6 ? 'px-8 py-4' : 'px-6 py-2'}`}>
+            <div className={`flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden ${isA6 ? 'px-8 py-4' : 'px-6 py-2'} my-auto`}>
               <div 
-                className="text-black font-black text-center w-full max-w-full tracking-wide"
-                style={{
-                  ...promoInfo.style,
-                  fontFamily: 'Arial, Helvetica, sans-serif'
-                }}
+                className="text-black text-center w-full max-w-full tracking-wide"
+                style={promoInfo.style}
               >
                 {promoInfo.text}
               </div>
@@ -1691,20 +1693,20 @@ function App() {
             {/* Bottom Section */}
             <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-3' : 'pb-1'}`}>
                <div 
-                 className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+                 className="text-black"
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
                >
                   {product.barcode}
                </div>
                <div 
-                 className="font-bold text-black mx-2"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+                 className="text-black mx-2"
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
                >
                   |
                </div>
                <div 
-                 className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+                 className="text-black"
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: "'Montserrat', 'Segoe UI', sans-serif", fontWeight: 700 }}
                >
                   {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
