@@ -1224,12 +1224,29 @@ function App() {
            ) : (
               <div className="w-[90px] shrink-0"></div>
            )}
-           <div className="flex flex-col items-end justify-start flex-1 ml-3 overflow-hidden relative top-[0px]">
-              <div className="flex items-baseline text-black justify-end w-full mt-1">
-                  <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[65px]' : priceMain.length > 5 ? 'text-[80px]' : 'text-[95px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
-                  <span className={`font-bold ml-1 shrink-0 ${priceMain.length > 5 ? 'text-[32px]' : 'text-[40px]'}`}>{priceSub}</span>
+           <div className="flex flex-col items-end justify-start flex-1 ml-2 relative">
+              <div className="flex items-baseline text-black justify-end w-full mt-0.5">
+                  <span 
+                    className={`font-black tracking-tighter leading-none shrink-0 ${
+                      showPromoText 
+                        ? (priceMain.length >= 6 ? 'text-[50px]' : priceMain.length >= 4 ? 'text-[64px]' : 'text-[76px]') 
+                        : (priceMain.length >= 6 ? 'text-[62px]' : priceMain.length >= 4 ? 'text-[76px]' : 'text-[90px]')
+                    }`} 
+                    style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                  >
+                    {priceMain}
+                  </span>
+                  <span 
+                    className={`font-bold ml-0.5 shrink-0 ${
+                      showPromoText 
+                        ? (priceMain.length >= 6 ? 'text-[24px]' : priceMain.length >= 4 ? 'text-[28px]' : 'text-[32px]') 
+                        : (priceMain.length >= 6 ? 'text-[28px]' : priceMain.length >= 4 ? 'text-[34px]' : 'text-[38px]')
+                    }`}
+                  >
+                    {priceSub}
+                  </span>
               </div>
-              <div className="text-right text-black text-[30px] shrink-0 leading-tight mt-1">
+              <div className="text-right text-black text-[22px] font-bold shrink-0 leading-tight mt-1">
                  {product.originalPrice ? (
                      <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                  ) : (
@@ -1313,10 +1330,10 @@ function App() {
                )}
                <div className="flex flex-col items-end justify-start flex-1 ml-6 overflow-hidden mt-1">
                   <div className="flex items-baseline text-black justify-end w-full">
-                      <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 7 ? 'text-[90px]' : priceMain.length > 5 ? 'text-[110px]' : 'text-[130px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
-                      <span className={`font-bold ml-2 shrink-0 ${priceMain.length > 5 ? 'text-[40px]' : 'text-[50px]'}`}>{priceSub}</span>
+                      <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 6 ? 'text-[85px]' : priceMain.length >= 4 ? 'text-[105px]' : 'text-[125px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
+                      <span className={`font-bold ml-1.5 shrink-0 ${priceMain.length >= 4 ? 'text-[42px]' : 'text-[50px]'}`}>{priceSub}</span>
                   </div>
-                  <div className="text-right text-black text-[42px] shrink-0 leading-tight mt-2">
+                  <div className="text-right text-black text-[34px] font-bold shrink-0 leading-tight mt-2">
                      {product.originalPrice ? (
                          <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                      ) : (
@@ -1406,7 +1423,7 @@ function App() {
                  <span className="text-[20px] select-none text-white leading-none">★</span>
                  <span 
                    className="text-[46px] font-black tracking-[0.16em] uppercase italic leading-none text-center" 
-                   style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}
+                   style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
                  >
                     BIG SALE
                  </span>
@@ -1418,7 +1435,7 @@ function App() {
         {/* Khu vực giá khuyến mãi ghi to rõ ràng */}
         <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
-             <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'} style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}>
+             <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
                {priceText}
              </span>
              <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
@@ -1439,7 +1456,7 @@ function App() {
         {savingDisplay ? (
           <div className="w-[94%] mx-auto border-[2.5px] border-black rounded-[6px] py-2 px-3 flex items-baseline justify-center gap-2 mb-2 shrink-0 font-sans shadow-sm">
             <span className="text-[28px] font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
-            <span className="text-[36px] font-black text-black leading-none" style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}>{savingDisplay}</span>
+            <span className="text-[36px] font-black text-black leading-none" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{savingDisplay}</span>
             <span className="text-[26px] font-bold text-black">đ</span>
           </div>
         ) : (
@@ -1449,7 +1466,7 @@ function App() {
         {/* Thời gian áp dụng */}
         <div className="text-center font-sans text-black mb-1 shrink-0">
            <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
-           <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}>
+           <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
              {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
            </div>
         </div>
@@ -1458,106 +1475,88 @@ function App() {
     );
   };
 
-  // 6. Tem Combo In Ngang (80x100) theo mẫu Discount có BIG SALE
+  // 6. Tem Combo In Ngang (80x100) theo đúng bố cục mẫu Discount có BIG SALE
   const TemplateCombo80x100 = ({ product }) => {
-    const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
-    const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
-    
-    // Giá bán/giá mới nổi bật
-    const priceText = numPrice > 0 ? formatCurrency(numPrice) : (numOriginalPrice > 0 ? formatCurrency(numOriginalPrice) : '');
-    
-    // Giá gốc/giá niêm yết (nếu có giá cũ cao hơn)
-    const oldPriceText = (numOriginalPrice > numPrice && numPrice > 0) ? formatCurrency(numOriginalPrice) : '';
+    let priceMain = formatCurrency(product.price);
+    let priceSub = "đ";
+    const priceStr = String(product.price || '');
+    if (priceStr.endsWith('000') && priceStr.length > 3) {
+        priceMain = formatCurrency(parseInt(priceStr.slice(0, -3)));
+        priceSub = ".000đ";
+    }
 
-    // Nội dung chương trình khuyến mãi (vd: Mua 2 tặng 1)
     const promoText = product.promoContent ? String(product.promoContent).trim() : 'MUA 2 TẶNG 1';
 
+    let comboPriceMainClass = 'text-[120px]';
+    let comboPriceSubClass = 'text-[46px]';
+    if (priceMain.length >= 6) {
+        comboPriceMainClass = 'text-[82px]';
+        comboPriceSubClass = 'text-[34px]';
+    } else if (priceMain.length >= 4) {
+        comboPriceMainClass = 'text-[100px]';
+        comboPriceSubClass = 'text-[40px]';
+    }
+
     return (
-      <div className="w-full h-full bg-white border-[4px] border-black flex flex-col justify-between overflow-hidden box-border relative font-sans text-black select-none">
+      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative font-sans text-black select-none">
         
-        {/* Banner BIG SALE trên cùng kiểu mẫu Discount */}
-        <div className="bg-black text-white text-center py-2 px-6 leading-none shrink-0 flex items-center justify-center gap-3">
-          <span className="text-[22px] leading-none select-none text-white">★</span>
-          <span 
-            className="font-black text-[42px] uppercase tracking-[0.2em] italic text-white" 
-            style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}
-          >
-            BIG SALE
-          </span>
-          <span className="text-[22px] leading-none select-none text-white">★</span>
+        {/* Banner BIG SALE! trên cùng theo đúng chuẩn mẫu Discount */}
+        <div className="bg-black text-white text-center font-black text-[65px] uppercase tracking-widest py-1.5 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+          BIG SALE!
         </div>
 
-        {/* 1. Tên sản phẩm */}
-        <div 
-          className="px-6 py-2 text-center font-extrabold text-[32px] text-black line-clamp-2 break-words shrink-0 leading-snug min-h-[78px] flex items-center justify-center" 
-          style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif", overflowWrap: 'anywhere' }}
-        >
+        {/* Tên sản phẩm */}
+        <div className="px-6 pt-2 pb-0 text-center font-bold text-[30px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[74px] flex items-center justify-center" style={{ overflowWrap: 'anywhere' }}>
           {product.name}
         </div>
 
-        {/* Vạch ngăn cách */}
-        <div className="w-[94%] mx-auto border-b-[2.5px] border-black shrink-0"></div>
+        {/* Thân tem 2 cột chuẩn mẫu Discount: Trái là Khung CTKM (Mua 2 tặng 1), Phải là Giá bán */}
+        <div className="flex-1 min-h-0 px-6 flex items-center justify-between relative my-auto">
+          
+          {/* Ô nội dung CTKM (vd: Mua 2 tặng 1) có khung viền đen nổi bật */}
+          <div className="relative flex flex-col items-center justify-center w-[360px] shrink-0 border-[4px] border-black bg-white px-3 py-3 min-h-[140px] shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <span 
+              className="text-black font-black text-center break-words w-full uppercase leading-tight"
+              style={{ 
+                fontSize: promoText.length > 30 ? '30px' : promoText.length > 18 ? '36px' : '44px',
+                fontFamily: 'Arial, Helvetica, sans-serif'
+              }}
+            >
+              {promoText}
+            </span>
+          </div>
 
-        {/* 2. Giá (Giá bán nổi bật + Giá gốc nếu có) */}
-        <div className="flex items-center justify-center gap-6 px-4 my-auto shrink-0">
-          {priceText ? (
-            <div className="flex items-baseline text-black justify-center">
-              <span 
-                className={`font-black tracking-tight leading-none ${priceText.length > 9 ? 'text-[85px]' : 'text-[105px]'}`} 
-                style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}
-              >
-                {priceText}
+          {/* Cột phải: Giá bán to rõ ràng + Giá niêm yết gạch ngang */}
+          <div className="flex flex-col items-end justify-center flex-1 ml-6 overflow-hidden">
+            <div className="flex items-baseline text-black justify-end w-full">
+              <span className={`font-black tracking-tighter leading-none shrink-0 ${comboPriceMainClass}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+                {priceMain}
               </span>
-              <span className="font-bold text-[55px] ml-1 leading-none">
-                đ
+              <span className={`font-bold ml-1.5 shrink-0 ${comboPriceSubClass}`}>
+                {priceSub}
               </span>
             </div>
-          ) : null}
-
-          {oldPriceText ? (
-            <div className="flex flex-col justify-center text-gray-700">
-              <span className="text-[20px] font-bold text-gray-600 uppercase tracking-wide">Giá gốc</span>
-              <span className="text-[40px] font-bold line-through decoration-[3px] leading-tight">
-                {oldPriceText}đ
-              </span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* 3. Nội dung CTKM (vd: Mua 2 tặng 1) - Dạng Coupon Voucher Khung Đen Nổi Bật */}
-        <div className="w-[94%] mx-auto my-auto shrink-0">
-          <div className="relative bg-black text-white py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden">
-            {/* Vết khuyết 2 bên kiểu vé giảm giá */}
-            <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
-            <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
-
-            {/* Khung viền đôi trắng bên trong */}
-            <div className="w-full border-[2px] border-white/90 rounded-[5px] py-2 px-4 flex items-center justify-center gap-3">
-              <span className="text-[22px] select-none text-white leading-none">★</span>
-              <span 
-                className="text-white font-black uppercase text-center leading-tight tracking-[0.1em]" 
-                style={{ 
-                  fontSize: promoText.length > 30 ? '34px' : promoText.length > 18 ? '40px' : '46px', 
-                  fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" 
-                }}
-              >
-                {promoText}
-              </span>
-              <span className="text-[22px] select-none text-white leading-none">★</span>
+            <div className="text-right text-black text-[34px] shrink-0 leading-tight mt-2 font-bold">
+              {product.originalPrice ? (
+                <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
+              ) : (
+                <span>&nbsp;</span>
+              )}
             </div>
           </div>
+
         </div>
 
-        {/* 4. Footer: Barcode + Mã SP + Ngày áp dụng */}
-        <div className="mx-6 mt-auto mb-2 flex items-end justify-between border-t-[3px] border-black pt-2 pb-1 shrink-0">
-          <div className="w-[280px] shrink-0 flex items-center">
-            <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={4} bcHeight={14} textsize={14} />
+        {/* Chân tem: Barcode + Mã SP + Ngày áp dụng */}
+        <div className="mx-6 mt-auto mb-3 flex items-end justify-between border-t-[3px] border-black pt-2 shrink-0">
+          <div className="w-[300px] shrink-0 flex items-center">
+            <BarcodeImage barcode={product.barcode} className="h-[90px] ml-[-10px]" scale={4} bcHeight={15} textsize={15} />
           </div>
           <div className="flex flex-col items-end justify-end text-black font-sans pb-0.5">
             <div className="text-[24px] font-bold tracking-wider font-mono">
               Mã SP: {product.barcode}
             </div>
-            <div className="text-[22px] font-bold text-gray-800 mt-0.5" style={{ fontFamily: "'Montserrat', 'Segoe UI', Roboto, sans-serif" }}>
+            <div className="text-[22px] font-bold text-gray-800 mt-1">
               {product.dateRange ? `Áp dụng: ${String(product.dateRange).replace(/\s*-\s*/g, ' - ')}` : 'Áp dụng: Liên hệ'}
             </div>
           </div>
