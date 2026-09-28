@@ -50,10 +50,17 @@ async function getRecords(tableId, pageToken = '') {
 
 function safeString(val) {
   if (val === null || val === undefined) return null;
-  if (typeof val === 'object' && val.text) return val.text;
-  if (typeof val === 'object' && val.name) return val.name; // For SingleSelect
-  if (Array.isArray(val)) return val.map(v => v.name || v.text || v).join(', ');
-  return String(val);
+  if (Array.isArray(val)) {
+    const joined = val.map(v => (v && typeof v === 'object' ? (v.name || v.text || JSON.stringify(v)) : v)).filter(Boolean).join(', ');
+    return joined ? joined.trim() : null;
+  }
+  if (typeof val === 'object') {
+    if (val.text !== undefined) return String(val.text).trim();
+    if (val.name !== undefined) return String(val.name).trim();
+    return JSON.stringify(val);
+  }
+  const s = String(val).trim();
+  return s.length > 0 ? s : null;
 }
 
 function safeNumeric(val) {
@@ -125,7 +132,13 @@ async function syncPromotions() {
           const category = safeString(f['Ngành hàng']);
           const retail_price = safeString(f['Giá BL']);
           const promo_price = safeString(f['Giá KM']);
-          const promo_content = safeString(f['Nội dung CTKM']);
+          const promo_content = safeString(
+            f['Nội dung CTKM 1'] || 
+            f['Nội dung CTKM'] || 
+            f['Nội dung CTKM_Mini APP'] || 
+            f['Nội dung CTKM 2'] || 
+            f['Thông điệp chính']
+          );
           const discount_percent = safeNumeric(f['% Giảm giá']);
           const discount_amount = safeString(f['Tiền giảm']);
           const start_date = safeString(f['Thời gian bắt đầu']);
