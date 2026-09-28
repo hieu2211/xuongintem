@@ -1279,12 +1279,15 @@ function App() {
   const TemplateSaleUSP = ({ product }) => {
     let discount = getDiscountPercent(product.price, product.originalPrice);
     if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
-    let priceMain = formatCurrency(product.price);
+    
+    // Tách giá thông minh
+    const priceStr = formatCurrency(product.price);
+    let priceMain = priceStr;
     let priceSub = "đ";
-    const priceStr = String(product.price || '');
-    if (priceStr.endsWith('000') && priceStr.length > 3) {
-        priceMain = formatCurrency(parseInt(priceStr.slice(0, -3)));
-        priceSub = ".000đ";
+    const lastDotIndex = priceStr.lastIndexOf('.');
+    if (lastDotIndex !== -1 && priceStr.length - lastDotIndex === 4) {
+        priceMain = priceStr.slice(0, lastDotIndex);
+        priceSub = priceStr.slice(lastDotIndex) + "đ";
     }
 
     let showPromoText = false;
@@ -1301,39 +1304,55 @@ function App() {
     }
 
     return (
-      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative">
-        <div className="bg-black text-white text-center font-black text-[80px] uppercase tracking-widest py-2 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative font-sans text-black select-none">
+        <div className="bg-black text-white text-center font-black text-[84px] uppercase tracking-widest py-2 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
-        <div className="px-6 pt-2 pb-0 text-center font-bold text-[32px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[72px]" style={{ overflowWrap: 'anywhere' }}>
+        <div 
+          className="px-5 pt-2 pb-1 text-center font-bold text-[40px] text-black line-clamp-2 break-words shrink-0 leading-snug min-h-[90px]" 
+          style={{ overflowWrap: 'anywhere', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+        >
           {product.name}
         </div>
         
         <div className="flex-1 min-h-0 px-4 flex flex-col items-center justify-start relative mt-1">
            <div className="flex w-full justify-between items-start">
                {showPromoText ? (
-                  <div className="relative flex flex-col items-center justify-center w-[180px] shrink-0 border-[4px] border-black bg-white px-2 py-2 min-h-[120px] self-start mt-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                      <span className="text-black font-bold text-[18px] leading-tight text-center break-words w-full uppercase">
+                  <div className="relative flex flex-col items-center justify-center w-[210px] shrink-0 border-[4px] border-black bg-white px-2.5 py-3 min-h-[130px] self-start mt-1 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                      <span 
+                        className="text-black font-bold text-[26px] leading-snug text-center break-words w-full uppercase"
+                        style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+                      >
                           {product.promoContent}
                       </span>
                   </div>
                ) : discount > 0 || ribbonSub !== '0%' ? (
-                  <div className="relative flex flex-col items-center justify-center w-[130px] h-[155px] shrink-0 mt-1">
+                  <div className="relative flex flex-col items-center justify-center w-[145px] h-[170px] shrink-0 mt-1">
                       <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                           <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                       </svg>
-                      <span className="relative z-10 text-white font-bold text-[24px] leading-none uppercase mt-[-15px]">Giảm</span>
-                      <span className="relative z-10 text-white font-black leading-none mt-1 text-[52px] tracking-tighter">{ribbonSub}</span>
+                      <span className="relative z-10 text-white font-bold text-[28px] leading-none uppercase mt-[-15px]">Giảm</span>
+                      <span className="relative z-10 text-white font-black leading-none mt-1 text-[62px] tracking-tighter">{ribbonSub}</span>
                   </div>
                ) : (
                   <div className="w-[130px] shrink-0"></div>
                )}
                <div className="flex flex-col items-end justify-start flex-1 ml-6 overflow-hidden mt-1">
                   <div className="flex items-baseline text-black justify-end w-full">
-                      <span className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 6 ? 'text-[85px]' : priceMain.length >= 4 ? 'text-[105px]' : 'text-[125px]'}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{priceMain}</span>
-                      <span className={`font-bold ml-1.5 shrink-0 ${priceMain.length >= 4 ? 'text-[42px]' : 'text-[50px]'}`}>{priceSub}</span>
+                      <span 
+                        className={`font-black tracking-tighter leading-none shrink-0 ${priceMain.length > 6 ? 'text-[105px]' : priceMain.length >= 4 ? 'text-[125px]' : 'text-[145px]'}`} 
+                        style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                      >
+                        {priceMain}
+                      </span>
+                      <span 
+                        className={`font-bold ml-1.5 shrink-0 ${priceMain.length >= 4 ? 'text-[52px]' : 'text-[62px]'}`}
+                        style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                      >
+                        {priceSub}
+                      </span>
                   </div>
-                  <div className="text-right text-black text-[34px] font-bold shrink-0 leading-tight mt-2">
+                  <div className="text-right text-black text-[38px] font-bold shrink-0 leading-tight mt-2.5">
                      {product.originalPrice ? (
                          <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
                      ) : (
@@ -1344,7 +1363,10 @@ function App() {
            </div>
            <div className="w-full mt-4 flex justify-start flex-1 min-h-0 overflow-hidden">
                {product.type ? (
-                  <div className="font-bold text-[32px] text-black w-full text-left leading-tight break-words line-clamp-2" style={{ overflowWrap: 'anywhere' }}>
+                  <div 
+                    className="font-bold text-[38px] text-black w-full text-left leading-tight break-words line-clamp-2" 
+                    style={{ overflowWrap: 'anywhere', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+                  >
                       *{product.type}
                   </div>
                ) : (
@@ -1357,7 +1379,10 @@ function App() {
             <div className="w-[320px] shrink-0">
                 <BarcodeImage barcode={product.barcode} className="h-[120px] ml-[-10px]" scale={5} bcHeight={16} textsize={15} />
             </div>
-            <div className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-4 text-[24px] font-bold text-black">
+            <div 
+              className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-4 text-[28px] font-bold text-black"
+              style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+            >
                <div className="text-center flex-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
                   {product.dateRange ? `Áp dụng ${product.dateRange}` : 'Áp dụng 01/07 - 31/07'}
                </div>
