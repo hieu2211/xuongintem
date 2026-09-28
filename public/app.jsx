@@ -1305,111 +1305,146 @@ function App() {
         }
     }
 
-    // Tự co giãn cỡ chữ tên sản phẩm theo độ dài để không bao giờ bị cắt chữ
+    const hasPromoLeft = showPromoText || discount > 0 || (ribbonSub && ribbonSub !== '0%');
+
+    // Tự co giãn cỡ chữ tên sản phẩm theo độ dài để to rõ và không bao giờ bị cắt chữ
     const nameLen = String(product.name || '').length;
-    let nameSize = 'text-[38px]';
+    let nameSize = 'text-[42px]';
     if (nameLen > 65) nameSize = 'text-[28px]';
     else if (nameLen > 45) nameSize = 'text-[32px]';
-    else if (nameLen > 32) nameSize = 'text-[35px]';
+    else if (nameLen > 28) nameSize = 'text-[37px]';
 
     return (
-      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative font-sans text-black select-none justify-between">
-        <div className="bg-black text-white text-center font-black text-[80px] uppercase tracking-widest py-1.5 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col justify-between overflow-hidden box-border relative font-sans text-black select-none">
+        
+        {/* Header BIG SALE */}
+        <div className="bg-black text-white text-center font-black text-[86px] uppercase tracking-widest py-2 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
           BIG SALE!
         </div>
         
-        {/* Tên sản phẩm tự co dãn để hiển thị trọn vẹn */}
+        {/* Tên sản phẩm to rõ ràng, cân đối */}
         <div 
-          className={`px-5 pt-1 pb-1 text-center font-bold ${nameSize} text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[78px] flex items-center justify-center`} 
+          className={`px-6 pt-2 pb-1 text-center font-bold ${nameSize} text-black line-clamp-2 break-words shrink-0 leading-snug min-h-[92px] flex items-center justify-center`} 
           style={{ overflowWrap: 'anywhere', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
         >
           {product.name}
         </div>
         
-        <div className="flex-1 min-h-0 px-4 flex flex-col items-center justify-start relative mt-0.5">
-           <div className="flex w-full justify-between items-start">
-               {showPromoText ? (
-                  <div className="relative flex flex-col items-center justify-center w-[190px] shrink-0 border-[4px] border-black bg-white px-2 py-2 min-h-[120px] self-start mt-0.5 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                      <span 
-                        className={`text-black font-bold leading-snug text-center break-words w-full uppercase ${
-                          (product.promoContent || '').length > 40 ? 'text-[18px]' : (product.promoContent || '').length > 25 ? 'text-[21px]' : 'text-[24px]'
-                        }`}
-                        style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
-                      >
-                          {product.promoContent}
-                      </span>
+        {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán lấp đầy không gian hài hòa */}
+        <div className="flex-1 flex flex-col justify-center px-6 py-1 my-auto">
+           {hasPromoLeft ? (
+              <div className="flex w-full justify-between items-center">
+                  {showPromoText ? (
+                     <div className="relative flex flex-col items-center justify-center w-[230px] shrink-0 border-[4px] border-black rounded-[8px] bg-white px-3 py-3 min-h-[170px] shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                         <span className="text-[17px] font-black uppercase tracking-wider bg-black text-white px-2.5 py-0.5 rounded-[4px] mb-2 leading-none">
+                             Ưu đãi
+                         </span>
+                         <span 
+                           className={`text-black font-extrabold leading-tight text-center break-words w-full uppercase ${
+                             (product.promoContent || '').length > 45 ? 'text-[20px]' : (product.promoContent || '').length > 25 ? 'text-[24px]' : 'text-[28px]'
+                           }`}
+                           style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+                         >
+                             {product.promoContent}
+                         </span>
+                     </div>
+                  ) : (
+                     <div className="relative flex flex-col items-center justify-center w-[155px] h-[185px] shrink-0">
+                         <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
+                             <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
+                         </svg>
+                         <span className="relative z-10 text-white font-bold text-[30px] leading-none uppercase mt-[-15px]">Giảm</span>
+                         <span className="relative z-10 text-white font-black leading-none mt-1.5 text-[66px] tracking-tighter">{ribbonSub}</span>
+                     </div>
+                  )}
+                  
+                  {/* Khối giá bán phóng to nổi bật */}
+                  <div className="flex flex-col items-end justify-center flex-1 ml-5">
+                     <div className="flex items-baseline text-black justify-end w-full">
+                         <span 
+                           className={`font-black tracking-tighter leading-none shrink-0 ${
+                             priceMain.length > 6 ? 'text-[92px]' : priceMain.length >= 4 ? 'text-[116px]' : 'text-[132px]'
+                           }`} 
+                           style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                         >
+                           {priceMain}
+                         </span>
+                         <span 
+                           className={`font-bold ml-1.5 shrink-0 ${
+                             priceMain.length >= 4 ? 'text-[52px]' : 'text-[60px]'
+                           }`}
+                           style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                         >
+                           {priceSub}
+                         </span>
+                     </div>
+                     <div className="text-right text-black font-bold shrink-0 leading-tight mt-2.5">
+                        {product.originalPrice ? (
+                            <span className="text-[34px]">Giá niêm yết: <span className="line-through decoration-[3px] text-gray-700">{formatCurrency(product.originalPrice)}đ</span></span>
+                        ) : (
+                            <span>&nbsp;</span>
+                        )}
+                     </div>
                   </div>
-               ) : discount > 0 || ribbonSub !== '0%' ? (
-                  <div className="relative flex flex-col items-center justify-center w-[130px] h-[155px] shrink-0 mt-0.5">
-                      <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
-                          <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
-                      </svg>
-                      <span className="relative z-10 text-white font-bold text-[24px] leading-none uppercase mt-[-15px]">Giảm</span>
-                      <span className="relative z-10 text-white font-black leading-none mt-1 text-[56px] tracking-tighter">{ribbonSub}</span>
-                  </div>
-               ) : (
-                  <div className="w-[120px] shrink-0"></div>
-               )}
-               
-               {/* Khối giá bán: co giãn chuẩn xác, không bị cắt góc số tiền */}
-               <div className="flex flex-col items-end justify-start flex-1 ml-4 mt-0.5">
-                  <div className="flex items-baseline text-black justify-end w-full">
+              </div>
+           ) : (
+              <div className="flex flex-col items-center justify-center w-full py-2">
+                  <div className="flex items-baseline text-black justify-center w-full">
                       <span 
                         className={`font-black tracking-tighter leading-none shrink-0 ${
-                          priceMain.length > 6 ? 'text-[82px]' : priceMain.length >= 4 ? 'text-[100px]' : 'text-[118px]'
+                          priceMain.length > 6 ? 'text-[120px]' : priceMain.length >= 4 ? 'text-[145px]' : 'text-[160px]'
                         }`} 
                         style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
                       >
                         {priceMain}
                       </span>
                       <span 
-                        className={`font-bold ml-1 shrink-0 ${
-                          priceMain.length >= 4 ? 'text-[44px]' : 'text-[52px]'
+                        className={`font-bold ml-2 shrink-0 ${
+                          priceMain.length >= 4 ? 'text-[62px]' : 'text-[72px]'
                         }`}
                         style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
                       >
                         {priceSub}
                       </span>
                   </div>
-                  <div className="text-right text-black text-[32px] font-bold shrink-0 leading-tight mt-1.5">
-                     {product.originalPrice ? (
-                         <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
-                     ) : (
-                         <span>&nbsp;</span>
-                     )}
-                  </div>
-               </div>
-           </div>
+                  {product.originalPrice ? (
+                      <div className="text-center text-black text-[38px] font-bold shrink-0 leading-tight mt-3">
+                         <span>Giá niêm yết: <span className="line-through decoration-[3px] text-gray-700">{formatCurrency(product.originalPrice)}đ</span></span>
+                      </div>
+                  ) : null}
+              </div>
+           )}
            
-           <div className="w-full mt-3 flex justify-start flex-1 min-h-0 overflow-hidden">
-               {product.type ? (
+           {/* Dòng USP nếu có */}
+           {product.type ? (
+              <div className="w-full mt-3 flex justify-start px-2">
                   <div 
                     className="font-bold text-[34px] text-black w-full text-left leading-tight break-words line-clamp-2" 
                     style={{ overflowWrap: 'anywhere', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
                   >
                       *{product.type}
                   </div>
-               ) : (
-                  <div className="h-[30px]"></div>
-               )}
-           </div>
+              </div>
+           ) : null}
         </div>
         
-        {/* Chân tem: mã vạch gọn hơn để dòng ngày áp dụng hiển thị đầy đủ */}
-        <div className="mx-6 mt-auto mb-3 flex items-end">
-            <div className="w-[260px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[105px] ml-[-10px]" scale={5} bcHeight={15} textsize={14} />
+        {/* Chân tem: Mã vạch + Thời gian áp dụng to rõ, căn đều đẹp */}
+        <div className="mx-6 mb-3 mt-auto flex items-end shrink-0">
+            <div className="w-[280px] shrink-0">
+                <BarcodeImage barcode={product.barcode} className="h-[110px] ml-[-10px]" scale={5} bcHeight={16} textsize={15} />
             </div>
             <div 
-              className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-1.5 ml-4 text-[22px] font-bold text-black"
+              className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-5 text-black font-bold"
               style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
             >
-               <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
-                  {product.dateRange ? `Áp dụng ${product.dateRange}` : 'Áp dụng 01/07 - 31/07'}
+               <div className="flex-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis mb-0.5 text-center">
+                  <span className={`${(product.dateRange || '').length > 25 ? 'text-[24px]' : 'text-[27px]'} font-bold text-black tracking-tight`}>
+                     {product.dateRange ? (String(product.dateRange).toLowerCase().includes('áp dụng') ? product.dateRange : `Áp dụng: ${product.dateRange}`) : 'Áp dụng: 01/10 - 31/10/2026'}
+                  </span>
                </div>
                {product.unit ? (
-                  <div className="text-right min-w-[60px] mb-1">
-                     {String(product.unit).startsWith('/') ? String(product.unit) : `/${product.unit}`}
+                  <div className="text-right min-w-[65px] mb-0.5 text-[26px] font-bold text-black ml-2 shrink-0">
+                     {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
                   </div>
                ) : null}
             </div>
