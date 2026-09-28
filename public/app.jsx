@@ -571,7 +571,7 @@ function App() {
   useEffect(() => {
     if (promoType === 'Niêm yết') setSelectedTemplate('normal');
     else if (promoType === 'Discount') setSelectedTemplate('sale');
-    else if (promoType === 'Combo') setSelectedTemplate('combo_80x100');
+    else if (promoType === 'Combo') setPromoSize('100x80');
   }, [promoType]);
 
   // Fetch data from API based on search query (for autocomplete)
@@ -912,7 +912,7 @@ function App() {
   let scaledTagHeight = 0;
   let scaleFactor = 1;
 
-  const isSpecialPromo = !['Niêm yết', 'Discount', 'Combo'].includes(promoType);
+  const isSpecialPromo = !['Niêm yết', 'Discount'].includes(promoType);
 
   if (!isSpecialPromo) {
     let targetWidthMm = 60;
@@ -937,35 +937,41 @@ function App() {
         targetHeightMm = 70;
         pagePadding = { x: 10, y: 10 };
         tagGap = 2;
-    } else if (selectedTemplate === 'combo_80x100') {
-        baseTag = { w: 1000, h: 800 };
-        targetWidthMm = 100;
-        targetHeightMm = 80;
-        pagePadding = { x: 8, y: 15 };
-        tagGap = 3;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
     scaleFactor = scaledTagWidth / baseTag.w;
     scaledTagHeight = baseTag.h * scaleFactor;
   } else {
-    pagePadding = { x: 0, y: 0 };
-    tagGap = 0;
-    const logicalW = 1000;
-    if (promoSize === 'A5') { 
-       scaledTagWidth = currentPaper.w;
-       scaledTagHeight = currentPaper.h / 2;
-       baseTag = { w: logicalW, h: logicalW * (148.5 / 210) };
-    } else if (promoSize === 'A6') { 
-       scaledTagWidth = currentPaper.w / 2;
-       scaledTagHeight = currentPaper.h / 2;
-       baseTag = { w: logicalW, h: logicalW * (148.5 / 105) };
-    } else if (promoSize === 'A7') { 
-       scaledTagWidth = currentPaper.w / 2;
-       scaledTagHeight = currentPaper.h / 4;
-       baseTag = { w: logicalW, h: logicalW * (74.25 / 105) };
+    if (promoSize === '100x80') {
+       pagePadding = { x: 8, y: 15 };
+       tagGap = 3;
+       baseTag = { w: 1000, h: 800 };
+       const targetWidthMm = 100;
+       const targetHeightMm = 80;
+       const pxPerMm = 96 / 25.4;
+       scaledTagWidth = targetWidthMm * pxPerMm;
+       scaleFactor = scaledTagWidth / baseTag.w;
+       scaledTagHeight = baseTag.h * scaleFactor;
+    } else {
+       pagePadding = { x: 0, y: 0 };
+       tagGap = 0;
+       const logicalW = 1000;
+       if (promoSize === 'A5') { 
+          scaledTagWidth = currentPaper.w;
+          scaledTagHeight = currentPaper.h / 2;
+          baseTag = { w: logicalW, h: logicalW * (148.5 / 210) };
+       } else if (promoSize === 'A6') { 
+          scaledTagWidth = currentPaper.w / 2;
+          scaledTagHeight = currentPaper.h / 2;
+          baseTag = { w: logicalW, h: logicalW * (148.5 / 105) };
+       } else if (promoSize === 'A7') { 
+          scaledTagWidth = currentPaper.w / 2;
+          scaledTagHeight = currentPaper.h / 4;
+          baseTag = { w: logicalW, h: logicalW * (74.25 / 105) };
+       }
+       scaleFactor = scaledTagWidth / baseTag.w;
     }
-    scaleFactor = scaledTagWidth / baseTag.w;
   }
 
   const availableWidth = currentPaper.w - (pagePadding.x * 2);
@@ -986,15 +992,18 @@ function App() {
       return pages;
   };
 
+  const isBarcodeNeeded = !isSpecialPromo 
+    ? (selectedTemplate !== 'sale_50x80' && selectedTemplate !== 'sale_60x70')
+    : (promoSize === '100x80');
+
   const uniqueBarcodes = React.useMemo(() => {
-    if (isSpecialPromo && selectedTemplate !== 'combo_80x100') return [];
-    if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') return [];
+    if (!isBarcodeNeeded) return [];
     return [...new Set(products.map(p => p.barcode).filter(Boolean))];
-  }, [products, isSpecialPromo, selectedTemplate]);
+  }, [products, isBarcodeNeeded]);
 
   const loadedBarcodesCount = uniqueBarcodes.filter(bc => loadedBarcodes.has(bc)).length;
   const totalBarcodesCount = uniqueBarcodes.length;
-  const isAllBarcodesLoaded = (isSpecialPromo && selectedTemplate !== 'combo_80x100') || selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70' || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
+  const isAllBarcodesLoaded = !isBarcodeNeeded || totalBarcodesCount === 0 || loadedBarcodesCount >= totalBarcodesCount;
 
   // Preloader chạy nền bằng nhiều luồng đồng thời
   useEffect(() => {
@@ -1670,9 +1679,12 @@ function App() {
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
       else if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') TemplateComponent = TemplateSale50x80;
-      else if (selectedTemplate === 'combo_80x100') TemplateComponent = TemplateCombo80x100;
   } else {
-      TemplateComponent = TemplateSpecialPromo;
+      if (promoSize === '100x80') {
+          TemplateComponent = TemplateCombo80x100;
+      } else {
+          TemplateComponent = TemplateSpecialPromo;
+      }
   }
 
   if (authLoading) {
@@ -1845,9 +1857,7 @@ function App() {
                             { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                             { id: 'sale_usp', label: 'Sale USP (80x70)', type: 'Discount' },
                             { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
-                            { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' },
-                            { id: 'combo_80x100', label: 'Combo Ngang (80x100)', type: 'Combo' },
-                            { id: 'combo_80x100', label: 'In Ngang (80x100)', type: 'Mua hàng tặng hàng' }
+                            { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' }
                         ].filter(tpl => tpl.type === promoType).map(tpl => (
                             <button
                                 key={tpl.id}
@@ -1856,7 +1866,7 @@ function App() {
                                     selectedTemplate === tpl.id 
                                     ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
                                     : 'border-gray-200 text-gray-600 hover:bg-white'
-                                } ${promoType === 'Combo' ? 'col-span-2' : ''}`}
+                                }`}
                             >
                                 {tpl.label}
                             </button>
@@ -1870,6 +1880,7 @@ function App() {
                         onChange={e => setPromoSize(e.target.value)}
                         className="w-full border border-[#E0376F] rounded p-2 text-sm bg-pink-50 font-bold text-[#E0376F] outline-none"
                       >
+                        <option value="100x80">Khổ Ngang 100 x 80 mm (6 tem / trang)</option>
                         <option value="A5">Khổ A5 (210 x 148 mm)</option>
                         <option value="A6">Khổ A6 (148 x 105 mm)</option>
                         <option value="A7">Khổ A7 (105 x 74 mm)</option>
@@ -1926,7 +1937,7 @@ function App() {
                     <h2 className="text-sm font-bold text-[#10285B]">Bản xem trước <span className="text-[#E0376F]">({totalTags} tem)</span></h2>
                     
                     {/* Tiến độ tải mã vạch */}
-                    {!isSpecialPromo && totalBarcodesCount > 0 && (
+                    {isBarcodeNeeded && totalBarcodesCount > 0 && (
                       !isAllBarcodesLoaded ? (
                         <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full text-xs font-semibold animate-pulse">
                           <svg className="w-3.5 h-3.5 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
@@ -2085,7 +2096,7 @@ function App() {
                             }}>
                                  {page.map(tag => {
                                      const tagBarcode = String(tag.barcode || '').trim();
-                                     const isTagReady = isSpecialPromo || selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70' || !tagBarcode || loadedBarcodes.has(tagBarcode);
+                                     const isTagReady = !isBarcodeNeeded || !tagBarcode || loadedBarcodes.has(tagBarcode);
                                      return (
                                          <div 
                                              key={tag.renderId} 
