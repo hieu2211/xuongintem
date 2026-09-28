@@ -994,7 +994,7 @@ function App() {
 
   const isBarcodeNeeded = !isSpecialPromo 
     ? (selectedTemplate !== 'sale_50x80' && selectedTemplate !== 'sale_60x70')
-    : (promoSize === '100x80');
+    : false;
 
   const uniqueBarcodes = React.useMemo(() => {
     if (!isBarcodeNeeded) return [];
@@ -1475,93 +1475,80 @@ function App() {
     );
   };
 
-  // 6. Tem Combo In Ngang (80x100) theo đúng bố cục mẫu Discount có BIG SALE
+  // 6. Tem Combo In Ngang (100x80) theo đúng bố cục mẫu SpecialPromo bo góc có thêm BIG SALE
   const TemplateCombo80x100 = ({ product }) => {
-    let priceMain = formatCurrency(product.price);
-    let priceSub = "đ";
-    const priceStr = String(product.price || '');
-    if (priceStr.endsWith('000') && priceStr.length > 3) {
-        priceMain = formatCurrency(parseInt(priceStr.slice(0, -3)));
-        priceSub = ".000đ";
-    }
-
-    const promoText = product.promoContent ? String(product.promoContent).trim() : 'MUA 2 TẶNG 1';
-
-    let comboPriceMainClass = 'text-[120px]';
-    let comboPriceSubClass = 'text-[46px]';
-    if (priceMain.length >= 6) {
-        comboPriceMainClass = 'text-[82px]';
-        comboPriceSubClass = 'text-[34px]';
-    } else if (priceMain.length >= 4) {
-        comboPriceMainClass = 'text-[100px]';
-        comboPriceSubClass = 'text-[40px]';
-    }
+    const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
 
     return (
-      <div className="w-full h-full bg-white border-[5px] border-black flex flex-col overflow-hidden box-border relative font-sans text-black select-none">
-        
-        {/* Banner BIG SALE! trên cùng theo đúng chuẩn mẫu Discount */}
-        <div className="bg-black text-white text-center font-black text-[65px] uppercase tracking-widest py-1.5 leading-none shrink-0" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
-          BIG SALE!
-        </div>
-
-        {/* Tên sản phẩm */}
-        <div className="px-6 pt-2 pb-0 text-center font-bold text-[30px] text-black line-clamp-2 break-words shrink-0 leading-tight min-h-[74px] flex items-center justify-center" style={{ overflowWrap: 'anywhere' }}>
-          {product.name}
-        </div>
-
-        {/* Thân tem 2 cột chuẩn mẫu Discount: Trái là Khung CTKM (Mua 2 tặng 1), Phải là Giá bán */}
-        <div className="flex-1 min-h-0 px-6 flex items-center justify-between relative my-auto">
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative font-sans text-black select-none">
+        <div className="w-full h-full border-[6px] rounded-[28px] border-black p-6 flex flex-col relative overflow-hidden justify-between">
           
-          {/* Ô nội dung CTKM (vd: Mua 2 tặng 1) có khung viền đen nổi bật */}
-          <div className="relative flex flex-col items-center justify-center w-[360px] shrink-0 border-[4px] border-black bg-white px-3 py-3 min-h-[140px] shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-            <span 
-              className="text-black font-black text-center break-words w-full uppercase leading-tight"
+          {/* Header: BIG SALE Badge + Tên sản phẩm */}
+          <div className="flex flex-col items-center shrink-0">
+            {/* Khung đen chữ trắng BIG SALE */}
+            <div className="bg-black text-white px-7 py-1 rounded-[6px] flex items-center justify-center gap-2.5 mb-2 shadow-sm shrink-0">
+              <span className="text-[18px] leading-none select-none text-white">★</span>
+              <span 
+                className="text-[30px] font-black tracking-[0.2em] uppercase italic leading-none" 
+                style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+              >
+                BIG SALE
+              </span>
+              <span className="text-[18px] leading-none select-none text-white">★</span>
+            </div>
+
+            {/* Tên sản phẩm */}
+            <div 
+              className="text-center text-black font-extrabold text-[32px] leading-tight line-clamp-2 px-4"
               style={{ 
-                fontSize: promoText.length > 30 ? '30px' : promoText.length > 18 ? '36px' : '44px',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
                 fontFamily: 'Arial, Helvetica, sans-serif'
               }}
             >
-              {promoText}
-            </span>
+              {product.name}
+            </div>
           </div>
 
-          {/* Cột phải: Giá bán to rõ ràng + Giá niêm yết gạch ngang */}
-          <div className="flex flex-col items-end justify-center flex-1 ml-6 overflow-hidden">
-            <div className="flex items-baseline text-black justify-end w-full">
-              <span className={`font-black tracking-tighter leading-none shrink-0 ${comboPriceMainClass}`} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
-                {priceMain}
-              </span>
-              <span className={`font-bold ml-1.5 shrink-0 ${comboPriceSubClass}`}>
-                {priceSub}
-              </span>
+          {/* Vạch kẻ ngang ngăn cách Header và Nội dung CTKM */}
+          <div className="w-full h-[4px] bg-black rounded-full shrink-0 my-2"></div>
+
+          {/* Nội dung chương trình khuyến mãi (Hero Center) */}
+          <div className="flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden px-4 py-2">
+            <div 
+              className="text-black font-black text-center w-full max-w-full tracking-wide"
+              style={{
+                ...promoInfo.style,
+                fontFamily: 'Arial, Helvetica, sans-serif'
+              }}
+            >
+              {promoInfo.text}
             </div>
-            <div className="text-right text-black text-[34px] shrink-0 leading-tight mt-2 font-bold">
-              {product.originalPrice ? (
-                <span>Giá niêm yết: <span className="line-through">{formatCurrency(product.originalPrice)}đ</span></span>
-              ) : (
-                <span>&nbsp;</span>
-              )}
+          </div>
+
+          {/* Chân tem: Mã vạch | Ngày áp dụng */}
+          <div className="flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden pb-1">
+            <div 
+              className="font-bold text-black"
+              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+            >
+              {product.barcode}
+            </div>
+            <div 
+              className="font-bold text-black mx-2"
+              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+            >
+              |
+            </div>
+            <div 
+              className="font-bold text-black"
+              style={{ fontSize: '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+            >
+              {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
             </div>
           </div>
 
         </div>
-
-        {/* Chân tem: Barcode + Mã SP + Ngày áp dụng */}
-        <div className="mx-6 mt-auto mb-3 flex items-end justify-between border-t-[3px] border-black pt-2 shrink-0">
-          <div className="w-[300px] shrink-0 flex items-center">
-            <BarcodeImage barcode={product.barcode} className="h-[90px] ml-[-10px]" scale={4} bcHeight={15} textsize={15} />
-          </div>
-          <div className="flex flex-col items-end justify-end text-black font-sans pb-0.5">
-            <div className="text-[24px] font-bold tracking-wider font-mono">
-              Mã SP: {product.barcode}
-            </div>
-            <div className="text-[22px] font-bold text-gray-800 mt-1">
-              {product.dateRange ? `Áp dụng: ${String(product.dateRange).replace(/\s*-\s*/g, ' - ')}` : 'Áp dụng: Liên hệ'}
-            </div>
-          </div>
-        </div>
-
       </div>
     );
   };
@@ -1594,6 +1581,27 @@ function App() {
       } else {
         fontSize = 42;
         lineHeight = 1.32;
+      }
+    } else if (size === '100x80') {
+      // Khổ Ngang 100x80 (1000px x 800px), vùng nội dung rộng ~880px, cao ~450px
+      if (len <= 30) {
+        fontSize = 66;
+        lineHeight = 1.3;
+      } else if (len <= 55) {
+        fontSize = 54;
+        lineHeight = 1.32;
+      } else if (len <= 85) {
+        fontSize = 44;
+        lineHeight = 1.32;
+      } else if (len <= 125) {
+        fontSize = 36;
+        lineHeight = 1.32;
+      } else if (len <= 170) {
+        fontSize = 30;
+        lineHeight = 1.3;
+      } else {
+        fontSize = 25;
+        lineHeight = 1.28;
       }
     } else {
       // Khổ A5 & A7 ngang (1000px x 707px), vùng nội dung rộng ~850px, cao ~420px
