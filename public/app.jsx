@@ -1475,7 +1475,7 @@ function App() {
     );
   };
 
-  // 6. Tem Combo In Ngang (100x80) theo đúng bố cục mẫu SpecialPromo bo góc có thêm BIG SALE
+  // 6. Tem Combo In Ngang (100x80) theo đúng bố cục mẫu SpecialPromo bo góc có thêm BIG SALE to
   const TemplateCombo80x100 = ({ product }) => {
     const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
 
@@ -1483,18 +1483,18 @@ function App() {
       <div className="w-full h-full bg-white flex flex-col p-4 box-border relative font-sans text-black select-none">
         <div className="w-full h-full border-[6px] rounded-[28px] border-black p-6 flex flex-col relative overflow-hidden justify-between">
           
-          {/* Header: BIG SALE Badge + Tên sản phẩm */}
+          {/* Header: BIG SALE Badge to nổi bật + Tên sản phẩm */}
           <div className="flex flex-col items-center shrink-0">
-            {/* Khung đen chữ trắng BIG SALE */}
-            <div className="bg-black text-white px-7 py-1 rounded-[6px] flex items-center justify-center gap-2.5 mb-2 shadow-sm shrink-0">
-              <span className="text-[18px] leading-none select-none text-white">★</span>
+            {/* Khung đen chữ trắng BIG SALE to */}
+            <div className="bg-black text-white px-12 py-2 rounded-[10px] flex items-center justify-center gap-3 mb-2.5 shadow-sm shrink-0">
+              <span className="text-[26px] leading-none select-none text-white">★</span>
               <span 
-                className="text-[30px] font-black tracking-[0.2em] uppercase italic leading-none" 
+                className="text-[48px] font-black tracking-[0.2em] uppercase italic leading-none" 
                 style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
               >
                 BIG SALE
               </span>
-              <span className="text-[18px] leading-none select-none text-white">★</span>
+              <span className="text-[26px] leading-none select-none text-white">★</span>
             </div>
 
             {/* Tên sản phẩm */}
@@ -1643,28 +1643,46 @@ function App() {
     const promoInfo = getPromoContentInfo(product.promoContent, promoSize);
 
     return (
-      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative">
-        <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden`}>
-            {/* Top Name */}
-            <div 
-              className={`text-center text-black font-extrabold leading-tight line-clamp-2 px-6 ${isA6 ? 'mb-8 mt-3' : 'mb-3 mt-1'}`}
-              style={{ 
-                fontSize: isA6 ? '54px' : '36px',
-                overflowWrap: 'anywhere',
-                wordBreak: 'break-word'
-              }}
-            >
-              {product.name}
+      <div className="w-full h-full bg-white flex flex-col p-4 box-border relative font-sans text-black select-none">
+        <div className={`w-full h-full ${isA6 ? 'border-[8px] rounded-[40px] p-8' : 'border-[6px] rounded-[28px] p-6'} border-black flex flex-col relative overflow-hidden justify-between`}>
+            
+            {/* Header: BIG SALE Badge to + Tên sản phẩm */}
+            <div className={`flex flex-col items-center shrink-0 ${isA6 ? 'mb-4 mt-2' : 'mb-1 mt-0.5'}`}>
+              <div className={`bg-black text-white ${isA6 ? 'px-16 py-3 rounded-[14px] gap-4 mb-4' : 'px-12 py-2 rounded-[10px] gap-3 mb-2.5'} flex items-center justify-center shadow-sm shrink-0`}>
+                <span className={`${isA6 ? 'text-[36px]' : 'text-[26px]'} leading-none select-none text-white`}>★</span>
+                <span 
+                  className={`${isA6 ? 'text-[64px]' : 'text-[46px]'} font-black tracking-[0.2em] uppercase italic leading-none`}
+                  style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+                >
+                  BIG SALE
+                </span>
+                <span className={`${isA6 ? 'text-[36px]' : 'text-[26px]'} leading-none select-none text-white`}>★</span>
+              </div>
+
+              <div 
+                className={`text-center text-black font-extrabold leading-tight line-clamp-2 px-6`}
+                style={{ 
+                  fontSize: isA6 ? '46px' : '30px',
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                  fontFamily: 'Arial, Helvetica, sans-serif'
+                }}
+              >
+                {product.name}
+              </div>
             </div>
             
             {/* Divider */}
-            <div className={`w-full ${isA6 ? 'h-[6px] mb-8' : 'h-[4px] mb-3'} bg-black rounded-full shrink-0`}></div>
+            <div className={`w-full ${isA6 ? 'h-[6px] mb-4' : 'h-[4px] my-2'} bg-black rounded-full shrink-0`}></div>
             
             {/* Promo Content Body */}
             <div className={`flex-1 flex flex-col items-center justify-center text-center w-full overflow-hidden ${isA6 ? 'px-8 py-4' : 'px-6 py-2'}`}>
               <div 
                 className="text-black font-black text-center w-full max-w-full tracking-wide"
-                style={promoInfo.style}
+                style={{
+                  ...promoInfo.style,
+                  fontFamily: 'Arial, Helvetica, sans-serif'
+                }}
               >
                 {promoInfo.text}
               </div>
@@ -1674,19 +1692,19 @@ function App() {
             <div className={`flex justify-between items-end w-full px-2 mt-auto shrink-0 whitespace-nowrap overflow-hidden ${isA6 ? 'pb-3' : 'pb-1'}`}>
                <div 
                  className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
                >
                   {product.barcode}
                </div>
                <div 
                  className="font-bold text-black mx-2"
-                 style={{ fontSize: isA6 ? '34px' : '26px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
                >
                   |
                </div>
                <div 
                  className="font-bold text-black"
-                 style={{ fontSize: isA6 ? '34px' : '26px' }}
+                 style={{ fontSize: isA6 ? '34px' : '26px', fontFamily: 'Arial, Helvetica, sans-serif' }}
                >
                   {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
                </div>
