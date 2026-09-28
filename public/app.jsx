@@ -835,7 +835,7 @@ function App() {
           unit: String(rawUnit || '').trim(),
           type: String(rawType || '').trim(),
           dateRange: dateStr.trim(),
-          promoContent: String(rawPromo || '').trim(),
+          promoContent: (/^0\.\d+$/.test(String(rawPromo || '').trim()) ? '' : String(rawPromo || '').trim()),
           discountAmount: String(rawDiscountAmount || '').trim(),
           quantity: 1
         };
@@ -1332,7 +1332,7 @@ function App() {
     );
   };
 
-    const TemplateSale50x80 = ({ product }) => {
+      const TemplateSale50x80 = ({ product }) => {
     const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
     const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
     
@@ -1352,86 +1352,69 @@ function App() {
       savingDisplay = formatCurrency(numOriginalPrice - numPrice);
     }
 
-    const discount = getDiscountPercent(product.price, product.originalPrice);
-
     return (
-      <div className="w-full h-full bg-white flex flex-col border-[3px] border-black p-3.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
+      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
         
-        {/* PHẦN 1: HEADER BIG SALE & BANNER ĐEN */}
-        <div className="w-full shrink-0">
-          <div className="w-full border-t-[3px] border-b-[1.5px] border-black py-0.5 mb-1"></div>
-          
-          <div 
-            className="text-center font-black text-[68px] tracking-widest text-black uppercase leading-none my-1" 
-            style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
-          >
-            BIG SALE
-          </div>
-
-          <div className="w-full bg-black text-white py-1.5 px-3 text-center uppercase tracking-wider font-extrabold text-[20px] line-clamp-1 flex items-center justify-center shadow-sm">
-            {product.promoContent ? String(product.promoContent).toUpperCase() : 'KHUYẾN MẠI ĐẶC BIỆT'}
-          </div>
-        </div>
-
         {/* Tên sản phẩm */}
-        <div className="text-center font-bold text-[24px] text-black leading-snug line-clamp-2 px-1 my-1 shrink-0">
+        <div className="text-center font-bold text-[28px] leading-snug line-clamp-2 px-1 pt-0.5 pb-2 text-black font-sans shrink-0">
           {product.name}
         </div>
 
-        {/* PHẦN 2: KHUNG CHỮ NHẬT TRUNG TÂM (HIỂN THỊ GIÁ SALE & TIẾT KIỆM) */}
-        <div className="w-full border-[3px] border-black rounded-[6px] p-3 my-1 flex flex-col items-center justify-center bg-white shadow-sm shrink-0">
-           {discount > 0 && (
-             <div className="text-[22px] font-black uppercase text-black tracking-widest leading-none mb-1">
-               GIẢM {discount}%
-             </div>
-           )}
+        {/* Vạch ngang ngăn cách */}
+        <div className="w-full border-b-[2px] border-black mb-1 shrink-0"></div>
 
+        {/* Mã sản phẩm */}
+        <div className="flex items-center justify-center gap-3 px-2 font-sans text-black shrink-0 text-center my-0.5">
+           <span className="font-bold text-[24px]">Mã SP</span>
+           <span className="font-bold text-[26px] tracking-wider font-mono">{product.barcode}</span>
+        </div>
+
+        {/* Khung đen chữ trắng BIG SALE nằm vào giữa cho nổi bật */}
+        <div className="flex justify-center items-center my-2 shrink-0">
+           <div 
+             className="bg-black text-white px-10 py-1.5 rounded-[6px] font-black text-[34px] tracking-widest uppercase flex items-center justify-center shadow-sm" 
+             style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+           >
+              BIG SALE
+           </div>
+        </div>
+
+        {/* Khu vực giá khuyến mãi ghi to rõ ràng */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
-             <span className={priceText.length > 10 ? 'text-[68px]' : priceText.length > 7 ? 'text-[82px]' : 'text-[96px]'} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+             <span className={priceText.length > 10 ? 'text-[70px]' : priceText.length > 7 ? 'text-[85px]' : 'text-[100px]'} style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
                {priceText}
              </span>
-             <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[42px]' : priceText.length > 7 ? 'text-[50px]' : 'text-[58px]'}`}>
+             <span className={`font-bold ml-1 ${priceText.length > 10 ? 'text-[45px]' : priceText.length > 7 ? 'text-[54px]' : 'text-[62px]'}`}>
                đ
              </span>
            </div>
 
            {oldPriceText ? (
-             <div className="mt-1 text-center text-gray-600 font-bold text-[30px] tracking-tight leading-none">
-               <span className="line-through decoration-[2.5px]">{oldPriceText}đ</span>
+             <div className="mt-2 text-center text-gray-700 font-bold text-[36px] tracking-tight leading-none">
+               <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
              </div>
-           ) : null}
-
-           {savingDisplay ? (
-             <div className="w-full mt-2 pt-1.5 border-t-[2px] border-black text-center font-black text-[23px] uppercase tracking-wider text-black">
-               TIẾT KIỆM: {savingDisplay}đ
-             </div>
-           ) : null}
+           ) : (
+             <div className="h-4"></div>
+           )}
         </div>
 
-        {/* PHẦN 3: 2 CỘT THÔNG TIN PHÂN CÁCH BẰNG VẠCH ĐỨNG */}
-        <div className="w-full grid grid-cols-2 border-y-[2px] border-black py-2 my-1 shrink-0 text-center">
-           <div className="flex flex-col items-center justify-center border-r-[2px] border-black px-2">
-              <span className="text-[16px] font-bold text-gray-700 uppercase leading-tight">MÃ SẢN PHẨM</span>
-              <span className="text-[23px] font-black text-black font-mono tracking-wider mt-0.5">{product.barcode}</span>
-           </div>
-           <div className="flex flex-col items-center justify-center px-2">
-              <span className="text-[16px] font-bold text-gray-700 uppercase leading-tight">
-                 {product.unit ? 'ĐƠN VỊ TÍNH' : (product.type ? 'ĐẶC ĐIỂM' : 'QUY CÁCH')}
-              </span>
-              <span className="text-[23px] font-black text-black tracking-wide mt-0.5 truncate max-w-full">
-                 {product.unit ? (String(product.unit).startsWith('/') ? String(product.unit).slice(1) : String(product.unit)) : (product.type || 'Chính hãng')}
-              </span>
-           </div>
-        </div>
+        {/* Ô tiết kiệm (discount_amount) */}
+        {savingDisplay ? (
+          <div className="w-[92%] mx-auto border-[2px] border-black rounded-[4px] py-1.5 px-3 flex items-center justify-center gap-2 mb-2 shrink-0 font-sans">
+            <span className="text-[24px] font-bold text-black">Tiết kiệm:</span>
+            <span className="text-[28px] font-black text-black">{savingDisplay}</span>
+            <span className="text-[22px] font-bold text-black">đ</span>
+          </div>
+        ) : (
+          <div className="h-2"></div>
+        )}
 
-        {/* PHẦN 4: FOOTER THỜI GIAN ÁP DỤNG & BANNER DƯỚI CÙNG */}
-        <div className="w-full text-center flex flex-col items-center justify-center shrink-0">
-           <div className="text-[16px] text-gray-700 font-bold uppercase tracking-wider">THỜI GIAN ÁP DỤNG:</div>
-           <div className="text-[30px] font-black text-black tracking-wider leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
-              {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : '01/10/2026 - 31/10/2026'}
-           </div>
-           <div className="w-full bg-black text-white text-[15px] font-black uppercase py-1 px-4 tracking-widest mt-1 text-center shadow-sm">
-              ÁP DỤNG TRÊN TOÀN BỘ HỆ THỐNG
+        {/* Thời gian áp dụng */}
+        <div className="text-center font-sans text-black mb-1 shrink-0">
+           <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
+           <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+             {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
            </div>
         </div>
 
