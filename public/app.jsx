@@ -624,6 +624,16 @@ function App() {
     return Math.round(((o - p) / o) * 100);
   };
 
+  // Hàm rút gọn ngày áp dụng chỉ lấy ngày và tháng (bỏ năm), ví dụ: 01/10 - 31/10
+  const formatDateRangeShort = (raw) => {
+    if (!raw) return '01/10 - 31/10';
+    let s = String(raw).trim();
+    s = s.replace(/^(áp dụng\s*:?\s*)/i, '');
+    s = s.replace(/(\d{1,2}\/\d{1,2})\/\d{2,4}/g, (_, d) => d);
+    s = s.replace(/\s*-\s*/g, ' - ');
+    return s.trim();
+  };
+
   const addToQueue = (product) => {
     setProducts(prev => {
         const existing = prev.find(p => p.barcode === product.barcode);
@@ -1264,7 +1274,7 @@ function App() {
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
-                  {product.dateRange ? `Áp dụng ${product.dateRange}` : 'Áp dụng 01/07 - 31/07'}
+                  {product.dateRange ? `Áp dụng: ${formatDateRangeShort(product.dateRange)}` : 'Áp dụng: 01/10 - 31/10'}
                </div>
                {product.unit ? (
                   <div className="text-right min-w-[50px] mb-1">
@@ -1438,8 +1448,8 @@ function App() {
               style={{ fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
             >
                <div className="flex-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis mb-0.5 text-center">
-                  <span className={`${(product.dateRange || '').length > 25 ? 'text-[24px]' : 'text-[27px]'} font-bold text-black tracking-tight`}>
-                     {product.dateRange ? (String(product.dateRange).toLowerCase().includes('áp dụng') ? product.dateRange : `Áp dụng: ${product.dateRange}`) : 'Áp dụng: 01/10 - 31/10/2026'}
+                  <span className="text-[27px] font-bold text-black tracking-tight">
+                     {product.dateRange ? `Áp dụng: ${formatDateRangeShort(product.dateRange)}` : 'Áp dụng: 01/10 - 31/10'}
                   </span>
                </div>
                {product.unit ? (
@@ -1583,7 +1593,7 @@ function App() {
         <div className="text-center font-sans text-black mb-1 shrink-0">
            <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
            <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
-             {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+             {product.dateRange ? formatDateRangeShort(product.dateRange) : 'Áp dụng: Liên hệ'}
            </div>
         </div>
 
@@ -1657,7 +1667,7 @@ function App() {
               className="text-black"
               style={{ fontSize: '26px' }}
             >
-              {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+              {product.dateRange ? `Áp dụng: ${formatDateRangeShort(product.dateRange)}` : 'Áp dụng: Liên hệ'}
             </div>
           </div>
 
@@ -1822,7 +1832,7 @@ function App() {
                  className="text-black"
                  style={{ fontSize: isA6 ? '34px' : '26px' }}
                >
-                  {product.dateRange ? String(product.dateRange).replace(/\s*-\s*/g, ' - ') : 'Áp dụng: Liên hệ'}
+                  {product.dateRange ? `Áp dụng: ${formatDateRangeShort(product.dateRange)}` : 'Áp dụng: Liên hệ'}
                </div>
             </div>
         </div>
