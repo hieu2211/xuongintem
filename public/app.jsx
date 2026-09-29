@@ -938,14 +938,14 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 696 };
+        baseTag = { w: 500, h: 695 };
         targetWidthMm = 50;
-        targetHeightMm = 69.6;
+        targetHeightMm = 69.5;
         pagePadding = { 
             left: 17, 
             right: 17, 
-            top: 33, 
-            bottom: 33 
+            top: 0, 
+            bottom: 0 
         };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
@@ -2314,12 +2314,12 @@ function App() {
                     pages.map((page, pageIndex) => (
                         <div 
                             key={`page-${pageIndex}`}
-                            className="page-container bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto"
+                            className={`page-container bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto flex flex-col items-center ${selectedTemplate === 'sale_50x80' ? 'justify-center' : 'justify-start'}`}
                             style={{
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
-                                paddingTop: `${padTop}px`,
-                                paddingBottom: `${padBottom}px`,
+                                paddingTop: selectedTemplate === 'sale_50x80' ? 0 : `${padTop}px`,
+                                paddingBottom: selectedTemplate === 'sale_50x80' ? 0 : `${padBottom}px`,
                                 paddingLeft: `${padLeft}px`,
                                 paddingRight: `${padRight}px`
                             }}
@@ -2385,21 +2385,30 @@ function App() {
             html, body {
               margin: 0 !important;
               padding: 0 !important;
+              height: 100% !important;
+              background-color: white !important;
             }
             body * { visibility: hidden; }
             .print\\:hidden { display: none !important; }
             .print-viewport, .print-viewport * { visibility: visible; }
-            .print-viewport { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; margin: 0 !important; background-color: white !important; }
+            .print-viewport { position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 0 !important; margin: 0 !important; background-color: white !important; }
             .page-container { 
-                page-break-after: always; 
-                margin: 0 !important; 
+                page-break-after: always !important; 
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 0 auto !important; 
                 box-shadow: none !important; 
                 border: none !important; 
                 width: 100% !important;
-                height: auto !important;
+                height: 100vh !important;
+                max-height: 297mm !important;
+                overflow: hidden !important;
+                box-sizing: border-box !important;
+                display: flex !important;
             }
-            .page-container:last-child { page-break-after: auto; }
-            .tag-wrapper { page-break-inside: avoid; break-inside: avoid; display: inline-block; }
+            .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
+            .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           }
           
