@@ -2099,7 +2099,7 @@ function App() {
 
                       {selectedTemplate === 'sale_50x80' && (
                         <div className="mt-2.5 px-3 py-2 bg-pink-50/70 border border-pink-200 rounded-lg text-xs text-gray-600 leading-snug">
-                          ✨ <b>4 hàng x 4 cột = 16 tem / trang A4</b>: Kích thước $50 \times 70.5\text{ mm}$ lấp kín 95% trang giấy A4, không còn khoảng trống thừa.
+                          ✨ <b>4 hàng x 4 cột = 16 tem / trang A4</b>: Tự động căn đều, tối ưu trọn vẹn trang in A4.
                         </div>
                       )}
                     </>
