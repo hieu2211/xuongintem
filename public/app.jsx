@@ -538,6 +538,7 @@ function App() {
   // Print Configuration
   const [paperSize, setPaperSize] = useState('A4_portrait');
   const [loadedBarcodes, setLoadedBarcodes] = useState(new Set());
+  const [topMarginOffset, setTopMarginOffset] = useState(0); // Tinh chỉnh lề trên (mm) cho tem Sale Đứng
 
   // Fetch months
   useEffect(() => {
@@ -941,7 +942,15 @@ function App() {
         baseTag = { w: 500, h: 800 };
         targetWidthMm = 50;
         targetHeightMm = 80;
-        pagePadding = { x: 15, y: 20 };
+        const pxPerMm = 96 / 25.4;
+        const baseTopPx = 55; // Mặc định lề trên ~14.6mm để tem đầu tiên không bị mép máy in cắt và khớp decal
+        const extraTopPx = (topMarginOffset || 0) * pxPerMm;
+        pagePadding = { 
+            left: 15, 
+            right: 15, 
+            top: Math.max(10, Math.min(130, Math.round(baseTopPx + extraTopPx))), 
+            bottom: 20 
+        };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
         baseTag = { w: 600, h: 700 };
@@ -986,11 +995,16 @@ function App() {
     }
   }
 
-  const availableWidth = currentPaper.w - (pagePadding.x * 2);
+  const padTop = pagePadding.top !== undefined ? pagePadding.top : (pagePadding.y !== undefined ? pagePadding.y : 0);
+  const padBottom = pagePadding.bottom !== undefined ? pagePadding.bottom : (pagePadding.y !== undefined ? pagePadding.y : 0);
+  const padLeft = pagePadding.left !== undefined ? pagePadding.left : (pagePadding.x !== undefined ? pagePadding.x : 0);
+  const padRight = pagePadding.right !== undefined ? pagePadding.right : (pagePadding.x !== undefined ? pagePadding.x : 0);
+
+  const availableWidth = currentPaper.w - (padLeft + padRight);
   let tagsPerRow = Math.floor((availableWidth + tagGap) / (scaledTagWidth + tagGap));
   if (tagsPerRow < 1) tagsPerRow = 1;
 
-  const availableHeight = currentPaper.h - (pagePadding.y * 2);
+  const availableHeight = currentPaper.h - (padTop + padBottom);
   let rowsPerPage = Math.floor((availableHeight + tagGap) / (scaledTagHeight + tagGap));
   if (rowsPerPage < 1) rowsPerPage = 1; 
   const itemsPerPage = rowsPerPage * tagsPerRow;
@@ -2017,29 +2031,85 @@ function App() {
                   </div>
                   
                   {!isSpecialPromo ? (
-                    <div className="grid grid-cols-2 gap-2">
-                        {[
-                            { id: 'normal', label: 'Niêm yết (60x35)', type: 'Niêm yết' },
-                            { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
-                            { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
-                            { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
-                            { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
-                            { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
-                            { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' }
-                        ].filter(tpl => tpl.type === promoType).map(tpl => (
-                            <button
-                                key={tpl.id}
-                                onClick={() => setSelectedTemplate(tpl.id)}
-                                className={`py-1.5 rounded-md border text-xs font-medium transition-all ${
-                                    selectedTemplate === tpl.id 
-                                    ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
-                                    : 'border-gray-200 text-gray-600 hover:bg-white'
-                                }`}
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                          {[
+                              { id: 'normal', label: 'Niêm yết (60x35)', type: 'Niêm yết' },
+                              { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
+                              { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
+                              { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
+                              { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
+                              { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
+                              { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' }
+                          ].filter(tpl => tpl.type === promoType).map(tpl => (
+                              <button
+                                  key={tpl.id}
+                                  onClick={() => setSelectedTemplate(tpl.id)}
+                                  className={`py-1.5 rounded-md border text-xs font-medium transition-all ${
+                                      selectedTemplate === tpl.id 
+                                      ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
+                                      : 'border-gray-200 text-gray-600 hover:bg-white'
+                                  }`}
+                              >
+                                  {tpl.label}
+                              </button>
+                          ))}
+                      </div>
+
+                      {selectedTemplate === 'sale_50x80' && (
+                        <div className="mt-3 p-2.5 bg-pink-50/70 border border-pink-200 rounded-lg text-xs">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="font-bold text-[#10285B] flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5 text-[#E0376F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                              Lề trên (Top Margin):
+                            </span>
+                            <span className="font-bold text-[#E0376F] bg-white px-2 py-0.5 rounded border border-pink-200">
+                              {Math.round(padTop * 25.4 / 96)} mm {topMarginOffset !== 0 ? `(${topMarginOffset > 0 ? '+' : ''}${topMarginOffset}mm)` : ''}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              type="button"
+                              onClick={() => setTopMarginOffset(prev => Math.max(-10, prev - 2))}
+                              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
+                              title="Giảm lề trên 2mm"
                             >
-                                {tpl.label}
+                              -
                             </button>
-                        ))}
-                    </div>
+                            <input 
+                              type="range" 
+                              min="-10" 
+                              max="20" 
+                              step="1"
+                              value={topMarginOffset} 
+                              onChange={e => setTopMarginOffset(parseInt(e.target.value) || 0)}
+                              className="flex-1 accent-[#E0376F] cursor-pointer"
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => setTopMarginOffset(prev => Math.min(20, prev + 2))}
+                              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
+                              title="Tăng lề trên 2mm"
+                            >
+                              +
+                            </button>
+                            {topMarginOffset !== 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setTopMarginOffset(0)}
+                                className="text-[10px] text-gray-500 hover:text-red-500 underline ml-1"
+                                title="Khôi phục mặc định"
+                              >
+                                Mặc định
+                              </button>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-gray-500 mt-1.5 leading-snug">
+                            Đã nới rộng lề trên ~15mm để tránh máy in cắt mép tem đầu. Bạn có thể bấm +/- để canh chuẩn với giấy decal.
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">Chọn kích thước tem:</label>
@@ -2252,7 +2322,10 @@ function App() {
                             style={{
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
-                                padding: `${pagePadding.y}px ${pagePadding.x}px`
+                                paddingTop: `${padTop}px`,
+                                paddingBottom: `${padBottom}px`,
+                                paddingLeft: `${padLeft}px`,
+                                paddingRight: `${padRight}px`
                             }}
                         >
                             <div style={{
