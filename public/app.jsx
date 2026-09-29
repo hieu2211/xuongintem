@@ -943,7 +943,7 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 80;
         const pxPerMm = 96 / 25.4;
-        const baseTopPx = 55; // Mặc định lề trên ~14.6mm để tem đầu tiên không bị mép máy in cắt và khớp decal
+        const baseTopPx = 65; // Mặc định lề trên ~17.2mm để tem đầu tiên không bị mép máy in cắt và khớp decal
         const extraTopPx = (topMarginOffset || 0) * pxPerMm;
         pagePadding = { 
             left: 15, 
@@ -1555,36 +1555,76 @@ function App() {
            </div>
         </div>
 
-        {/* Khu vực giá khuyến mãi: số chính to, 3 chữ số đằng sau (.000đ) nhỏ lại, không bị tràn viền */}
-        <div className="flex-1 flex flex-col justify-center items-center w-full px-2 my-auto font-sans">
+        {/* Khu vực giá khuyến mãi: số chính to nhất có thể, 3 chữ số đằng sau (.000đ) cân đối cực nét */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-1 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
              <span 
-               className={priceMain.length > 8 ? 'text-[68px]' : priceMain.length > 5 ? 'text-[80px]' : priceMain.length > 3 ? 'text-[96px]' : 'text-[112px]'} 
+               className={
+                 priceMain.length <= 2 
+                   ? 'text-[185px]' 
+                   : priceMain.length === 3 
+                     ? 'text-[165px]' 
+                     : priceMain.length <= 5 
+                       ? 'text-[138px]' 
+                       : priceMain.length <= 7 
+                         ? 'text-[112px]' 
+                         : 'text-[92px]'
+               } 
                style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
              >
                {priceMain}
              </span>
              {hasDec ? (
-               <span className="flex items-baseline ml-0.5">
+               <span className="flex items-baseline ml-1">
                  <span 
-                   className={priceMain.length > 8 ? 'text-[32px]' : priceMain.length > 5 ? 'text-[38px]' : 'text-[44px]'}
+                   className={
+                     priceMain.length <= 2 
+                       ? 'text-[64px]' 
+                       : priceMain.length === 3 
+                         ? 'text-[58px]' 
+                         : priceMain.length <= 5 
+                           ? 'text-[50px]' 
+                           : priceMain.length <= 7 
+                             ? 'text-[42px]' 
+                             : 'text-[36px]'
+                   }
                    style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
                  >
                    {priceDec}
                  </span>
-                 <span className={`font-bold ml-1 ${priceMain.length > 8 ? 'text-[24px]' : priceMain.length > 5 ? 'text-[28px]' : 'text-[32px]'}`}>
+                 <span 
+                   className={`font-bold ml-1 ${
+                     priceMain.length <= 2 
+                       ? 'text-[50px]' 
+                       : priceMain.length === 3 
+                         ? 'text-[46px]' 
+                         : priceMain.length <= 5 
+                           ? 'text-[40px]' 
+                           : priceMain.length <= 7 
+                             ? 'text-[34px]' 
+                             : 'text-[30px]'
+                   }`}
+                 >
                    đ
                  </span>
                </span>
              ) : (
-               <span className={`font-bold ml-1 ${priceMain.length > 8 ? 'text-[32px]' : priceMain.length > 5 ? 'text-[38px]' : 'text-[44px]'}`}>
+               <span 
+                 className={`font-bold ml-1.5 ${
+                   priceMain.length <= 3 
+                     ? 'text-[56px]' 
+                     : priceMain.length <= 6 
+                       ? 'text-[44px]' 
+                       : 'text-[34px]'
+                 }`}
+               >
                  đ
                </span>
              )}
            </div>
 
            {oldPriceText ? (
-             <div className="mt-1.5 text-center text-gray-700 font-bold text-[30px] tracking-tight leading-none">
+             <div className="mt-2 text-center text-gray-700 font-bold text-[34px] tracking-tight leading-none">
                <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
              </div>
            ) : (
@@ -2194,9 +2234,12 @@ function App() {
                 </div>
                 
                 <div className="flex gap-4 text-xs font-medium items-center">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                         <label className="text-gray-500 hidden sm:block">Khổ giấy:</label>
                         <span className="text-[#10285B] font-bold">A4 (Dọc)</span>
+                        <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
+                          💡 Mẹo in: Chọn <b>Margins: "None" (Không có)</b> để tem không bị co nhỏ
+                        </span>
                     </div>
                     
                     <button 
@@ -2382,10 +2425,14 @@ function App() {
         {/* Global Styles for Printing and Scrollbar */}
         <style dangerouslySetInnerHTML={{__html: `
           @page { 
-            margin: 0; 
+            margin: 0mm !important; 
             size: ${currentPaper.css}; 
           }
           @media print {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+            }
             body * { visibility: hidden; }
             .print\\:hidden { display: none !important; }
             .print-viewport, .print-viewport * { visibility: visible; }
