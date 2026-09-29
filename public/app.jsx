@@ -938,14 +938,14 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 720 };
+        baseTag = { w: 500, h: 696 };
         targetWidthMm = 50;
-        targetHeightMm = 72;
+        targetHeightMm = 69.6;
         pagePadding = { 
             left: 17, 
             right: 17, 
-            top: 16, 
-            bottom: 16 
+            top: 33, 
+            bottom: 33 
         };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
