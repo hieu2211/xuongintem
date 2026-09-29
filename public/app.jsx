@@ -1513,11 +1513,11 @@ function App() {
     else if (nameLen > 38) nameSize = 'text-[28px]';
 
     return (
-      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-2.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
+      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3 box-border relative font-sans text-black select-none overflow-hidden justify-between">
         
-        {/* Tên sản phẩm - tự co cỡ chữ đảm bảo đủ tên */}
+        {/* Tên sản phẩm - đệm lề an toàn cách viền 3-4px không bị sát mép */}
         <div 
-          className={`text-center font-bold ${nameSize} leading-tight line-clamp-2 px-1 pt-0.5 pb-1 text-black font-sans shrink-0 min-h-[50px] flex items-center justify-center`}
+          className={`text-center font-bold ${nameSize} leading-tight line-clamp-2 px-3 pt-0.5 pb-1 text-black font-sans shrink-0 min-h-[50px] flex items-center justify-center`}
           style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
         >
           {product.name}
@@ -1527,15 +1527,15 @@ function App() {
         <div className="w-full border-b-[2px] border-black mb-1 shrink-0"></div>
 
         {/* Mã sản phẩm */}
-        <div className="flex items-center justify-center gap-3 px-2 font-sans text-black shrink-0 text-center my-0.5">
+        <div className="flex items-center justify-center gap-3 px-3 font-sans text-black shrink-0 text-center my-0.5">
            <span className="font-bold text-[24px]">Mã SP</span>
            <span className="font-bold text-[26px] tracking-wider font-mono">{product.barcode}</span>
         </div>
 
         {/* Khung đen chữ trắng BIG SALE cách điệu siêu nổi bật kiểu Coupon / Sale Badge */}
-        <div className="flex justify-center items-center my-1 shrink-0 w-full px-1">
+        <div className="flex justify-center items-center my-1 shrink-0 w-full px-2">
            <div 
-             className="relative w-[94%] bg-black text-white py-1.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden"
+             className="relative w-[90%] bg-black text-white py-1.5 px-3 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden"
            >
               {/* Vết khuyết 2 bên kiểu vé giảm giá / coupon voucher đặc trưng */}
               <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
@@ -1555,20 +1555,20 @@ function App() {
            </div>
         </div>
 
-        {/* Khu vực giá khuyến mãi: số chính to nhất có thể, 3 chữ số đằng sau (.000đ) cân đối cực nét */}
-        <div className="flex-1 flex flex-col justify-center items-center w-full px-1 my-auto font-sans">
+        {/* Khu vực giá khuyến mãi: số chính to nhất có thể, có đệm lề an toàn cách viền */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-3 my-auto font-sans">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
              <span 
                className={
                  priceMain.length <= 2 
-                   ? 'text-[185px]' 
+                   ? 'text-[165px]' 
                    : priceMain.length === 3 
-                     ? 'text-[165px]' 
+                     ? 'text-[142px]' 
                      : priceMain.length <= 5 
-                       ? 'text-[138px]' 
+                       ? 'text-[120px]' 
                        : priceMain.length <= 7 
-                         ? 'text-[112px]' 
-                         : 'text-[92px]'
+                         ? 'text-[100px]' 
+                         : 'text-[86px]'
                } 
                style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
              >
@@ -1579,14 +1579,14 @@ function App() {
                  <span 
                    className={
                      priceMain.length <= 2 
-                       ? 'text-[64px]' 
+                       ? 'text-[58px]' 
                        : priceMain.length === 3 
-                         ? 'text-[58px]' 
+                         ? 'text-[50px]' 
                          : priceMain.length <= 5 
-                           ? 'text-[50px]' 
+                           ? 'text-[44px]' 
                            : priceMain.length <= 7 
-                             ? 'text-[42px]' 
-                             : 'text-[36px]'
+                             ? 'text-[38px]' 
+                             : 'text-[32px]'
                    }
                    style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
                  >
@@ -1595,14 +1595,14 @@ function App() {
                  <span 
                    className={`font-bold ml-1 ${
                      priceMain.length <= 2 
-                       ? 'text-[50px]' 
+                       ? 'text-[46px]' 
                        : priceMain.length === 3 
-                         ? 'text-[46px]' 
+                         ? 'text-[40px]' 
                          : priceMain.length <= 5 
-                           ? 'text-[40px]' 
+                           ? 'text-[36px]' 
                            : priceMain.length <= 7 
-                             ? 'text-[34px]' 
-                             : 'text-[30px]'
+                             ? 'text-[30px]' 
+                             : 'text-[26px]'
                    }`}
                  >
                    đ
@@ -1612,10 +1612,10 @@ function App() {
                <span 
                  className={`font-bold ml-1.5 ${
                    priceMain.length <= 3 
-                     ? 'text-[56px]' 
+                     ? 'text-[50px]' 
                      : priceMain.length <= 6 
-                       ? 'text-[44px]' 
-                       : 'text-[34px]'
+                       ? 'text-[38px]' 
+                       : 'text-[30px]'
                  }`}
                >
                  đ
@@ -1624,7 +1624,7 @@ function App() {
            </div>
 
            {oldPriceText ? (
-             <div className="mt-2 text-center text-gray-700 font-bold text-[34px] tracking-tight leading-none">
+             <div className="mt-1.5 text-center text-gray-700 font-bold text-[32px] tracking-tight leading-none px-2">
                <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
              </div>
            ) : (
@@ -1634,19 +1634,19 @@ function App() {
 
         {/* Ô tiết kiệm (discount_amount) to rõ ràng */}
         {savingDisplay ? (
-          <div className="w-[94%] mx-auto border-[2.5px] border-black rounded-[6px] py-2 px-3 flex items-baseline justify-center gap-2 mb-2 shrink-0 font-sans shadow-sm">
-            <span className="text-[28px] font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
-            <span className="text-[36px] font-black text-black leading-none" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{savingDisplay}</span>
-            <span className="text-[26px] font-bold text-black">đ</span>
+          <div className="w-[90%] mx-auto border-[2.5px] border-black rounded-[6px] py-1.5 px-3 flex items-baseline justify-center gap-2 mb-1 shrink-0 font-sans shadow-sm">
+            <span className="text-[26px] font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
+            <span className="text-[34px] font-black text-black leading-none" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{savingDisplay}</span>
+            <span className="text-[24px] font-bold text-black">đ</span>
           </div>
         ) : (
           <div className="h-2"></div>
         )}
 
         {/* Thời gian áp dụng */}
-        <div className="text-center font-sans text-black mb-1 shrink-0">
-           <div className="text-[19px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
-           <div className="text-[23px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+        <div className="text-center font-sans text-black mb-0.5 px-2 shrink-0">
+           <div className="text-[18px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
+           <div className="text-[22px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
              {product.dateRange ? formatDateRangeShort(product.dateRange) : 'Áp dụng: Liên hệ'}
            </div>
         </div>
