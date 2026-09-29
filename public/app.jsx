@@ -939,17 +939,17 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 800 };
+        baseTag = { w: 500, h: 695 };
         targetWidthMm = 50;
-        targetHeightMm = 80;
+        targetHeightMm = 69.5;
         const pxPerMm = 96 / 25.4;
-        const baseTopPx = 105; // ~27.8mm căn giữa dọc tờ A4, dàn đều tối ưu trang giấy không bị hổng đáy
+        const baseTopPx = 28; // ~7.4mm lề trên để lấp đủ 4 hàng tem (16 tem) trên 1 trang A4
         const extraTopPx = (topMarginOffset || 0) * pxPerMm;
         pagePadding = { 
-            left: 17, 
-            right: 17, 
-            top: Math.max(10, Math.min(180, Math.round(baseTopPx + extraTopPx))), 
-            bottom: 25 
+            left: 16, 
+            right: 16, 
+            top: Math.max(5, Math.min(45, Math.round(baseTopPx + extraTopPx))), 
+            bottom: 20 
         };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
@@ -2110,16 +2110,16 @@ function App() {
                           <div className="flex items-center gap-2">
                             <button 
                               type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.max(-20, prev - 2))}
+                              onClick={() => setTopMarginOffset(prev => Math.max(-5, prev - 1))}
                               className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Giảm lề trên 2mm"
+                              title="Giảm lề trên 1mm"
                             >
                               -
                             </button>
                             <input 
                               type="range" 
-                              min="-20" 
-                              max="20" 
+                              min="-5" 
+                              max="5" 
                               step="1"
                               value={topMarginOffset} 
                               onChange={e => setTopMarginOffset(parseInt(e.target.value) || 0)}
@@ -2127,9 +2127,9 @@ function App() {
                             />
                             <button 
                               type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.min(20, prev + 2))}
+                              onClick={() => setTopMarginOffset(prev => Math.min(5, prev + 1))}
                               className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Tăng lề trên 2mm"
+                              title="Tăng lề trên 1mm"
                             >
                               +
                             </button>
@@ -2145,7 +2145,7 @@ function App() {
                             )}
                           </div>
                           <div className="text-[10px] text-gray-500 mt-1.5 leading-snug">
-                            Đã căn giữa dọc trang A4 (12 tem chuẩn <b>50x80mm</b>). Bấm +/- để dịch vị trí lề nếu cần.
+                            Đã tối ưu lấp đầy trang A4: <b>4 hàng x 4 cột = 16 tem / trang</b>. Bấm +/- để tinh chỉnh vị trí nếu cần.
                           </div>
                         </div>
                       )}
