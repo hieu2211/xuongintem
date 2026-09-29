@@ -938,9 +938,9 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 800 };
+        baseTag = { w: 500, h: 705 };
         targetWidthMm = 50;
-        targetHeightMm = 80;
+        targetHeightMm = 70.5;
         pagePadding = { 
             left: 17, 
             right: 17, 
@@ -1006,7 +1006,7 @@ function App() {
 
   if (selectedTemplate === 'sale_50x80') {
     tagsPerRow = 4;
-    rowsPerPage = 3;
+    rowsPerPage = 4;
   }
   const itemsPerPage = rowsPerPage * tagsPerRow;
 
@@ -2099,7 +2099,7 @@ function App() {
 
                       {selectedTemplate === 'sale_50x80' && (
                         <div className="mt-2.5 px-3 py-2 bg-pink-50/70 border border-pink-200 rounded-lg text-xs text-gray-600 leading-snug">
-                          ✨ Chuẩn kích thước <b>50x80 mm</b>: <b>3 hàng x 4 cột = 12 tem / trang A4</b>, tự động căn giữa trang giấy khi in.
+                          ✨ <b>4 hàng x 4 cột = 16 tem / trang A4</b>: Kích thước $50 \times 70.5\text{ mm}$ lấp kín 95% trang giấy A4, không còn khoảng trống thừa.
                         </div>
                       )}
                     </>
@@ -2400,13 +2400,15 @@ function App() {
                 margin: 0 auto !important; 
                 box-shadow: none !important; 
                 border: none !important; 
-                width: 100% !important;
-                height: 100vh !important;
+                width: 210mm !important;
+                height: 297mm !important;
                 max-height: 297mm !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
                 display: flex !important;
                 flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
             }
             .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
             .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
