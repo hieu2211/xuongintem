@@ -538,7 +538,6 @@ function App() {
   // Print Configuration
   const [paperSize, setPaperSize] = useState('A4_portrait');
   const [loadedBarcodes, setLoadedBarcodes] = useState(new Set());
-  const [topMarginOffset, setTopMarginOffset] = useState(0); // Tinh chỉnh lề trên (mm) cho tem Sale Đứng
 
   // Fetch months
   useEffect(() => {
@@ -942,14 +941,11 @@ function App() {
         baseTag = { w: 500, h: 720 };
         targetWidthMm = 50;
         targetHeightMm = 72;
-        const pxPerMm = 96 / 25.4;
-        const baseTopPx = 16; // ~4.2mm lề trên để 4 hàng trải đều trọn vẹn từ trên xuống dưới A4
-        const extraTopPx = (topMarginOffset || 0) * pxPerMm;
         pagePadding = { 
             left: 17, 
             right: 17, 
-            top: Math.max(8, Math.min(24, Math.round(baseTopPx + extraTopPx))), 
-            bottom: 12 
+            top: 16, 
+            bottom: 16 
         };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
@@ -2102,56 +2098,8 @@ function App() {
                       </div>
 
                       {selectedTemplate === 'sale_50x80' && (
-                        <div className="mt-3 p-2.5 bg-pink-50/70 border border-pink-200 rounded-lg text-xs">
-                          <div className="flex justify-between items-center mb-1.5">
-                            <span className="font-bold text-[#10285B] flex items-center gap-1">
-                              <svg className="w-3.5 h-3.5 text-[#E0376F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                              Lề trên (Top Margin):
-                            </span>
-                            <span className="font-bold text-[#E0376F] bg-white px-2 py-0.5 rounded border border-pink-200">
-                              {Math.round(padTop * 25.4 / 96)} mm {topMarginOffset !== 0 ? `(${topMarginOffset > 0 ? '+' : ''}${topMarginOffset}mm)` : ''}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button 
-                              type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.max(-2, prev - 1))}
-                              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Giảm lề trên 1mm"
-                            >
-                              -
-                            </button>
-                            <input 
-                              type="range" 
-                              min="-2" 
-                              max="2" 
-                              step="1"
-                              value={topMarginOffset} 
-                              onChange={e => setTopMarginOffset(parseInt(e.target.value) || 0)}
-                              className="flex-1 accent-[#E0376F] cursor-pointer"
-                            />
-                            <button 
-                              type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.min(2, prev + 1))}
-                              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Tăng lề trên 1mm"
-                            >
-                              +
-                            </button>
-                            {topMarginOffset !== 0 && (
-                              <button
-                                type="button"
-                                onClick={() => setTopMarginOffset(0)}
-                                className="text-[10px] text-gray-500 hover:text-red-500 underline ml-1"
-                                title="Khôi phục mặc định"
-                              >
-                                Mặc định
-                              </button>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-gray-500 mt-1.5 leading-snug">
-                            Đã kéo dài khung tem (50x72mm) để <b>4 hàng lấp kín 98% tờ A4</b>, không còn khoảng trống thừa bên dưới.
-                          </div>
+                        <div className="mt-2.5 px-3 py-2 bg-pink-50/70 border border-pink-200 rounded-lg text-xs text-gray-600 leading-snug">
+                          ✨ Đã căn giữa trang in A4: <b>4 hàng x 4 cột = 16 tem / trang</b>, lề các phía đều nhau.
                         </div>
                       )}
                     </>
@@ -2381,7 +2329,7 @@ function App() {
                                 gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
                                 gap: `${tagGap}px`,
                                 justifyContent: 'center',
-                                alignContent: 'start'
+                                alignContent: selectedTemplate === 'sale_50x80' ? 'center' : 'start'
                             }}>
                                  {page.map(tag => {
                                      const tagBarcode = String(tag.barcode || '').trim();
