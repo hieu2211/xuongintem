@@ -938,14 +938,14 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 705 };
+        baseTag = { w: 500, h: 725 };
         targetWidthMm = 50;
-        targetHeightMm = 70.5;
+        targetHeightMm = 72.5;
         pagePadding = { 
             left: 17, 
             right: 17, 
-            top: 0, 
-            bottom: 0 
+            top: 14, 
+            bottom: 12 
         };
         tagGap = 1;
     } else if (selectedTemplate === 'sale_60x70') {
@@ -2314,12 +2314,12 @@ function App() {
                     pages.map((page, pageIndex) => (
                         <div 
                             key={`page-${pageIndex}`}
-                            className={`page-container bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto flex flex-col items-center ${selectedTemplate === 'sale_50x80' ? 'justify-center' : 'justify-start'}`}
+                            className="page-container bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto"
                             style={{
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
-                                paddingTop: selectedTemplate === 'sale_50x80' ? 0 : `${padTop}px`,
-                                paddingBottom: selectedTemplate === 'sale_50x80' ? 0 : `${padBottom}px`,
+                                paddingTop: `${padTop}px`,
+                                paddingBottom: `${padBottom}px`,
                                 paddingLeft: `${padLeft}px`,
                                 paddingRight: `${padRight}px`
                             }}
@@ -2397,18 +2397,12 @@ function App() {
                 break-after: page !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin: 0 auto !important; 
+                margin: 0 !important; 
                 box-shadow: none !important; 
                 border: none !important; 
-                width: 210mm !important;
-                height: 297mm !important;
-                max-height: 297mm !important;
-                overflow: hidden !important;
+                width: 100% !important;
+                height: auto !important;
                 box-sizing: border-box !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
             }
             .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
             .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
