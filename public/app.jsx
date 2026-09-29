@@ -939,16 +939,16 @@ function App() {
         targetWidthMm = 50;
         targetHeightMm = 24.15;
     } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 800 };
+        baseTag = { w: 500, h: 695 };
         targetWidthMm = 50;
-        targetHeightMm = 80;
+        targetHeightMm = 69.5;
         const pxPerMm = 96 / 25.4;
-        const baseTopPx = 65; // Mặc định lề trên ~17.2mm để tem đầu tiên không bị mép máy in cắt và khớp decal
+        const baseTopPx = 30; // ~8mm lề trên cân đối để trang in chứa đủ 4 hàng tem (16 tem/trang A4)
         const extraTopPx = (topMarginOffset || 0) * pxPerMm;
         pagePadding = { 
-            left: 15, 
-            right: 15, 
-            top: Math.max(10, Math.min(130, Math.round(baseTopPx + extraTopPx))), 
+            left: 16, 
+            right: 16, 
+            top: Math.max(5, Math.min(48, Math.round(baseTopPx + extraTopPx))), 
             bottom: 20 
         };
         tagGap = 1;
@@ -1513,11 +1513,11 @@ function App() {
     else if (nameLen > 38) nameSize = 'text-[28px]';
 
     return (
-      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
+      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-2.5 box-border relative font-sans text-black select-none overflow-hidden justify-between">
         
         {/* Tên sản phẩm - tự co cỡ chữ đảm bảo đủ tên */}
         <div 
-          className={`text-center font-bold ${nameSize} leading-tight line-clamp-2 px-1 pt-0.5 pb-1 text-black font-sans shrink-0 min-h-[56px] flex items-center justify-center`}
+          className={`text-center font-bold ${nameSize} leading-tight line-clamp-2 px-1 pt-0.5 pb-1 text-black font-sans shrink-0 min-h-[50px] flex items-center justify-center`}
           style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
         >
           {product.name}
@@ -1533,7 +1533,7 @@ function App() {
         </div>
 
         {/* Khung đen chữ trắng BIG SALE cách điệu siêu nổi bật kiểu Coupon / Sale Badge */}
-        <div className="flex justify-center items-center my-1.5 shrink-0 w-full px-1">
+        <div className="flex justify-center items-center my-1 shrink-0 w-full px-1">
            <div 
              className="relative w-[94%] bg-black text-white py-1.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden"
            >
@@ -2079,7 +2079,7 @@ function App() {
                               { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                               { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                               { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
-                              { id: 'sale_50x80', label: 'Sale Đứng (50x80)', type: 'Discount' },
+                              { id: 'sale_50x80', label: 'Sale Đứng (16 tem / 4 hàng)', type: 'Discount' },
                               { id: 'sale_60x70', label: 'Sale Đứng (60x70)', type: 'Discount' }
                           ].filter(tpl => tpl.type === promoType).map(tpl => (
                               <button
@@ -2110,16 +2110,16 @@ function App() {
                           <div className="flex items-center gap-2">
                             <button 
                               type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.max(-10, prev - 2))}
+                              onClick={() => setTopMarginOffset(prev => Math.max(-5, prev - 1))}
                               className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Giảm lề trên 2mm"
+                              title="Giảm lề trên 1mm"
                             >
                               -
                             </button>
                             <input 
                               type="range" 
-                              min="-10" 
-                              max="20" 
+                              min="-5" 
+                              max="5" 
                               step="1"
                               value={topMarginOffset} 
                               onChange={e => setTopMarginOffset(parseInt(e.target.value) || 0)}
@@ -2127,9 +2127,9 @@ function App() {
                             />
                             <button 
                               type="button"
-                              onClick={() => setTopMarginOffset(prev => Math.min(20, prev + 2))}
+                              onClick={() => setTopMarginOffset(prev => Math.min(5, prev + 1))}
                               className="w-7 h-7 flex items-center justify-center bg-white border border-gray-300 rounded font-bold hover:bg-gray-50 active:bg-gray-100 text-gray-700 shadow-sm"
-                              title="Tăng lề trên 2mm"
+                              title="Tăng lề trên 1mm"
                             >
                               +
                             </button>
@@ -2145,7 +2145,7 @@ function App() {
                             )}
                           </div>
                           <div className="text-[10px] text-gray-500 mt-1.5 leading-snug">
-                            Đã nới rộng lề trên ~15mm để tránh máy in cắt mép tem đầu. Bạn có thể bấm +/- để canh chuẩn với giấy decal.
+                            Đã căn chuẩn <b>4 hàng x 4 cột = 16 tem / trang A4</b>. Bấm +/- để tinh chỉnh vị trí theo nếp bế giấy in.
                           </div>
                         </div>
                       )}
