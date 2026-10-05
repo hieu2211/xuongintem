@@ -962,6 +962,17 @@ function App() {
             bottom: 108 
         };
         tagGap = 0;
+    } else if (selectedTemplate === 'sale_80x50') {
+        baseTag = { w: 800, h: 500 };
+        targetWidthMm = 80;
+        targetHeightMm = 50;
+        pagePadding = { 
+            left: 94, 
+            right: 94, 
+            top: 89, 
+            bottom: 89 
+        };
+        tagGap = 0;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -1018,6 +1029,9 @@ function App() {
   } else if (selectedTemplate === 'sale_50x80') {
     tagsPerRow = 4;
     rowsPerPage = 3;
+  } else if (selectedTemplate === 'sale_80x50') {
+    tagsPerRow = 2;
+    rowsPerPage = 5;
   }
   const itemsPerPage = rowsPerPage * tagsPerRow;
 
@@ -1815,6 +1829,184 @@ function App() {
     );
   };
 
+  // 5.2. Tem Khuyến Mại Sale Thường Khổ Ngang Chuẩn (80x50mm - 10 tem/trang)
+  const TemplateSale80x50 = ({ product }) => {
+    let discount = getDiscountPercent(product.price, product.originalPrice);
+    if (product.discountPercent) discount = parseInt(product.discountPercent, 10) || discount;
+    
+    // Tách phần số chính và 3 chữ số đằng sau
+    const priceStr = formatCurrency(product.price);
+    let priceMain = priceStr;
+    let priceSub = "đ";
+    const lastDotIndex = priceStr.lastIndexOf('.');
+    if (lastDotIndex !== -1 && priceStr.length - lastDotIndex === 4) {
+      priceMain = priceStr.slice(0, lastDotIndex);
+      priceSub = priceStr.slice(lastDotIndex) + "đ";
+    }
+
+    let showPromoText = false;
+    let ribbonSub = discount + '%';
+    
+    if (product.promoContent) {
+      const rawPC = String(product.promoContent || '');
+      const pc = rawPC.trim().toLowerCase();
+      if (/^(giảm\s*)?\d+%$/.test(pc)) {
+        ribbonSub = rawPC.replace(/[^\d%]/g, '');
+      } else {
+        showPromoText = true;
+      }
+    }
+
+    const hasPromoLeft = showPromoText || discount > 0 || (ribbonSub && ribbonSub !== '0%');
+
+    // Tự co giãn cỡ chữ tên sản phẩm theo độ dài
+    const nameLen = String(product.name || '').length;
+    let nameFontSize = '11px';
+    if (nameLen > 65) nameFontSize = '8.5px';
+    else if (nameLen > 45) nameFontSize = '9.5px';
+    else if (nameLen > 28) nameFontSize = '10.5px';
+
+    return (
+      <div 
+        className="w-full h-full bg-white flex flex-col justify-between box-border select-none overflow-hidden" 
+        style={{ 
+          border: '1.2px solid black', 
+          padding: '1.5mm 2.5mm',
+          fontFamily: "Arial, Tahoma, sans-serif",
+          color: 'black'
+        }}
+      >
+        {/* Header BIG SALE */}
+        <div 
+          className="bg-black text-white text-center font-black uppercase tracking-widest py-0.5 leading-none shrink-0" 
+          style={{ fontSize: '11px', fontFamily: 'Arial Black, Impact, sans-serif' }}
+        >
+          BIG SALE!
+        </div>
+
+        {/* Tên sản phẩm */}
+        <div 
+          className="px-2 pt-1 pb-0.5 text-center font-bold leading-tight line-clamp-2 break-words shrink-0 text-black flex items-center justify-center my-0.5" 
+          style={{ 
+            fontSize: nameFontSize, 
+            minHeight: '20px',
+            overflowWrap: 'anywhere',
+            fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" 
+          }}
+        >
+          {product.name}
+        </div>
+
+        {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán */}
+        <div className="flex-1 min-h-0 px-2 flex items-center justify-between relative my-auto">
+          {hasPromoLeft ? (
+            <div className="flex w-full justify-between items-center">
+              {showPromoText ? (
+                <div 
+                  className="relative flex flex-col items-center justify-center shrink-0 border border-black bg-white px-1.5 py-1 shadow-sm rounded-[3px] overflow-hidden"
+                  style={{ width: '25mm', minHeight: '16mm' }}
+                >
+                  <span style={{ fontSize: '7px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1 py-0.5 rounded-[2px] leading-none mb-0.5">
+                    Ưu đãi
+                  </span>
+                  <span 
+                    className="text-black font-extrabold leading-tight text-center break-words w-full uppercase"
+                    style={{ fontSize: (product.promoContent || '').length > 30 ? '8px' : '9.5px', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+                  >
+                    {product.promoContent}
+                  </span>
+                </div>
+              ) : (
+                <div className="relative flex flex-col items-center justify-center shrink-0" style={{ width: '15mm', height: '18mm' }}>
+                  <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
+                    <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
+                  </svg>
+                  <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-2px]" style={{ fontSize: '7.5px' }}>Giảm</span>
+                  <span className="relative z-10 text-white font-black leading-none mt-0.5 tracking-tighter" style={{ fontSize: '15px' }}>{ribbonSub}</span>
+                </div>
+              )}
+
+              {/* Khối giá bán nổi bật */}
+              <div className="flex flex-col items-end justify-center flex-1 ml-2">
+                <div className="flex items-baseline text-black leading-none justify-end w-full">
+                  <span 
+                    style={{ 
+                      fontSize: priceMain.length > 6 ? '24px' : priceMain.length >= 4 ? '28px' : '33px',
+                      fontFamily: 'Arial Black, Impact, sans-serif' 
+                    }}
+                    className="font-black tracking-tighter shrink-0"
+                  >
+                    {priceMain}
+                  </span>
+                  <span 
+                    style={{ 
+                      fontSize: priceMain.length >= 4 ? '13px' : '15px',
+                      fontFamily: 'Arial Black, Impact, sans-serif' 
+                    }}
+                    className="font-bold ml-0.5 shrink-0"
+                  >
+                    {priceSub}
+                  </span>
+                </div>
+                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-1" style={{ fontSize: '8px' }}>
+                  {product.originalPrice ? (
+                    <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700">{formatCurrency(product.originalPrice)}đ</span></span>
+                  ) : <span>&nbsp;</span>}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center w-full py-0.5">
+              <div className="flex items-baseline text-black justify-center w-full leading-none">
+                <span 
+                  style={{ 
+                    fontSize: priceMain.length > 6 ? '26px' : priceMain.length >= 4 ? '30px' : '36px',
+                    fontFamily: 'Arial Black, Impact, sans-serif' 
+                  }}
+                  className="font-black tracking-tighter shrink-0"
+                >
+                  {priceMain}
+                </span>
+                <span 
+                  style={{ 
+                    fontSize: priceMain.length >= 4 ? '14px' : '16px',
+                    fontFamily: 'Arial Black, Impact, sans-serif' 
+                  }}
+                  className="font-bold ml-0.5 shrink-0"
+                >
+                  {priceSub}
+                </span>
+              </div>
+              {product.originalPrice ? (
+                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-1" style={{ fontSize: '8.5px' }}>
+                  <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700">{formatCurrency(product.originalPrice)}đ</span></span>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        {/* Chân tem: Mã vạch + Thời gian áp dụng */}
+        <div className="shrink-0 flex items-end justify-between border-t border-black pt-1 px-1 mt-auto">
+          <div className="shrink-0" style={{ width: '38mm' }}>
+            <BarcodeImage barcode={product.barcode} className="h-[20px]" scale={2} bcHeight={11} textsize={8} />
+          </div>
+          <div className="flex-1 flex justify-between items-end pl-2 text-black font-bold" style={{ fontSize: '7.5px' }}>
+            <div className="text-center flex-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis">
+              {product.dateRange ? `Áp dụng: ${formatDateRangeShort(product.dateRange)}` : 'Áp dụng: Liên hệ'}
+            </div>
+            {product.unit ? (
+              <div className="text-right whitespace-nowrap">
+                {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
   // 6. Tem Combo In Ngang (100x80) theo đúng bố cục mẫu SpecialPromo bo góc có thêm BIG SALE to
   const TemplateCombo80x100 = ({ product }) => {
     const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
@@ -2062,6 +2254,7 @@ function App() {
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
       else if (selectedTemplate === 'sale_60x70') TemplateComponent = TemplateSale60x70;
       else if (selectedTemplate === 'sale_50x80') TemplateComponent = TemplateSale50x80;
+      else if (selectedTemplate === 'sale_80x50') TemplateComponent = TemplateSale80x50;
   } else {
       if (promoSize === '100x80') {
           TemplateComponent = TemplateCombo80x100;
@@ -2239,6 +2432,7 @@ function App() {
                               { id: 'normal_usp', label: 'Niêm yết USP (80x70)', type: 'Niêm yết' },
                               { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                               { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
+                              { id: 'sale_80x50', label: 'Sale Thường (80x50 - 10 tem/trang)', type: 'Discount' },
                               { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
                               { id: 'sale_60x70', label: 'Sale Đứng (60x70 - 12 tem/trang)', type: 'Discount' },
                               { id: 'sale_50x80', label: 'Sale Đứng (50x80 - 12 tem/trang)', type: 'Discount' }
@@ -2277,6 +2471,19 @@ function App() {
                           </div>
                           <div className="text-gray-700 space-y-0.5">
                             <div>• Kích thước in chuẩn 100% đúng <b>50 mm x 80 mm</b> (4 cột x 3 hàng = 12 tem).</div>
+                            <div>• Căn giữa trang A4 chuẩn xác, tự động dàn đều lề các phía.</div>
+                            <div>• Trong hộp thoại in chọn: <b>Lề (Margins): "Không có" (None)</b> & <b>Tỷ lệ (Scale): 100%</b>.</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTemplate === 'sale_80x50' && (
+                        <div className="mt-2.5 px-3 py-2 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-900 leading-snug">
+                          <div className="font-bold text-[#10285B] mb-1">
+                            🎯 Sale Thường Chuẩn (80 x 50 mm - 10 tem / trang):
+                          </div>
+                          <div className="text-gray-700 space-y-0.5">
+                            <div>• Kích thước in chuẩn 100% đúng <b>80 mm x 50 mm</b> (2 cột x 5 hàng = 10 tem).</div>
                             <div>• Căn giữa trang A4 chuẩn xác, tự động dàn đều lề các phía.</div>
                             <div>• Trong hộp thoại in chọn: <b>Lề (Margins): "Không có" (None)</b> & <b>Tỷ lệ (Scale): 100%</b>.</div>
                           </div>
@@ -2377,6 +2584,10 @@ function App() {
                         ) : selectedTemplate === 'sale_50x80' ? (
                           <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-pink-800 bg-pink-50 border border-pink-300 px-2 py-0.5 rounded ml-2 font-semibold">
                             🎯 Mẫu chuẩn 50x80mm (12 tem) | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                          </span>
+                        ) : selectedTemplate === 'sale_80x50' ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-pink-800 bg-pink-50 border border-pink-300 px-2 py-0.5 rounded ml-2 font-semibold">
+                            🎯 Mẫu chuẩn 80x50mm (10 tem) | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
                           </span>
                         ) : (
                           <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
@@ -2506,7 +2717,8 @@ function App() {
                             key={`page-${pageIndex}`}
                             className={`page-container ${
                               selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : 
-                              selectedTemplate === 'sale_50x80' ? 'page-sale_50x80' : ''
+                              selectedTemplate === 'sale_50x80' ? 'page-sale_50x80' : 
+                              selectedTemplate === 'sale_80x50' ? 'page-sale_80x50' : ''
                             } bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
                             style={selectedTemplate === 'sale_60x70' ? {
                                 width: '210mm',
@@ -2517,6 +2729,11 @@ function App() {
                                 width: '210mm',
                                 height: '297mm',
                                 padding: '28.5mm 5mm',
+                                boxSizing: 'border-box'
+                            } : selectedTemplate === 'sale_80x50' ? {
+                                width: '210mm',
+                                height: '297mm',
+                                padding: '23.5mm 25mm',
                                 boxSizing: 'border-box'
                             } : {
                                 width: `${currentPaper.w}px`,
@@ -2530,7 +2747,8 @@ function App() {
                             <div 
                                 className={
                                     selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : 
-                                    selectedTemplate === 'sale_50x80' ? 'grid-sale_50x80' : ''
+                                    selectedTemplate === 'sale_50x80' ? 'grid-sale_50x80' : 
+                                    selectedTemplate === 'sale_80x50' ? 'grid-sale_80x50' : ''
                                 }
                                 style={selectedTemplate === 'sale_60x70' ? {
                                     display: 'grid',
@@ -2552,6 +2770,16 @@ function App() {
                                     margin: '0',
                                     padding: '0',
                                     boxSizing: 'border-box'
+                                } : selectedTemplate === 'sale_80x50' ? {
+                                    display: 'grid',
+                                    gridTemplateColumns: '80mm 80mm',
+                                    gridTemplateRows: '50mm 50mm 50mm 50mm 50mm',
+                                    width: '160mm',
+                                    height: '250mm',
+                                    gap: '0px',
+                                    margin: '0',
+                                    padding: '0',
+                                    boxSizing: 'border-box'
                                 } : {
                                     display: 'grid',
                                     gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
@@ -2568,7 +2796,8 @@ function App() {
                                              key={tag.renderId} 
                                              className={`tag-wrapper ${
                                                selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : 
-                                               selectedTemplate === 'sale_50x80' ? 'tag-sale_50x80' : ''
+                                               selectedTemplate === 'sale_50x80' ? 'tag-sale_50x80' : 
+                                               selectedTemplate === 'sale_80x50' ? 'tag-sale_80x50' : ''
                                              } relative break-inside-avoid origin-top-left overflow-hidden`} 
                                              style={selectedTemplate === 'sale_60x70' ? { 
                                                  width: '60mm', 
@@ -2582,6 +2811,12 @@ function App() {
                                                  boxSizing: 'border-box',
                                                  breakInside: 'avoid', 
                                                  pageBreakInside: 'avoid' 
+                                             } : selectedTemplate === 'sale_80x50' ? { 
+                                                 width: '80mm', 
+                                                 height: '50mm',
+                                                 boxSizing: 'border-box',
+                                                 breakInside: 'avoid', 
+                                                 pageBreakInside: 'avoid' 
                                              } : { 
                                                  width: `${scaledTagWidth}px`, 
                                                  height: `${scaledTagHeight}px`,
@@ -2589,7 +2824,7 @@ function App() {
                                                  pageBreakInside: 'avoid' 
                                              }}
                                          >
-                                             {['sale_60x70', 'sale_50x80'].includes(selectedTemplate) ? (
+                                             {['sale_60x70', 'sale_50x80', 'sale_80x50'].includes(selectedTemplate) ? (
                                                  isTagReady ? (
                                                      <TemplateComponent product={tag} />
                                                  ) : (
@@ -2770,6 +3005,43 @@ function App() {
                 min-height: 80mm !important;
                 max-width: 50mm !important;
                 max-height: 80mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            /* Khổ Sale Thường Chuẩn (80x50 - 10 tem / A4) */
+            .page-sale_80x50 {
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
+                padding: 23.5mm 25mm !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .grid-sale_80x50 {
+                display: grid !important;
+                grid-template-columns: 80mm 80mm !important;
+                grid-template-rows: 50mm 50mm 50mm 50mm 50mm !important;
+                width: 160mm !important;
+                height: 250mm !important;
+                gap: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .tag-sale_80x50 {
+                width: 80mm !important;
+                height: 50mm !important;
+                min-width: 80mm !important;
+                min-height: 50mm !important;
+                max-width: 80mm !important;
+                max-height: 50mm !important;
                 box-sizing: border-box !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
