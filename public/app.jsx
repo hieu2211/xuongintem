@@ -1506,115 +1506,93 @@ function App() {
 
     // Tự co giãn cỡ chữ tên sản phẩm theo độ dài
     const nameLen = String(product.name || '').length;
-    let nameSize = 'text-[32px]';
-    if (nameLen > 55) nameSize = 'text-[25px]';
-    else if (nameLen > 38) nameSize = 'text-[28px]';
+    let nameFontSize = '12px';
+    if (nameLen > 55) nameFontSize = '9.5px';
+    else if (nameLen > 38) nameFontSize = '10.5px';
 
     return (
-      <div className="w-full h-full bg-white flex flex-col border-[2.5px] border-black p-3 box-border relative font-sans text-black select-none overflow-hidden justify-between">
-        
-        {/* Tên sản phẩm - đệm lề an toàn cách viền 3-4px không bị sát mép */}
+      <div 
+        className="w-full h-full bg-white flex flex-col justify-between box-border select-none overflow-hidden" 
+        style={{ 
+          border: '1px solid black', 
+          padding: '1.5mm 2mm',
+          fontFamily: "Arial, Tahoma, sans-serif",
+          color: 'black'
+        }}
+      >
+        {/* Tên sản phẩm - đệm lề an toàn */}
         <div 
-          className={`text-center font-bold ${nameSize} leading-tight line-clamp-2 px-3 pt-0.5 pb-1 text-black font-sans shrink-0 min-h-[50px] flex items-center justify-center`}
-          style={{ overflowWrap: 'anywhere', wordBreak: 'break-word', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+          className="text-center font-bold leading-tight line-clamp-2 px-1 text-black shrink-0 flex items-center justify-center"
+          style={{ 
+            fontSize: nameFontSize,
+            minHeight: '22px',
+            overflowWrap: 'anywhere', 
+            wordBreak: 'break-word'
+          }}
         >
           {product.name}
         </div>
 
         {/* Vạch ngang ngăn cách */}
-        <div className="w-full border-b-[2px] border-black mb-1 shrink-0"></div>
+        <div style={{ borderBottom: '1px solid black', margin: '1px 0' }} className="w-full shrink-0"></div>
 
         {/* Mã sản phẩm */}
-        <div className="flex items-center justify-center gap-3 px-3 font-sans text-black shrink-0 text-center my-0.5">
-           <span className="font-bold text-[24px]">Mã SP</span>
-           <span className="font-bold text-[26px] tracking-wider font-mono">{product.barcode}</span>
+        <div className="flex items-center justify-center gap-2 px-1 text-black shrink-0 text-center" style={{ fontSize: '9px', fontWeight: 'bold' }}>
+           <span>Mã SP</span>
+           <span className="font-mono tracking-wider">{product.barcode}</span>
         </div>
 
-        {/* Khung đen chữ trắng BIG SALE cách điệu siêu nổi bật kiểu Coupon / Sale Badge */}
-        <div className="flex justify-center items-center my-1 shrink-0 w-full px-2">
+        {/* Khung đen chữ trắng BIG SALE */}
+        <div className="flex justify-center items-center my-0.5 shrink-0 w-full px-1">
            <div 
-             className="relative w-[90%] bg-black text-white py-1.5 px-3 rounded-[8px] shadow-sm flex items-center justify-center overflow-hidden"
+             className="relative w-[92%] bg-black text-white rounded-[4px] shadow-sm flex items-center justify-center overflow-hidden"
+             style={{ padding: '2px 4px' }}
            >
-              {/* Vết khuyết 2 bên kiểu vé giảm giá / coupon voucher đặc trưng */}
-              <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
-              <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white"></div>
-
-              {/* Khung viền đôi bên trong tạo chiều sâu và độ sắc sảo cho tem nhãn */}
-              <div className="w-full border-[1.5px] border-white/90 rounded-[5px] py-1 px-2 flex items-center justify-center gap-2.5">
-                 <span className="text-[20px] select-none text-white leading-none">★</span>
+              <div className="w-full border border-white/90 rounded-[3px] py-0.5 px-1.5 flex items-center justify-center gap-1.5">
+                 <span style={{ fontSize: '8px' }} className="select-none text-white leading-none">★</span>
                  <span 
-                   className="text-[44px] font-black tracking-[0.16em] uppercase italic leading-none text-center" 
-                   style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                   className="font-black tracking-[0.16em] uppercase italic leading-none text-center" 
+                   style={{ fontSize: '16px', fontFamily: 'Arial Black, Impact, sans-serif' }}
                  >
                     BIG SALE
                  </span>
-                 <span className="text-[20px] select-none text-white leading-none">★</span>
+                 <span style={{ fontSize: '8px' }} className="select-none text-white leading-none">★</span>
               </div>
            </div>
         </div>
 
-        {/* Khu vực giá khuyến mãi: số chính to nhất có thể, có đệm lề an toàn cách viền */}
-        <div className="flex-1 flex flex-col justify-center items-center w-full px-3 my-auto font-sans">
+        {/* Khu vực giá khuyến mãi */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-1 my-auto">
            <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
              <span 
-               className={
-                 priceMain.length <= 2 
-                   ? 'text-[165px]' 
-                   : priceMain.length === 3 
-                     ? 'text-[142px]' 
-                     : priceMain.length <= 5 
-                       ? 'text-[120px]' 
-                       : priceMain.length <= 7 
-                         ? 'text-[100px]' 
-                         : 'text-[86px]'
-               } 
-               style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+               style={{ 
+                 fontSize: priceMain.length <= 2 ? '54px' : priceMain.length === 3 ? '46px' : priceMain.length <= 5 ? '38px' : '30px',
+                 fontFamily: 'Arial Black, Impact, sans-serif' 
+               }}
              >
                {priceMain}
              </span>
              {hasDec ? (
-               <span className="flex items-baseline ml-1">
+               <span className="flex items-baseline ml-0.5">
                  <span 
-                   className={
-                     priceMain.length <= 2 
-                       ? 'text-[58px]' 
-                       : priceMain.length === 3 
-                         ? 'text-[50px]' 
-                         : priceMain.length <= 5 
-                           ? 'text-[44px]' 
-                           : priceMain.length <= 7 
-                             ? 'text-[38px]' 
-                             : 'text-[32px]'
-                   }
-                   style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}
+                   style={{ 
+                     fontSize: priceMain.length <= 2 ? '18px' : priceMain.length === 3 ? '16px' : '14px',
+                     fontFamily: 'Arial Black, Impact, sans-serif' 
+                   }}
                  >
                    {priceDec}
                  </span>
                  <span 
-                   className={`font-bold ml-1 ${
-                     priceMain.length <= 2 
-                       ? 'text-[46px]' 
-                       : priceMain.length === 3 
-                         ? 'text-[40px]' 
-                         : priceMain.length <= 5 
-                           ? 'text-[36px]' 
-                           : priceMain.length <= 7 
-                             ? 'text-[30px]' 
-                             : 'text-[26px]'
-                   }`}
+                   className="font-bold ml-0.5"
+                   style={{ fontSize: '13px' }}
                  >
                    đ
                  </span>
                </span>
              ) : (
                <span 
-                 className={`font-bold ml-1.5 ${
-                   priceMain.length <= 3 
-                     ? 'text-[50px]' 
-                     : priceMain.length <= 6 
-                       ? 'text-[38px]' 
-                       : 'text-[30px]'
-                 }`}
+                 className="font-bold ml-1"
+                 style={{ fontSize: '15px' }}
                >
                  đ
                </span>
@@ -1622,29 +1600,36 @@ function App() {
            </div>
 
            {oldPriceText ? (
-             <div className="mt-1.5 text-center text-gray-700 font-bold text-[32px] tracking-tight leading-none px-2">
-               <span className="line-through decoration-[3px]">{oldPriceText}đ</span>
+             <div className="text-center text-gray-700 font-bold tracking-tight leading-none px-1 mt-0.5" style={{ fontSize: '11px' }}>
+               <span className="line-through decoration-[1.5px]">{oldPriceText}đ</span>
              </div>
            ) : (
-             <div className="h-3"></div>
+             <div style={{ height: '4px' }}></div>
            )}
         </div>
 
-        {/* Ô tiết kiệm (discount_amount) to rõ ràng */}
+        {/* Ô tiết kiệm */}
         {savingDisplay ? (
-          <div className="w-[90%] mx-auto border-[2.5px] border-black rounded-[6px] py-1.5 px-3 flex items-baseline justify-center gap-2 mb-1 shrink-0 font-sans shadow-sm">
-            <span className="text-[26px] font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
-            <span className="text-[34px] font-black text-black leading-none" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>{savingDisplay}</span>
-            <span className="text-[24px] font-bold text-black">đ</span>
+          <div 
+            className="w-[92%] mx-auto rounded-[3px] flex items-baseline justify-center gap-1.5 shrink-0 shadow-sm"
+            style={{ 
+              border: '1px solid black', 
+              padding: '2px 4px', 
+              marginBottom: '2px' 
+            }}
+          >
+            <span style={{ fontSize: '9.5px' }} className="font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
+            <span style={{ fontSize: '13px', fontFamily: 'Arial Black, Impact, sans-serif' }} className="font-black text-black leading-none">{savingDisplay}</span>
+            <span style={{ fontSize: '9px' }} className="font-bold text-black">đ</span>
           </div>
         ) : (
-          <div className="h-2"></div>
+          <div style={{ height: '2px' }}></div>
         )}
 
         {/* Thời gian áp dụng */}
-        <div className="text-center font-sans text-black mb-0.5 px-2 shrink-0">
-           <div className="text-[18px] text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
-           <div className="text-[22px] font-bold leading-tight mt-0.5" style={{ fontFamily: 'Arial Black, Impact, sans-serif' }}>
+        <div className="text-center text-black px-1 shrink-0">
+           <div style={{ fontSize: '7px' }} className="text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
+           <div style={{ fontSize: '8.5px', fontFamily: 'Arial Black, Impact, sans-serif' }} className="font-bold leading-tight mt-0.5">
              {product.dateRange ? formatDateRangeShort(product.dateRange) : 'Áp dụng: Liên hệ'}
            </div>
         </div>
@@ -2382,27 +2367,34 @@ function App() {
                                                  pageBreakInside: 'avoid' 
                                              }}
                                          >
-                                             <div style={selectedTemplate === 'sale_60x70' ? {
-                                                 transform: 'scale(0.3779527559)',
-                                                 transformOrigin: 'top left',
-                                                 width: '600px',
-                                                 height: '700px'
-                                             } : {
-                                                 transform: `scale(${scaleFactor})`,
-                                                 transformOrigin: 'top left',
-                                                 width: `${baseTag.w}px`,
-                                                 height: `${baseTag.h}px`
-                                             }}>
-                                                 {isTagReady ? (
+                                             {selectedTemplate === 'sale_60x70' ? (
+                                                 isTagReady ? (
                                                      <TemplateComponent product={tag} />
                                                  ) : (
-                                                     <div className="w-full h-full bg-white border border-dashed border-gray-300 rounded-[20px] flex flex-col items-center justify-center p-6 text-center select-none print:hidden">
-                                                         <div className="w-12 h-12 border-4 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-4"></div>
-                                                         <div className="font-bold text-[32px] text-[#10285B] line-clamp-1 px-4">{tag.name}</div>
-                                                         <div className="text-[24px] text-gray-500 font-mono mt-2 bg-gray-50 px-4 py-1 rounded">Đang tạo barcode: {tag.barcode}</div>
+                                                     <div className="w-full h-full bg-white border border-dashed border-gray-300 rounded-[8px] flex flex-col items-center justify-center p-2 text-center select-none print:hidden">
+                                                         <div className="w-6 h-6 border-2 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-2"></div>
+                                                         <div className="font-bold text-xs text-[#10285B] line-clamp-1 px-1">{tag.name}</div>
+                                                         <div className="text-[10px] text-gray-500 font-mono mt-1 bg-gray-50 px-2 py-0.5 rounded">Đang nạp: {tag.barcode}</div>
                                                      </div>
-                                                 )}
-                                             </div>
+                                                 )
+                                             ) : (
+                                                 <div style={{
+                                                     transform: `scale(${scaleFactor})`,
+                                                     transformOrigin: 'top left',
+                                                     width: `${baseTag.w}px`,
+                                                     height: `${baseTag.h}px`
+                                                 }}>
+                                                     {isTagReady ? (
+                                                         <TemplateComponent product={tag} />
+                                                     ) : (
+                                                         <div className="w-full h-full bg-white border border-dashed border-gray-300 rounded-[20px] flex flex-col items-center justify-center p-6 text-center select-none print:hidden">
+                                                             <div className="w-12 h-12 border-4 border-[#E0376F] border-t-transparent rounded-full animate-spin mb-4"></div>
+                                                             <div className="font-bold text-[32px] text-[#10285B] line-clamp-1 px-4">{tag.name}</div>
+                                                             <div className="text-[24px] text-gray-500 font-mono mt-2 bg-gray-50 px-4 py-1 rounded">Đang tạo barcode: {tag.barcode}</div>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             )}
                                          </div>
                                      );
                                  })}
@@ -2525,13 +2517,9 @@ function App() {
                 overflow: hidden !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                display: block !important;
             }
-            .tag-sale_60x70 > div {
-                width: 600px !important;
-                height: 700px !important;
-                transform: scale(0.3779527559) !important;
-                transform-origin: top left !important;
-            }
+            /* Kích thước vector 100% mm không cần div scale */
             .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
             .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }

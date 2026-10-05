@@ -7,4 +7,6 @@ sakuko-xuong-tem
 # cau hinh nguon Lark cua tung may
 bot/data/lark-nguon.json
 bot/data/be-tem-nho.json
-cache_barcodes/
+node_modules/
+scratch/
+*.png
