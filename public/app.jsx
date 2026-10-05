@@ -1861,36 +1861,37 @@ function App() {
 
     const hasPromoLeft = showPromoText || discount > 0 || (ribbonSub && ribbonSub !== '0%');
 
-    // Tự co giãn cỡ chữ tên sản phẩm to rõ ràng
+    // Tự co giãn cỡ chữ tên sản phẩm
     const nameLen = String(product.name || '').length;
-    let nameFontSize = '15px';
-    if (nameLen > 60) nameFontSize = '12px';
-    else if (nameLen > 40) nameFontSize = '13.5px';
+    let nameFontSize = '13.5px';
+    if (nameLen > 60) nameFontSize = '11px';
+    else if (nameLen > 40) nameFontSize = '12px';
 
     return (
       <div 
         className="w-full h-full bg-white flex flex-col justify-between box-border select-none overflow-hidden" 
         style={{ 
-          border: '1.5px solid black', 
-          padding: '1.2mm 2.5mm',
+          border: '1.2px solid black', 
+          padding: '1mm 2mm',
           fontFamily: "Arial, Tahoma, sans-serif",
           color: 'black'
         }}
       >
-        {/* Header BIG SALE! to đậm ấn tượng */}
+        {/* Header BIG SALE! to đậm nổi bật */}
         <div 
-          className="bg-black text-white text-center font-black uppercase tracking-widest py-1 leading-none shrink-0" 
-          style={{ fontSize: '15px', fontFamily: 'Arial Black, Impact, sans-serif' }}
+          className="bg-black text-white text-center font-black uppercase tracking-widest py-1.5 leading-none shrink-0 flex items-center justify-center" 
+          style={{ fontSize: '18px', fontFamily: 'Arial Black, Impact, sans-serif', letterSpacing: '0.12em' }}
         >
           BIG SALE!
         </div>
 
-        {/* Tên sản phẩm to rõ ràng */}
+        {/* Tên sản phẩm */}
         <div 
-          className="px-1 pt-1 pb-0.5 text-center font-bold leading-tight line-clamp-2 break-words shrink-0 text-black flex items-center justify-center my-0.5" 
+          className="px-1 pt-1 pb-0.5 text-center font-bold leading-tight line-clamp-2 break-words shrink-0 text-black flex items-center justify-center" 
           style={{ 
             fontSize: nameFontSize, 
-            minHeight: '26px',
+            minHeight: '22px',
+            maxHeight: '26px',
             overflowWrap: 'anywhere',
             fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" 
           }}
@@ -1898,41 +1899,48 @@ function App() {
           {product.name}
         </div>
 
-        {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán lấp đầy cân đối */}
-        <div className="flex-1 min-h-0 px-1 flex items-center justify-between relative my-auto">
+        {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán (giới hạn chiều cao an toàn không đè mã vạch) */}
+        <div className="flex-1 min-h-0 px-1 flex items-center justify-between relative my-auto overflow-hidden" style={{ maxHeight: '20mm' }}>
           {hasPromoLeft ? (
             <div className="flex w-full justify-between items-center">
               {showPromoText ? (
                 <div 
-                  className="relative flex flex-col items-center justify-center shrink-0 border-[1.5px] border-black bg-white px-2 py-1 shadow-sm rounded-[4px] overflow-hidden"
-                  style={{ width: '28mm', minHeight: '20mm' }}
+                  className="relative flex flex-col items-center justify-center shrink-0 border border-black bg-white px-1 py-0.5 shadow-sm rounded-[3px] overflow-hidden"
+                  style={{ width: '25mm', maxHeight: '18mm' }}
                 >
-                  <span style={{ fontSize: '9px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-[2px] leading-none mb-1">
+                  <span style={{ fontSize: '7.5px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1 py-0.5 rounded-[2px] leading-none mb-0.5 shrink-0">
                     ƯU ĐÃI
                   </span>
-                  <span 
-                    className="text-black font-extrabold leading-tight text-center break-words w-full uppercase"
-                    style={{ fontSize: (product.promoContent || '').length > 30 ? '10px' : '12px', fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" }}
+                  <div 
+                    className="text-black font-extrabold leading-tight text-center break-words w-full uppercase overflow-hidden"
+                    style={{ 
+                      fontSize: (product.promoContent || '').length > 35 ? '7.5px' : '8.5px', 
+                      fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif",
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      lineHeight: '1.15'
+                    }}
                   >
                     {product.promoContent}
-                  </span>
+                  </div>
                 </div>
               ) : (
-                <div className="relative flex flex-col items-center justify-center shrink-0" style={{ width: '20mm', height: '23mm' }}>
+                <div className="relative flex flex-col items-center justify-center shrink-0" style={{ width: '15mm', height: '16.5mm' }}>
                   <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                     <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                   </svg>
-                  <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-3px]" style={{ fontSize: '10px' }}>Giảm</span>
-                  <span className="relative z-10 text-white font-black leading-none mt-1 tracking-tighter" style={{ fontSize: '21px', fontFamily: 'Arial Black, Impact, sans-serif' }}>{ribbonSub}</span>
+                  <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-2px]" style={{ fontSize: '7.5px' }}>Giảm</span>
+                  <span className="relative z-10 text-white font-black leading-none mt-0.5 tracking-tighter" style={{ fontSize: '15px', fontFamily: 'Arial Black, Impact, sans-serif' }}>{ribbonSub}</span>
                 </div>
               )}
 
-              {/* Khối giá bán to đậm khổng lồ */}
+              {/* Khối giá bán to đậm rõ ràng */}
               <div className="flex flex-col items-end justify-center flex-1 ml-2">
                 <div className="flex items-baseline text-black leading-none justify-end w-full">
                   <span 
                     style={{ 
-                      fontSize: priceMain.length > 5 ? '32px' : priceMain.length >= 4 ? '38px' : '44px',
+                      fontSize: priceMain.length > 5 ? '30px' : priceMain.length >= 4 ? '35px' : '40px',
                       fontFamily: 'Arial Black, Impact, sans-serif' 
                     }}
                     className="font-black tracking-tighter shrink-0"
@@ -1943,7 +1951,7 @@ function App() {
                     <span className="flex items-baseline ml-0.5 shrink-0">
                       <span 
                         style={{ 
-                          fontSize: priceMain.length >= 4 ? '15px' : '17px',
+                          fontSize: priceMain.length >= 4 ? '13.5px' : '15px',
                           fontFamily: 'Arial Black, Impact, sans-serif' 
                         }}
                       >
@@ -1951,7 +1959,7 @@ function App() {
                       </span>
                       <span 
                         className="font-bold ml-0.5"
-                        style={{ fontSize: '14px' }}
+                        style={{ fontSize: '13px' }}
                       >
                         đ
                       </span>
@@ -1959,15 +1967,15 @@ function App() {
                   ) : (
                     <span 
                       className="font-bold ml-0.5"
-                      style={{ fontSize: '16px' }}
+                      style={{ fontSize: '15px' }}
                     >
                       đ
                     </span>
                   )}
                 </div>
-                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-1" style={{ fontSize: '11px' }}>
+                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '9.5px' }}>
                   {product.originalPrice ? (
-                    <span>Giá niêm yết: <span className="line-through decoration-[1.5px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
+                    <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
                   ) : <span>&nbsp;</span>}
                 </div>
               </div>
@@ -1977,7 +1985,7 @@ function App() {
               <div className="flex items-baseline text-black justify-center w-full leading-none">
                 <span 
                   style={{ 
-                    fontSize: priceMain.length > 5 ? '36px' : priceMain.length >= 4 ? '42px' : '48px',
+                    fontSize: priceMain.length > 5 ? '34px' : priceMain.length >= 4 ? '38px' : '44px',
                     fontFamily: 'Arial Black, Impact, sans-serif' 
                   }}
                   className="font-black tracking-tighter shrink-0"
@@ -1988,7 +1996,7 @@ function App() {
                   <span className="flex items-baseline ml-0.5 shrink-0">
                     <span 
                       style={{ 
-                        fontSize: priceMain.length >= 4 ? '16px' : '18px',
+                        fontSize: priceMain.length >= 4 ? '14px' : '16px',
                         fontFamily: 'Arial Black, Impact, sans-serif' 
                       }}
                     >
@@ -1996,7 +2004,7 @@ function App() {
                     </span>
                     <span 
                       className="font-bold ml-0.5"
-                      style={{ fontSize: '15px' }}
+                      style={{ fontSize: '14px' }}
                     >
                       đ
                     </span>
@@ -2004,33 +2012,33 @@ function App() {
                 ) : (
                   <span 
                     className="font-bold ml-0.5"
-                    style={{ fontSize: '18px' }}
+                    style={{ fontSize: '16px' }}
                   >
                     đ
                   </span>
                 )}
               </div>
               {product.originalPrice ? (
-                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-1" style={{ fontSize: '12px' }}>
-                  <span>Giá niêm yết: <span className="line-through decoration-[1.5px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
+                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '10.5px' }}>
+                  <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
                 </div>
               ) : null}
             </div>
           )}
         </div>
 
-        {/* Chân tem: Mã vạch + Thời gian áp dụng to rõ */}
-        <div className="shrink-0 flex items-end justify-between border-t-[1.5px] border-black pt-1 px-1 mt-auto">
-          <div className="shrink-0" style={{ width: '42mm' }}>
-            <BarcodeImage barcode={product.barcode} className="h-[24px]" scale={3} bcHeight={12} textsize={9} />
+        {/* Chân tem: Mã vạch + Thời gian áp dụng (đệm cách 2px không bị che đè) */}
+        <div className="shrink-0 flex items-end justify-between border-t border-black pt-1 px-1 mt-auto">
+          <div className="shrink-0" style={{ width: '40mm' }}>
+            <BarcodeImage barcode={product.barcode} className="h-[21px]" scale={2.5} bcHeight={11} textsize={8.5} />
           </div>
-          <div className="flex-1 flex justify-between items-end pl-2 text-black font-bold" style={{ fontSize: '9px' }}>
+          <div className="flex-1 flex justify-between items-end pl-2 text-black font-bold" style={{ fontSize: '8px' }}>
             <div className="text-center flex-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis">
-              <span className="font-semibold text-gray-700" style={{ fontSize: '8px' }}>Áp dụng: </span>
+              <span className="font-semibold text-gray-700" style={{ fontSize: '7.5px' }}>Áp dụng: </span>
               <span className="font-bold">{product.dateRange ? formatDateRangeShort(product.dateRange) : '01/10 - 31/10'}</span>
             </div>
             {product.unit ? (
-              <div className="text-right whitespace-nowrap font-black" style={{ fontSize: '10px' }}>
+              <div className="text-right whitespace-nowrap font-black" style={{ fontSize: '9.5px' }}>
                 {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
               </div>
             ) : null}
@@ -2767,7 +2775,7 @@ function App() {
                             } : selectedTemplate === 'sale_80x50' ? {
                                 width: '210mm',
                                 height: '297mm',
-                                padding: '23.5mm 25mm',
+                                padding: '22.4mm 24.7mm',
                                 boxSizing: 'border-box'
                             } : {
                                 width: `${currentPaper.w}px`,
@@ -2808,9 +2816,9 @@ function App() {
                                     display: 'grid',
                                     gridTemplateColumns: '80mm 80mm',
                                     gridTemplateRows: '50mm 50mm 50mm 50mm 50mm',
-                                    width: '160mm',
-                                    height: '250mm',
-                                    gap: '0px',
+                                    width: '160.6mm',
+                                    height: '252.2mm',
+                                    gap: '2px',
                                     margin: '0',
                                     padding: '0',
                                     boxSizing: 'border-box'
@@ -3054,7 +3062,7 @@ function App() {
                 height: 297mm !important;
                 max-width: 210mm !important;
                 max-height: 297mm !important;
-                padding: 23.5mm 25mm !important;
+                padding: 22.4mm 24.7mm !important;
                 margin: 0 !important;
                 box-sizing: border-box !important;
             }
@@ -3062,9 +3070,9 @@ function App() {
                 display: grid !important;
                 grid-template-columns: 80mm 80mm !important;
                 grid-template-rows: 50mm 50mm 50mm 50mm 50mm !important;
-                width: 160mm !important;
-                height: 250mm !important;
-                gap: 0 !important;
+                width: 160.6mm !important;
+                height: 252.2mm !important;
+                gap: 2px !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 box-sizing: border-box !important;
