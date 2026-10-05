@@ -2326,7 +2326,12 @@ function App() {
                             className={`page-container ${
                               selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : ''
                             } bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
-                            style={{
+                            style={selectedTemplate === 'sale_60x70' ? {
+                                width: '210mm',
+                                height: '297mm',
+                                padding: '8.5mm 15mm',
+                                boxSizing: 'border-box'
+                            } : {
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
                                 paddingTop: `${padTop}px`,
@@ -2337,12 +2342,22 @@ function App() {
                         >
                             <div 
                                 className={selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : ''}
-                                style={{
+                                style={selectedTemplate === 'sale_60x70' ? {
+                                    display: 'grid',
+                                    gridTemplateColumns: '60mm 60mm 60mm',
+                                    gridTemplateRows: '70mm 70mm 70mm 70mm',
+                                    width: '180mm',
+                                    height: '280mm',
+                                    gap: '0px',
+                                    margin: '0',
+                                    padding: '0',
+                                    boxSizing: 'border-box'
+                                } : {
                                     display: 'grid',
                                     gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
                                     gap: `${tagGap}px`,
                                     justifyContent: 'center',
-                                    alignContent: selectedTemplate === 'sale_60x70' ? 'center' : 'start'
+                                    alignContent: 'start'
                                 }}
                             >
                                  {page.map(tag => {
@@ -2354,14 +2369,25 @@ function App() {
                                              className={`tag-wrapper ${
                                                selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : ''
                                              } relative break-inside-avoid origin-top-left overflow-hidden`} 
-                                             style={{ 
+                                             style={selectedTemplate === 'sale_60x70' ? { 
+                                                 width: '60mm', 
+                                                 height: '70mm',
+                                                 boxSizing: 'border-box',
+                                                 breakInside: 'avoid', 
+                                                 pageBreakInside: 'avoid' 
+                                             } : { 
                                                  width: `${scaledTagWidth}px`, 
                                                  height: `${scaledTagHeight}px`,
                                                  breakInside: 'avoid', 
                                                  pageBreakInside: 'avoid' 
                                              }}
                                          >
-                                             <div style={{
+                                             <div style={selectedTemplate === 'sale_60x70' ? {
+                                                 transform: 'scale(0.3779527559)',
+                                                 transformOrigin: 'top left',
+                                                 width: '600px',
+                                                 height: '700px'
+                                             } : {
                                                  transform: `scale(${scaleFactor})`,
                                                  transformOrigin: 'top left',
                                                  width: `${baseTag.w}px`,
@@ -2466,12 +2492,14 @@ function App() {
             }
             /* Khổ Sale Đứng Chuẩn (60x70 - 12 tem / A4) */
             .page-sale_60x70 {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                padding: 0 !important;
-                margin: 0 auto !important;
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
+                padding: 8.5mm 15mm !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
             }
             .grid-sale_60x70 {
                 display: grid !important;
@@ -2480,7 +2508,8 @@ function App() {
                 width: 180mm !important;
                 height: 280mm !important;
                 gap: 0 !important;
-                margin: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 box-sizing: border-box !important;
             }
             .tag-sale_60x70 {
