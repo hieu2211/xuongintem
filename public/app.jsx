@@ -951,6 +951,17 @@ function App() {
             bottom: 32 
         };
         tagGap = 0;
+    } else if (selectedTemplate === 'sale_50x80') {
+        baseTag = { w: 500, h: 800 };
+        targetWidthMm = 50;
+        targetHeightMm = 80;
+        pagePadding = { 
+            left: 19, 
+            right: 19, 
+            top: 108, 
+            bottom: 108 
+        };
+        tagGap = 0;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -1004,6 +1015,9 @@ function App() {
   if (selectedTemplate === 'sale_60x70') {
     tagsPerRow = 3;
     rowsPerPage = 4;
+  } else if (selectedTemplate === 'sale_50x80') {
+    tagsPerRow = 4;
+    rowsPerPage = 3;
   }
   const itemsPerPage = rowsPerPage * tagsPerRow;
 
@@ -1017,7 +1031,7 @@ function App() {
   };
 
   const isBarcodeNeeded = !isSpecialPromo 
-    ? (selectedTemplate !== 'sale_60x70')
+    ? (!['sale_60x70', 'sale_50x80'].includes(selectedTemplate))
     : false;
 
   const uniqueBarcodes = React.useMemo(() => {
@@ -1638,6 +1652,169 @@ function App() {
     );
   };
 
+  const TemplateSale50x80 = ({ product }) => {
+    const numPrice = parseFloat(String(product.price || 0).replace(/[^\d]/g, '')) || 0;
+    const numOriginalPrice = parseFloat(String(product.originalPrice || 0).replace(/[^\d]/g, '')) || 0;
+    
+    // Tách phần số chính và 3 chữ số đằng sau để hiển thị nhỏ gọn cân đối
+    const priceStr = formatCurrency(product.price);
+    let priceMain = priceStr;
+    let priceDec = '';
+    let hasDec = false;
+    const lastDotIndex = priceStr.lastIndexOf('.');
+    if (lastDotIndex !== -1 && priceStr.length - lastDotIndex === 4) {
+      priceMain = priceStr.slice(0, lastDotIndex);
+      priceDec = priceStr.slice(lastDotIndex); // ví dụ: ".000"
+      hasDec = true;
+    }
+
+    // Giá cũ gạch ngang rõ ràng: ví dụ 150.000đ
+    const oldPriceText = numOriginalPrice > 0 ? formatCurrency(product.originalPrice) : '';
+
+    // Số tiền tiết kiệm (ưu tiên discountAmount từ database: discount_amount)
+    let savingDisplay = '';
+    if (product.discountAmount) {
+      const numSaving = parseFloat(String(product.discountAmount).replace(/[^\d]/g, '')) || 0;
+      if (numSaving > 0) savingDisplay = formatCurrency(numSaving);
+    }
+    if (!savingDisplay && numOriginalPrice > numPrice) {
+      savingDisplay = formatCurrency(numOriginalPrice - numPrice);
+    }
+
+    // Tự co giãn cỡ chữ tên sản phẩm theo độ dài cho khổ 50mm
+    const nameLen = String(product.name || '').length;
+    let nameFontSize = '11px';
+    if (nameLen > 55) nameFontSize = '8.5px';
+    else if (nameLen > 38) nameFontSize = '9.5px';
+
+    return (
+      <div 
+        className="w-full h-full bg-white flex flex-col justify-between box-border select-none overflow-hidden" 
+        style={{ 
+          border: '1px solid black', 
+          padding: '1.5mm 1.5mm',
+          fontFamily: "Arial, Tahoma, sans-serif",
+          color: 'black'
+        }}
+      >
+        {/* Tên sản phẩm */}
+        <div 
+          className="text-center font-bold leading-tight line-clamp-2 px-1 text-black shrink-0 flex items-center justify-center"
+          style={{ 
+            fontSize: nameFontSize,
+            minHeight: '24px',
+            overflowWrap: 'anywhere', 
+            wordBreak: 'break-word'
+          }}
+        >
+          {product.name}
+        </div>
+
+        {/* Vạch ngang ngăn cách */}
+        <div style={{ borderBottom: '1px solid black', margin: '1px 0' }} className="w-full shrink-0"></div>
+
+        {/* Mã sản phẩm */}
+        <div className="flex items-center justify-center gap-1.5 px-0.5 text-black shrink-0 text-center" style={{ fontSize: '8.5px', fontWeight: 'bold' }}>
+           <span>Mã SP</span>
+           <span className="font-mono tracking-wider">{product.barcode}</span>
+        </div>
+
+        {/* Khung đen chữ trắng BIG SALE */}
+        <div className="flex justify-center items-center my-0.5 shrink-0 w-full px-0.5">
+           <div 
+             className="relative w-[95%] bg-black text-white rounded-[3px] shadow-sm flex items-center justify-center overflow-hidden"
+             style={{ padding: '2px 3px' }}
+           >
+              <div className="w-full border border-white/90 rounded-[2.5px] py-0.5 px-1 flex items-center justify-center gap-1">
+                 <span style={{ fontSize: '7px' }} className="select-none text-white leading-none">★</span>
+                 <span 
+                   className="font-black tracking-[0.14em] uppercase italic leading-none text-center" 
+                   style={{ fontSize: '14px', fontFamily: 'Arial Black, Impact, sans-serif' }}
+                 >
+                    BIG SALE
+                 </span>
+                 <span style={{ fontSize: '7px' }} className="select-none text-white leading-none">★</span>
+              </div>
+           </div>
+        </div>
+
+        {/* Khu vực giá khuyến mãi */}
+        <div className="flex-1 flex flex-col justify-center items-center w-full px-0.5 my-auto">
+           <div className="text-black font-black tracking-tight text-center leading-none flex items-baseline justify-center">
+             <span 
+               style={{ 
+                 fontSize: priceMain.length <= 2 ? '48px' : priceMain.length === 3 ? '40px' : priceMain.length <= 5 ? '32px' : '26px',
+                 fontFamily: 'Arial Black, Impact, sans-serif' 
+               }}
+             >
+               {priceMain}
+             </span>
+             {hasDec ? (
+               <span className="flex items-baseline ml-0.5">
+                 <span 
+                   style={{ 
+                     fontSize: priceMain.length <= 2 ? '16px' : priceMain.length === 3 ? '14px' : '12px',
+                     fontFamily: 'Arial Black, Impact, sans-serif' 
+                   }}
+                 >
+                   {priceDec}
+                 </span>
+                 <span 
+                   className="font-bold ml-0.5"
+                   style={{ fontSize: '11px' }}
+                 >
+                   đ
+                 </span>
+               </span>
+             ) : (
+               <span 
+                 className="font-bold ml-0.5"
+                 style={{ fontSize: '13px' }}
+               >
+                 đ
+               </span>
+             )}
+           </div>
+
+           {oldPriceText ? (
+             <div className="text-center text-gray-700 font-bold tracking-tight leading-none px-1 mt-1" style={{ fontSize: '10.5px' }}>
+               <span className="line-through decoration-[1.5px]">{oldPriceText}đ</span>
+             </div>
+           ) : (
+             <div style={{ height: '4px' }}></div>
+           )}
+        </div>
+
+        {/* Ô tiết kiệm */}
+        {savingDisplay ? (
+          <div 
+            className="w-[94%] mx-auto rounded-[3px] flex items-baseline justify-center gap-1 shrink-0 shadow-sm"
+            style={{ 
+              border: '1px solid black', 
+              padding: '2px 3px', 
+              marginBottom: '3px' 
+            }}
+          >
+            <span style={{ fontSize: '8.5px' }} className="font-black text-black uppercase tracking-wider">Tiết kiệm:</span>
+            <span style={{ fontSize: '11.5px', fontFamily: 'Arial Black, Impact, sans-serif' }} className="font-black text-black leading-none">{savingDisplay}</span>
+            <span style={{ fontSize: '8.5px' }} className="font-bold text-black">đ</span>
+          </div>
+        ) : (
+          <div style={{ height: '2px' }}></div>
+        )}
+
+        {/* Thời gian áp dụng */}
+        <div className="text-center text-black px-1 shrink-0 mb-0.5">
+           <div style={{ fontSize: '7px' }} className="text-gray-700 font-medium leading-tight">Thời gian áp dụng:</div>
+           <div style={{ fontSize: '8px', fontFamily: 'Arial Black, Impact, sans-serif' }} className="font-bold leading-tight mt-0.5">
+             {product.dateRange ? formatDateRangeShort(product.dateRange) : 'Áp dụng: Liên hệ'}
+           </div>
+        </div>
+
+      </div>
+    );
+  };
+
   // 6. Tem Combo In Ngang (100x80) theo đúng bố cục mẫu SpecialPromo bo góc có thêm BIG SALE to
   const TemplateCombo80x100 = ({ product }) => {
     const promoInfo = getPromoContentInfo(product.promoContent, '100x80');
@@ -1884,6 +2061,7 @@ function App() {
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
       else if (selectedTemplate === 'sale_60x70') TemplateComponent = TemplateSale60x70;
+      else if (selectedTemplate === 'sale_50x80') TemplateComponent = TemplateSale50x80;
   } else {
       if (promoSize === '100x80') {
           TemplateComponent = TemplateCombo80x100;
@@ -2062,7 +2240,8 @@ function App() {
                               { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                               { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                               { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
-                              { id: 'sale_60x70', label: 'Sale Đứng (60x70 - 12 tem/trang)', type: 'Discount' }
+                              { id: 'sale_60x70', label: 'Sale Đứng (60x70 - 12 tem/trang)', type: 'Discount' },
+                              { id: 'sale_50x80', label: 'Sale Đứng (50x80 - 12 tem/trang)', type: 'Discount' }
                           ].filter(tpl => tpl.type === promoType).map(tpl => (
                               <button
                                   key={tpl.id}
@@ -2086,6 +2265,19 @@ function App() {
                           <div className="text-gray-700 space-y-0.5">
                             <div>• Kích thước in chuẩn 100% đúng <b>60 mm x 70 mm</b> (3 cột x 4 hàng = 12 tem).</div>
                             <div>• Căn đều khổ A4 chuẩn xác, không bị co nhỏ hay thừa lề trắng.</div>
+                            <div>• Trong hộp thoại in chọn: <b>Lề (Margins): "Không có" (None)</b> & <b>Tỷ lệ (Scale): 100%</b>.</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTemplate === 'sale_50x80' && (
+                        <div className="mt-2.5 px-3 py-2 bg-pink-50 border border-pink-200 rounded-lg text-xs text-pink-900 leading-snug">
+                          <div className="font-bold text-[#10285B] mb-1">
+                            🎯 Sale Đứng Chuẩn (50 x 80 mm - 12 tem / trang):
+                          </div>
+                          <div className="text-gray-700 space-y-0.5">
+                            <div>• Kích thước in chuẩn 100% đúng <b>50 mm x 80 mm</b> (4 cột x 3 hàng = 12 tem).</div>
+                            <div>• Căn giữa trang A4 chuẩn xác, tự động dàn đều lề các phía.</div>
                             <div>• Trong hộp thoại in chọn: <b>Lề (Margins): "Không có" (None)</b> & <b>Tỷ lệ (Scale): 100%</b>.</div>
                           </div>
                         </div>
@@ -2181,6 +2373,10 @@ function App() {
                         {selectedTemplate === 'sale_60x70' ? (
                           <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-pink-800 bg-pink-50 border border-pink-300 px-2 py-0.5 rounded ml-2 font-semibold">
                             🎯 Mẫu chuẩn 60x70mm (12 tem) | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                          </span>
+                        ) : selectedTemplate === 'sale_50x80' ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-pink-800 bg-pink-50 border border-pink-300 px-2 py-0.5 rounded ml-2 font-semibold">
+                            🎯 Mẫu chuẩn 50x80mm (12 tem) | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
                           </span>
                         ) : (
                           <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
@@ -2309,12 +2505,18 @@ function App() {
                         <div 
                             key={`page-${pageIndex}`}
                             className={`page-container ${
-                              selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : ''
+                              selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : 
+                              selectedTemplate === 'sale_50x80' ? 'page-sale_50x80' : ''
                             } bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
                             style={selectedTemplate === 'sale_60x70' ? {
                                 width: '210mm',
                                 height: '297mm',
                                 padding: '8.5mm 15mm',
+                                boxSizing: 'border-box'
+                            } : selectedTemplate === 'sale_50x80' ? {
+                                width: '210mm',
+                                height: '297mm',
+                                padding: '28.5mm 5mm',
                                 boxSizing: 'border-box'
                             } : {
                                 width: `${currentPaper.w}px`,
@@ -2326,13 +2528,26 @@ function App() {
                             }}
                         >
                             <div 
-                                className={selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : ''}
+                                className={
+                                    selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : 
+                                    selectedTemplate === 'sale_50x80' ? 'grid-sale_50x80' : ''
+                                }
                                 style={selectedTemplate === 'sale_60x70' ? {
                                     display: 'grid',
                                     gridTemplateColumns: '60mm 60mm 60mm',
                                     gridTemplateRows: '70mm 70mm 70mm 70mm',
                                     width: '180mm',
                                     height: '280mm',
+                                    gap: '0px',
+                                    margin: '0',
+                                    padding: '0',
+                                    boxSizing: 'border-box'
+                                } : selectedTemplate === 'sale_50x80' ? {
+                                    display: 'grid',
+                                    gridTemplateColumns: '50mm 50mm 50mm 50mm',
+                                    gridTemplateRows: '80mm 80mm 80mm',
+                                    width: '200mm',
+                                    height: '240mm',
                                     gap: '0px',
                                     margin: '0',
                                     padding: '0',
@@ -2352,11 +2567,18 @@ function App() {
                                          <div 
                                              key={tag.renderId} 
                                              className={`tag-wrapper ${
-                                               selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : ''
+                                               selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : 
+                                               selectedTemplate === 'sale_50x80' ? 'tag-sale_50x80' : ''
                                              } relative break-inside-avoid origin-top-left overflow-hidden`} 
                                              style={selectedTemplate === 'sale_60x70' ? { 
                                                  width: '60mm', 
                                                  height: '70mm',
+                                                 boxSizing: 'border-box',
+                                                 breakInside: 'avoid', 
+                                                 pageBreakInside: 'avoid' 
+                                             } : selectedTemplate === 'sale_50x80' ? { 
+                                                 width: '50mm', 
+                                                 height: '80mm',
                                                  boxSizing: 'border-box',
                                                  breakInside: 'avoid', 
                                                  pageBreakInside: 'avoid' 
@@ -2367,7 +2589,7 @@ function App() {
                                                  pageBreakInside: 'avoid' 
                                              }}
                                          >
-                                             {selectedTemplate === 'sale_60x70' ? (
+                                             {['sale_60x70', 'sale_50x80'].includes(selectedTemplate) ? (
                                                  isTagReady ? (
                                                      <TemplateComponent product={tag} />
                                                  ) : (
@@ -2511,6 +2733,43 @@ function App() {
                 min-height: 70mm !important;
                 max-width: 60mm !important;
                 max-height: 70mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            /* Khổ Sale Đứng Chuẩn (50x80 - 12 tem / A4) */
+            .page-sale_50x80 {
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
+                padding: 28.5mm 5mm !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .grid-sale_50x80 {
+                display: grid !important;
+                grid-template-columns: 50mm 50mm 50mm 50mm !important;
+                grid-template-rows: 80mm 80mm 80mm !important;
+                width: 200mm !important;
+                height: 240mm !important;
+                gap: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+            }
+            .tag-sale_50x80 {
+                width: 50mm !important;
+                height: 80mm !important;
+                min-width: 50mm !important;
+                min-height: 80mm !important;
+                max-width: 50mm !important;
+                max-height: 80mm !important;
                 box-sizing: border-box !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
