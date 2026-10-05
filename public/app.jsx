@@ -1065,12 +1065,8 @@ function App() {
     let scale = 5, bcHeight = 10, textsize = 10;
     if (selectedTemplate === 'normal_small') {
       scale = 6; bcHeight = 8; textsize = 8;
-    } else if (selectedTemplate === 'sale') {
-      scale = 4; bcHeight = 14; textsize = 15;
-    } else if (selectedTemplate === 'sale_usp') {
-      scale = 5; bcHeight = 16; textsize = 15;
-    } else if (selectedTemplate === 'sale_80x50') {
-      scale = 4; bcHeight = 11; textsize = 8.5;
+    } else if (selectedTemplate === 'sale' || selectedTemplate === 'sale_usp' || selectedTemplate === 'sale_80x50') {
+      scale = 5; bcHeight = 10; textsize = 10;
     }
 
     const queue = uniqueBarcodes.filter(bc => !loadedBarcodes.has(bc));
@@ -1117,7 +1113,7 @@ function App() {
     };
   }, [uniqueBarcodes, selectedTemplate]);
 
-  const BarcodeImage = ({ barcode, className = "h-24", scale = 4, bcHeight = 16, textsize = '' }) => {
+  const BarcodeImage = ({ barcode, className = "h-24", scale = 5, bcHeight = 10, textsize = 10 }) => {
       const cleanBarcode = String(barcode || '').trim();
       if (!cleanBarcode) {
         return <div className={`${className} flex items-center justify-center text-gray-400 text-xs italic`}>Không có mã vạch</div>;
@@ -1268,12 +1264,12 @@ function App() {
                   </span>
               </div>
            ) : discount > 0 || ribbonSub !== '0%' ? (
-              <div className="relative flex flex-col items-center justify-center w-[90px] h-[110px] shrink-0 mt-1">
+              <div className="relative flex flex-col items-center justify-center w-[82px] h-[92px] shrink-0 mt-1">
                   <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                       <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                   </svg>
-                  <span className="relative z-10 text-white font-bold text-[18px] leading-none uppercase mt-[-10px]">Giảm</span>
-                  <span className="relative z-10 text-white font-black leading-none mt-1 text-[38px] tracking-tighter">{ribbonSub}</span>
+                  <span className="relative z-10 text-white font-bold text-[16px] leading-none uppercase mt-[-8px]">Giảm</span>
+                  <span className="relative z-10 text-white font-black leading-none mt-1 text-[32px] tracking-tighter">{ribbonSub}</span>
               </div>
            ) : (
               <div className="w-[90px] shrink-0"></div>
@@ -1311,8 +1307,8 @@ function App() {
         </div>
         
         <div className="mx-4 mt-auto mb-2 flex items-end">
-            <div className="w-[195px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[80px] ml-[-10px]" scale={4} bcHeight={14} textsize={15} />
+            <div className="w-[270px] shrink-0">
+                <BarcodeImage barcode={product.barcode} className="h-[85px] w-full" scale={5} bcHeight={10} textsize={10} />
             </div>
             <div className="flex-1 flex justify-between items-end border-t-[3px] border-black pb-1 pt-1 ml-2 text-[18px] font-bold text-black">
                <div className="text-center flex-1 px-2 whitespace-nowrap overflow-hidden text-ellipsis mb-1">
@@ -1482,8 +1478,8 @@ function App() {
         
         {/* Chân tem: Mã vạch + Thời gian áp dụng to rõ, căn đều đẹp */}
         <div className="mx-6 mb-3 mt-auto flex items-end shrink-0">
-            <div className="w-[280px] shrink-0">
-                <BarcodeImage barcode={product.barcode} className="h-[110px] ml-[-10px]" scale={5} bcHeight={16} textsize={15} />
+            <div className="w-[340px] shrink-0">
+                <BarcodeImage barcode={product.barcode} className="h-[110px] w-full" scale={5} bcHeight={10} textsize={10} />
             </div>
             <div 
               className="flex-1 flex justify-between items-end border-t-[4px] border-black pb-2 pt-2 ml-5 text-black font-bold"
@@ -1936,12 +1932,12 @@ function App() {
                   </div>
                 </div>
               ) : hasRibbon ? (
-                <div className="relative flex flex-col items-center justify-center" style={{ width: '16mm', height: '17.5mm' }}>
+                <div className="relative flex flex-col items-center justify-center" style={{ width: '16mm', height: '13.5mm' }}>
                   <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                     <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                   </svg>
-                  <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-2px]" style={{ fontSize: '8px' }}>Giảm</span>
-                  <span className="relative z-10 text-white font-black leading-none mt-0.5 tracking-tighter" style={{ fontSize: '16px', fontFamily: 'Arial Black, Impact, sans-serif' }}>{ribbonSub}</span>
+                  <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-1px]" style={{ fontSize: '7.5px' }}>Giảm</span>
+                  <span className="relative z-10 text-white font-black leading-none mt-0.5 tracking-tighter" style={{ fontSize: '14.5px', fontFamily: 'Arial Black, Impact, sans-serif' }}>{ribbonSub}</span>
                 </div>
               ) : (
                 <div style={{ width: '80px', height: '50px' }}></div>
@@ -1994,11 +1990,11 @@ function App() {
             </div>
           </div>
 
-          {/* Hàng dưới: Barcode to rõ sát góc dưới + Gạch ngang & Thời gian áp dụng */}
-          <div className="w-full flex items-end justify-between mt-auto pt-1">
-            {/* Barcode chuẩn Code 128 to rõ, sắc nét, có lề trắng bảo vệ (Quiet Zone) 2 bên */}
-            <div className="shrink-0 flex items-center justify-start bg-white" style={{ width: '42mm', height: '36px', boxSizing: 'border-box' }}>
-              <BarcodeImage barcode={product.barcode} className="h-full w-full object-contain object-left" scale={4} bcHeight={11} textsize={8.5} />
+          {/* Hàng dưới: Barcode to rõ + Gạch ngang & Thời gian áp dụng */}
+          <div className="w-full flex items-end justify-between mt-auto pt-1 pb-1">
+            {/* Barcode chuẩn Code 128 to rõ, sắc nét, lề bảo vệ 4 phía */}
+            <div className="shrink-0 flex items-center justify-start bg-white" style={{ width: '46mm', height: '38px', boxSizing: 'border-box' }}>
+              <BarcodeImage barcode={product.barcode} className="h-full w-full object-contain object-left" scale={5} bcHeight={10} textsize={10} />
             </div>
 
             {/* Gạch ngang & Thời gian áp dụng */}

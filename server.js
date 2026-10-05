@@ -131,9 +131,9 @@ const barcodeCache = new Map();
 // Mặc định luôn là chuẩn Code 128 theo yêu cầu thực tế của cửa hàng và máy quét
 app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
-  const scale = parseInt(req.query.scale) || 4;
-  const height = parseInt(req.query.height) || 12;
-  const textsize = parseInt(req.query.textsize) || 9;
+  const scale = parseInt(req.query.scale) || 5;
+  const height = parseInt(req.query.height) || 10;
+  const textsize = parseInt(req.query.textsize) || 10;
   const paddingwidth = req.query.paddingwidth !== undefined ? parseInt(req.query.paddingwidth) : 8;
   const paddingheight = req.query.paddingheight !== undefined ? parseInt(req.query.paddingheight) : 2;
   
