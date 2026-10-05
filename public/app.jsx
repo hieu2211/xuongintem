@@ -1070,7 +1070,7 @@ function App() {
     } else if (selectedTemplate === 'sale_usp') {
       scale = 5; bcHeight = 16; textsize = 15;
     } else if (selectedTemplate === 'sale_80x50') {
-      scale = 3.5; bcHeight = 15; textsize = 11;
+      scale = 4; bcHeight = 16; textsize = 10;
     }
 
     const queue = uniqueBarcodes.filter(bc => !loadedBarcodes.has(bc));
@@ -1126,7 +1126,7 @@ function App() {
         <img 
             src={`/api/barcode?text=${encodeURIComponent(cleanBarcode)}&scale=${scale}&height=${bcHeight}${textsize ? `&textsize=${textsize}` : ''}`} 
             alt="barcode" 
-            className={`${className} w-full object-contain mix-blend-multiply`} 
+            className={`${className} w-full object-contain`} 
             crossOrigin="anonymous" 
             onLoad={() => {
               if (!loadedBarcodes.has(cleanBarcode)) {
@@ -1996,9 +1996,9 @@ function App() {
 
           {/* Hàng dưới: Barcode to rõ sát góc dưới + Gạch ngang & Thời gian áp dụng */}
           <div className="w-full flex items-end justify-between mt-auto pt-1">
-            {/* Barcode to hơn (rộng 42mm, cao 42px) */}
-            <div className="shrink-0" style={{ width: '42mm', height: '42px' }}>
-              <BarcodeImage barcode={product.barcode} className="h-full w-full object-contain object-left-bottom" scale={4} bcHeight={22} textsize={13} />
+            {/* Barcode chuẩn EAN-13 / Code128 siêu nét, có lề trắng bảo vệ (Quiet Zone) 2 bên */}
+            <div className="shrink-0 flex items-center justify-start bg-white" style={{ width: '41mm', height: '40px', paddingLeft: '1.5mm', paddingRight: '1.5mm', boxSizing: 'border-box' }}>
+              <BarcodeImage barcode={product.barcode} className="h-full w-full object-contain object-left" scale={4} bcHeight={16} textsize={10} />
             </div>
 
             {/* Gạch ngang & Thời gian áp dụng */}

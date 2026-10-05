@@ -128,6 +128,7 @@ if (!fs.existsSync(barcodeCacheDir)) {
 const barcodeCache = new Map();
 
 // API tạo Barcode đa tầng (RAM Cache -> Disk Cache -> bwip-js Local Render)
+// Tự động nhận diện chuẩn bán lẻ EAN-13 cho mã 13 số Nhật Bản (JAN code) để máy quét siêu thị quét nhạy 100%
 app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
   const scale = parseInt(req.query.scale) || 3;
@@ -138,8 +139,20 @@ app.get('/api/barcode', async (req, res) => {
       return res.status(400).send('Missing text parameter');
   }
 
-  const cacheKey = `${text}_${scale}_${height}_${textsize}`;
-  const safeFileName = `${String(text).replace(/[^a-zA-Z0-9_-]/g, '_')}_s${scale}_h${height}_t${textsize}.png`;
+  const cleanText = String(text).trim();
+  let bcid = req.query.bcid;
+  if (!bcid) {
+    if (/^\d{13}$/.test(cleanText)) {
+      bcid = 'ean13';
+    } else if (/^\d{8}$/.test(cleanText)) {
+      bcid = 'ean8';
+    } else {
+      bcid = 'code128';
+    }
+  }
+
+  const cacheKey = `${cleanText}_${bcid}_${scale}_${height}_${textsize}`;
+  const safeFileName = `${String(cleanText).replace(/[^a-zA-Z0-9_-]/g, '_')}_b${bcid}_s${scale}_h${height}_t${textsize}.png`;
   const filePath = path.join(barcodeCacheDir, safeFileName);
 
   res.set('Content-Type', 'image/png');
@@ -150,7 +163,7 @@ app.get('/api/barcode', async (req, res) => {
       return res.send(barcodeCache.get(cacheKey));
   }
 
-  // TẦNG 2: Kiểm tra Disk cache trên ổ cứng (tốc độ ~0.2ms - không bao giờ mất kể cả khi khởi động lại server)
+  // TẦNG 2: Kiểm tra Disk cache trên ổ cứng
   try {
       if (fs.existsSync(filePath)) {
           const diskBuffer = await fs.promises.readFile(filePath);
@@ -161,17 +174,36 @@ app.get('/api/barcode', async (req, res) => {
       console.warn('Lỗi đọc disk cache barcode:', readErr);
   }
 
-  // TẦNG 3: Sinh mã cục bộ trực tiếp bằng bwip-js (offline 100%, không phụ thuộc mạng ngoài, mất ~5ms)
+  // TẦNG 3: Sinh mã cục bộ trực tiếp bằng bwip-js
   try {
-      const buffer = await bwipjs.toBuffer({
-          bcid: 'code128',
-          text: text,
-          scale: scale,
-          height: height,
-          includetext: true,
-          textxalign: 'center',
-          textsize: textsize
-      });
+      let buffer;
+      try {
+        const bwipOptions = {
+            bcid: bcid,
+            text: cleanText,
+            scale: scale,
+            height: height,
+            includetext: true
+        };
+        if (textsize) bwipOptions.textsize = textsize;
+        if (bcid === 'code128') bwipOptions.textxalign = 'center';
+        buffer = await bwipjs.toBuffer(bwipOptions);
+      } catch (genErr) {
+        if (bcid !== 'code128') {
+          console.warn(`Lỗi tạo mã ${bcid} cho '${cleanText}', chuyển sang code128:`, genErr.message);
+          buffer = await bwipjs.toBuffer({
+              bcid: 'code128',
+              text: cleanText,
+              scale: scale,
+              height: height,
+              includetext: true,
+              textxalign: 'center',
+              textsize: textsize
+          });
+        } else {
+          throw genErr;
+        }
+      }
 
       // Lưu song song vào RAM cache
       if (barcodeCache.size >= 10000) {
@@ -180,7 +212,7 @@ app.get('/api/barcode', async (req, res) => {
       }
       barcodeCache.set(cacheKey, buffer);
 
-      // Lưu bất đồng bộ xuống ổ cứng để lần sau không bao giờ phải tạo lại
+      // Lưu bất đồng bộ xuống ổ cứng
       fs.promises.writeFile(filePath, buffer).catch(writeErr => {
           console.error('Lỗi ghi disk cache barcode:', writeErr);
       });
