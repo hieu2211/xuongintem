@@ -478,7 +478,10 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const res = await fetch('/api/auth/me', { signal: controller.signal });
+      clearTimeout(timeoutId);
       const data = await res.json();
       if (data.loggedIn && data.user) {
         setCurrentUser(data.user);

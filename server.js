@@ -20,6 +20,7 @@ const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'password',
   database: process.env.DB_NAME || 'sakuko_tem',
+  connectionTimeoutMillis: 5000,
 });
 
 // Khởi tạo bảng Users và User Access Logs nếu chưa có
