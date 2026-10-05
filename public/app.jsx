@@ -956,12 +956,12 @@ function App() {
         targetWidthMm = 60;
         targetHeightMm = 70;
         pagePadding = { 
-            left: 56, 
-            right: 56, 
-            top: 31, 
-            bottom: 31 
+            left: 57, 
+            right: 57, 
+            top: 32, 
+            bottom: 32 
         };
-        tagGap = 1;
+        tagGap = 0;
     }
     const pxPerMm = 96 / 25.4;
     scaledTagWidth = targetWidthMm * pxPerMm;
@@ -2109,8 +2109,14 @@ function App() {
                       </div>
 
                       {selectedTemplate === 'sale_60x70' && (
-                        <div className="mt-2.5 px-3 py-2 bg-pink-50/70 border border-pink-200 rounded-lg text-xs text-gray-600 leading-snug">
-                          ✨ <b>Sale Đứng 60x70 mm (3 cột x 4 hàng = 12 tem / trang A4)</b>: Kích thước to rõ, 4 hàng phủ kín 95% trang in, lấp kín khoảng trống đáy giấy theo yêu cầu.
+                        <div className="mt-2.5 px-3 py-2 bg-emerald-50 border border-emerald-300 rounded-lg text-xs text-emerald-900 leading-snug">
+                          <div className="font-bold text-[#10285B] mb-1">
+                            🎯 Kích thước chuẩn 60 x 70 mm (12 tem / A4):
+                          </div>
+                          <div className="text-gray-700 space-y-0.5">
+                            <div>• Chiều ngang: <b>60 mm</b> | Chiều cao: <b>70 mm</b>.</div>
+                            <div>• Để máy in ra chuẩn 100%: Trong hộp thoại in chọn <b>Lề (Margins): "Không có" (None)</b> và <b>Tỷ lệ (Scale): 100%</b>.</div>
+                          </div>
                         </div>
                       )}
 
@@ -2207,9 +2213,15 @@ function App() {
                     <div className="flex items-center gap-1.5">
                         <label className="text-gray-500 hidden sm:block">Khổ giấy:</label>
                         <span className="text-[#10285B] font-bold">A4 (Dọc)</span>
-                        <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
-                          💡 Mẹo in: Chọn <b>Margins: "None" (Không có)</b> để tem không bị co nhỏ
-                        </span>
+                        {selectedTemplate === 'sale_60x70' ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded ml-2 font-semibold">
+                            🎯 Tem chuẩn 60x70mm | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                          </span>
+                        ) : (
+                          <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
+                            💡 Mẹo in: Chọn <b>Margins: "None" (Không có)</b> để tem không bị co nhỏ
+                          </span>
+                        )}
                     </div>
                     
                     <button 
@@ -2331,7 +2343,7 @@ function App() {
                     pages.map((page, pageIndex) => (
                         <div 
                             key={`page-${pageIndex}`}
-                            className="page-container bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto"
+                            className={`page-container ${selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : ''} bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
                             style={{
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
@@ -2341,20 +2353,23 @@ function App() {
                                 paddingRight: `${padRight}px`
                             }}
                         >
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
-                                gap: `${tagGap}px`,
-                                justifyContent: 'center',
-                                alignContent: (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') ? 'center' : 'start'
-                            }}>
+                            <div 
+                                className={selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : ''}
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
+                                    gap: `${tagGap}px`,
+                                    justifyContent: 'center',
+                                    alignContent: (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') ? 'center' : 'start'
+                                }}
+                            >
                                  {page.map(tag => {
                                      const tagBarcode = String(tag.barcode || '').trim();
                                      const isTagReady = !isBarcodeNeeded || !tagBarcode || loadedBarcodes.has(tagBarcode);
                                      return (
                                          <div 
                                              key={tag.renderId} 
-                                             className="tag-wrapper relative break-inside-avoid origin-top-left overflow-hidden" 
+                                             className={`tag-wrapper ${selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : ''} relative break-inside-avoid origin-top-left overflow-hidden`} 
                                              style={{ 
                                                  width: `${scaledTagWidth}px`, 
                                                  height: `${scaledTagHeight}px`,
@@ -2420,6 +2435,41 @@ function App() {
                 width: 100% !important;
                 height: auto !important;
                 box-sizing: border-box !important;
+            }
+            .page-sale_60x70 {
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                min-height: 297mm !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                overflow: hidden !important;
+            }
+            .grid-sale_60x70 {
+                display: grid !important;
+                grid-template-columns: repeat(3, 60mm) !important;
+                grid-template-rows: repeat(4, 70mm) !important;
+                width: 180mm !important;
+                height: 280mm !important;
+                gap: 0 !important;
+                margin: auto !important;
+                box-sizing: border-box !important;
+            }
+            .tag-sale_60x70 {
+                width: 60mm !important;
+                height: 70mm !important;
+                min-width: 60mm !important;
+                min-height: 70mm !important;
+                max-width: 60mm !important;
+                max-height: 70mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
             }
             .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
             .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
