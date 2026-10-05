@@ -1069,6 +1069,8 @@ function App() {
       scale = 4; bcHeight = 14; textsize = 15;
     } else if (selectedTemplate === 'sale_usp') {
       scale = 5; bcHeight = 16; textsize = 15;
+    } else if (selectedTemplate === 'sale_80x50') {
+      scale = 3.5; bcHeight = 15; textsize = 11;
     }
 
     const queue = uniqueBarcodes.filter(bc => !loadedBarcodes.has(bc));
@@ -2027,18 +2029,18 @@ function App() {
           )}
         </div>
 
-        {/* Chân tem: Mã vạch + Thời gian áp dụng (đệm cách 2px không bị che đè) */}
-        <div className="shrink-0 flex items-end justify-between border-t border-black pt-1 px-1 mt-auto">
-          <div className="shrink-0" style={{ width: '40mm' }}>
-            <BarcodeImage barcode={product.barcode} className="h-[21px]" scale={2.5} bcHeight={11} textsize={8.5} />
+        {/* Chân tem: Mã vạch to rõ + Thời gian áp dụng & Đơn vị tính */}
+        <div className="shrink-0 flex items-center justify-between border-t border-black pt-1 px-0.5 mt-auto">
+          <div className="shrink-0" style={{ width: '46mm' }}>
+            <BarcodeImage barcode={product.barcode} className="h-[30px]" scale={3.5} bcHeight={15} textsize={11} />
           </div>
-          <div className="flex-1 flex justify-between items-end pl-2 text-black font-bold" style={{ fontSize: '8px' }}>
-            <div className="text-center flex-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis">
-              <span className="font-semibold text-gray-700" style={{ fontSize: '7.5px' }}>Áp dụng: </span>
-              <span className="font-bold">{product.dateRange ? formatDateRangeShort(product.dateRange) : '01/10 - 31/10'}</span>
+          <div className="flex-1 min-w-0 flex flex-col items-end justify-center pl-1 text-black">
+            <div className="whitespace-nowrap font-bold" style={{ fontSize: '8px', lineHeight: '1.2' }}>
+              <span className="text-gray-600 font-medium" style={{ fontSize: '7.5px' }}>Áp dụng: </span>
+              <span>{product.dateRange ? formatDateRangeShort(product.dateRange) : '01/10 - 31/10'}</span>
             </div>
             {product.unit ? (
-              <div className="text-right whitespace-nowrap font-black" style={{ fontSize: '9.5px' }}>
+              <div className="text-right whitespace-nowrap font-black mt-0.5" style={{ fontSize: '10px', lineHeight: '1.2' }}>
                 {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
               </div>
             ) : null}
