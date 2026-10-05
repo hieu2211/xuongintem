@@ -940,17 +940,28 @@ function App() {
         baseTag = { w: 600, h: 300 };
         targetWidthMm = 50;
         targetHeightMm = 24.15;
-    } else if (selectedTemplate === 'sale_50x80') {
-        baseTag = { w: 500, h: 725 };
+    } else if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_50x70') {
+        baseTag = { w: 500, h: 720 };
         targetWidthMm = 50;
-        targetHeightMm = 72.5;
+        targetHeightMm = 72;
         pagePadding = { 
-            left: 17, 
-            right: 17, 
-            top: 14, 
-            bottom: 12 
+            left: 19, 
+            right: 19, 
+            top: 17, 
+            bottom: 17 
         };
-        tagGap = 1;
+        tagGap = 0;
+    } else if (selectedTemplate === 'sale_66x70') {
+        baseTag = { w: 660, h: 700 };
+        targetWidthMm = 66;
+        targetHeightMm = 70;
+        pagePadding = { 
+            left: 23, 
+            right: 23, 
+            top: 32, 
+            bottom: 32 
+        };
+        tagGap = 0;
     } else if (selectedTemplate === 'sale_60x70') {
         baseTag = { w: 600, h: 700 };
         targetWidthMm = 60;
@@ -1012,10 +1023,10 @@ function App() {
   let rowsPerPage = Math.floor((availableHeight + tagGap) / (scaledTagHeight + tagGap));
   if (rowsPerPage < 1) rowsPerPage = 1; 
 
-  if (selectedTemplate === 'sale_60x70') {
+  if (selectedTemplate === 'sale_60x70' || selectedTemplate === 'sale_66x70') {
     tagsPerRow = 3;
     rowsPerPage = 4;
-  } else if (selectedTemplate === 'sale_50x80') {
+  } else if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_50x70') {
     tagsPerRow = 4;
     rowsPerPage = 4;
   }
@@ -1031,7 +1042,7 @@ function App() {
   };
 
   const isBarcodeNeeded = !isSpecialPromo 
-    ? (selectedTemplate !== 'sale_50x80' && selectedTemplate !== 'sale_60x70')
+    ? (!['sale_50x80', 'sale_50x70', 'sale_60x70', 'sale_66x70'].includes(selectedTemplate))
     : false;
 
   const uniqueBarcodes = React.useMemo(() => {
@@ -1912,7 +1923,7 @@ function App() {
       else if (selectedTemplate === 'normal_small') TemplateComponent = TemplateNormalSmall;
       else if (selectedTemplate === 'sale') TemplateComponent = TemplateSale;
       else if (selectedTemplate === 'sale_usp') TemplateComponent = TemplateSaleUSP;
-      else if (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') TemplateComponent = TemplateSale50x80;
+      else if (['sale_50x80', 'sale_50x70', 'sale_60x70', 'sale_66x70'].includes(selectedTemplate)) TemplateComponent = TemplateSale50x80;
   } else {
       if (promoSize === '100x80') {
           TemplateComponent = TemplateCombo80x100;
@@ -2091,15 +2102,16 @@ function App() {
                               { id: 'normal_small', label: 'Niêm yết Nhỏ (50x24)', type: 'Niêm yết' },
                               { id: 'sale', label: 'Sale Thường (60x35)', type: 'Discount' },
                               { id: 'sale_usp', label: 'Sale USP (80x70 - 8 tem/trang)', type: 'Discount' },
-                              { id: 'sale_60x70', label: 'Sale Đứng (60x70 - 12 tem/trang)', type: 'Discount' },
-                              { id: 'sale_50x80', label: 'Sale Đứng (50x80 - 16 tem/trang)', type: 'Discount' }
+                              { id: 'sale_50x70', label: '🌟 Sale Đứng Tối Ưu (50x70 - 16 tem/trang)', type: 'Discount' },
+                              { id: 'sale_66x70', label: '✨ Sale Đứng Rộng (66x70 - 12 tem/trang)', type: 'Discount' },
+                              { id: 'sale_60x70', label: 'Sale Đứng (60x70 - 12 tem/trang)', type: 'Discount' }
                           ].filter(tpl => tpl.type === promoType).map(tpl => (
                               <button
                                   key={tpl.id}
                                   onClick={() => setSelectedTemplate(tpl.id)}
-                                  className={`py-1.5 rounded-md border text-xs font-medium transition-all ${
-                                      selectedTemplate === tpl.id 
-                                      ? 'border-[#E0376F] bg-pink-50 text-[#E0376F]' 
+                                  className={`py-1.5 px-1 rounded-md border text-xs font-medium transition-all ${
+                                      selectedTemplate === tpl.id || (tpl.id === 'sale_50x70' && selectedTemplate === 'sale_50x80')
+                                      ? 'border-[#E0376F] bg-pink-50 text-[#E0376F] font-bold shadow-sm' 
                                       : 'border-gray-200 text-gray-600 hover:bg-white'
                                   }`}
                               >
@@ -2108,21 +2120,40 @@ function App() {
                           ))}
                       </div>
 
-                      {selectedTemplate === 'sale_60x70' && (
+                      {(selectedTemplate === 'sale_50x70' || selectedTemplate === 'sale_50x80') && (
                         <div className="mt-2.5 px-3 py-2 bg-emerald-50 border border-emerald-300 rounded-lg text-xs text-emerald-900 leading-snug">
                           <div className="font-bold text-[#10285B] mb-1">
-                            🎯 Kích thước chuẩn 60 x 70 mm (12 tem / A4):
+                            🌟 Sale Đứng Tối Ưu Giấy A4 (50 x 72 mm - 16 tem / trang):
                           </div>
                           <div className="text-gray-700 space-y-0.5">
-                            <div>• Chiều ngang: <b>60 mm</b> | Chiều cao: <b>70 mm</b>.</div>
-                            <div>• Để máy in ra chuẩn 100%: Trong hộp thoại in chọn <b>Lề (Margins): "Không có" (None)</b> và <b>Tỷ lệ (Scale): 100%</b>.</div>
+                            <div>• <b>Phủ kín 96% trang giấy A4</b> (4 cột x 4 hàng = 16 tem), lề máy in chỉ 5mm.</div>
+                            <div>• <b>Tiết kiệm 33% số trang giấy in</b>, hoàn toàn không còn khoảng trống thừa lãng phí giấy.</div>
+                            <div>• In chuẩn 1:1: Trong hộp thoại in chọn <b>Lề (Margins): "Không có" (None)</b> và <b>Tỷ lệ (Scale): 100%</b>.</div>
                           </div>
                         </div>
                       )}
 
-                      {selectedTemplate === 'sale_50x80' && (
-                        <div className="mt-2.5 px-3 py-2 bg-pink-50/70 border border-pink-200 rounded-lg text-xs text-gray-600 leading-snug">
-                          ✨ <b>Sale Đứng 50x80 mm (4 cột x 4 hàng = 16 tem / trang A4)</b>: Tự động căn đều, tối ưu trọn vẹn trang in A4.
+                      {selectedTemplate === 'sale_66x70' && (
+                        <div className="mt-2.5 px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-xs text-blue-900 leading-snug">
+                          <div className="font-bold text-[#10285B] mb-1">
+                            ✨ Sale Đứng Rộng A4 (66 x 70 mm - 12 tem / trang):
+                          </div>
+                          <div className="text-gray-700 space-y-0.5">
+                            <div>• Khổ 12 tem tự động kéo rộng vừa khít chiều ngang A4 (198mm / 210mm).</div>
+                            <div>• Xóa bỏ hoàn toàn khoảng trắng 3cm ở 2 bên, tem to rõ ràng.</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTemplate === 'sale_60x70' && (
+                        <div className="mt-2.5 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 leading-snug">
+                          <div className="font-bold text-[#10285B] mb-1">
+                            🎯 Sale Đứng Chuẩn (60 x 70 mm - 12 tem / trang):
+                          </div>
+                          <div className="text-gray-700 space-y-0.5">
+                            <div>• Kích thước mỗi tem đúng chuẩn <b>60 mm x 70 mm</b> theo thước kẻ.</div>
+                            <div>• 3 cột x 4 hàng = 12 tem, căn giữa tờ A4 (chừa lề 15mm mỗi bên).</div>
+                          </div>
                         </div>
                       )}
                     </>
@@ -2213,9 +2244,17 @@ function App() {
                     <div className="flex items-center gap-1.5">
                         <label className="text-gray-500 hidden sm:block">Khổ giấy:</label>
                         <span className="text-[#10285B] font-bold">A4 (Dọc)</span>
-                        {selectedTemplate === 'sale_60x70' ? (
+                        {(selectedTemplate === 'sale_50x70' || selectedTemplate === 'sale_50x80') ? (
                           <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded ml-2 font-semibold">
-                            🎯 Tem chuẩn 60x70mm | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                            🌟 Mẫu 50x72mm (16 tem) phủ kín 96% A4 | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                          </span>
+                        ) : selectedTemplate === 'sale_66x70' ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-blue-800 bg-blue-50 border border-blue-300 px-2 py-0.5 rounded ml-2 font-semibold">
+                            ✨ Mẫu 66x70mm (12 tem) lấp đầy A4 | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
+                          </span>
+                        ) : selectedTemplate === 'sale_60x70' ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-800 bg-slate-50 border border-slate-300 px-2 py-0.5 rounded ml-2 font-semibold">
+                            🎯 Mẫu chuẩn 60x70mm (12 tem) | Trong hộp thoại in chọn <b>Lề: Không có (None)</b> & <b>Tỷ lệ: 100%</b>
                           </span>
                         ) : (
                           <span className="hidden lg:inline-block text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded ml-2">
@@ -2343,7 +2382,11 @@ function App() {
                     pages.map((page, pageIndex) => (
                         <div 
                             key={`page-${pageIndex}`}
-                            className={`page-container ${selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' : ''} bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
+                            className={`page-container ${
+                              selectedTemplate === 'sale_60x70' ? 'page-sale_60x70' :
+                              (selectedTemplate === 'sale_50x70' || selectedTemplate === 'sale_50x80') ? 'page-sale_50x70' :
+                              selectedTemplate === 'sale_66x70' ? 'page-sale_66x70' : ''
+                            } bg-white shadow-md print:shadow-none shrink-0 relative box-border overflow-hidden mx-auto`}
                             style={{
                                 width: `${currentPaper.w}px`,
                                 height: `${currentPaper.h}px`,
@@ -2354,13 +2397,17 @@ function App() {
                             }}
                         >
                             <div 
-                                className={selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' : ''}
+                                className={
+                                  selectedTemplate === 'sale_60x70' ? 'grid-sale_60x70' :
+                                  (selectedTemplate === 'sale_50x70' || selectedTemplate === 'sale_50x80') ? 'grid-sale_50x70' :
+                                  selectedTemplate === 'sale_66x70' ? 'grid-sale_66x70' : ''
+                                }
                                 style={{
                                     display: 'grid',
                                     gridTemplateColumns: `repeat(${tagsPerRow}, ${scaledTagWidth}px)`,
                                     gap: `${tagGap}px`,
                                     justifyContent: 'center',
-                                    alignContent: (selectedTemplate === 'sale_50x80' || selectedTemplate === 'sale_60x70') ? 'center' : 'start'
+                                    alignContent: ['sale_50x80', 'sale_50x70', 'sale_60x70', 'sale_66x70'].includes(selectedTemplate) ? 'center' : 'start'
                                 }}
                             >
                                  {page.map(tag => {
@@ -2369,7 +2416,11 @@ function App() {
                                      return (
                                          <div 
                                              key={tag.renderId} 
-                                             className={`tag-wrapper ${selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' : ''} relative break-inside-avoid origin-top-left overflow-hidden`} 
+                                             className={`tag-wrapper ${
+                                               selectedTemplate === 'sale_60x70' ? 'tag-sale_60x70' :
+                                               (selectedTemplate === 'sale_50x70' || selectedTemplate === 'sale_50x80') ? 'tag-sale_50x70' :
+                                               selectedTemplate === 'sale_66x70' ? 'tag-sale_66x70' : ''
+                                             } relative break-inside-avoid origin-top-left overflow-hidden`} 
                                              style={{ 
                                                  width: `${scaledTagWidth}px`, 
                                                  height: `${scaledTagHeight}px`,
@@ -2458,6 +2509,87 @@ function App() {
                 overflow: hidden !important;
                 background-color: white !important;
             }
+            /* Khổ Sale Đứng Tối Ưu (50x70 - 16 tem / A4) */
+            .page-sale_50x70 {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+            }
+            .grid-sale_50x70 {
+                display: grid !important;
+                grid-template-columns: 50mm 50mm 50mm 50mm !important;
+                grid-template-rows: 72mm 72mm 72mm 72mm !important;
+                width: 200mm !important;
+                height: 288mm !important;
+                gap: 0 !important;
+                margin: auto !important;
+                box-sizing: border-box !important;
+            }
+            .tag-sale_50x70 {
+                width: 50mm !important;
+                height: 72mm !important;
+                min-width: 50mm !important;
+                min-height: 72mm !important;
+                max-width: 50mm !important;
+                max-height: 72mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .tag-sale_50x70 > div {
+                width: 500px !important;
+                height: 720px !important;
+                transform: scale(0.3779527559) !important;
+                transform-origin: top left !important;
+            }
+
+            /* Khổ Sale Đứng Rộng (66x70 - 12 tem / A4) */
+            .page-sale_66x70 {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+            }
+            .grid-sale_66x70 {
+                display: grid !important;
+                grid-template-columns: 66mm 66mm 66mm !important;
+                grid-template-rows: 70mm 70mm 70mm 70mm !important;
+                width: 198mm !important;
+                height: 280mm !important;
+                gap: 0 !important;
+                margin: auto !important;
+                box-sizing: border-box !important;
+            }
+            .tag-sale_66x70 {
+                width: 66mm !important;
+                height: 70mm !important;
+                min-width: 66mm !important;
+                min-height: 70mm !important;
+                max-width: 66mm !important;
+                max-height: 70mm !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .tag-sale_66x70 > div {
+                width: 660px !important;
+                height: 700px !important;
+                transform: scale(0.3779527559) !important;
+                transform-origin: top left !important;
+            }
+
+            /* Khổ Sale Đứng Chuẩn (60x70 - 12 tem / A4) */
             .page-sale_60x70 {
                 display: flex !important;
                 flex-direction: column !important;
