@@ -1861,11 +1861,11 @@ function App() {
       }
     }
 
-    const hasPromoLeft = showPromoText || discount > 0 || (ribbonSub && ribbonSub !== '0%');
+    const hasRibbon = !showPromoText && (discount > 0 || (ribbonSub && ribbonSub !== '0%'));
 
-    // Tự co giãn cỡ chữ tên sản phẩm
+    // Tự co giãn cỡ chữ tên sản phẩm (không bị cắt chữ)
     const nameLen = String(product.name || '').length;
-    let nameFontSize = '13.5px';
+    let nameFontSize = '13px';
     if (nameLen > 60) nameFontSize = '11px';
     else if (nameLen > 40) nameFontSize = '12px';
 
@@ -1874,120 +1874,89 @@ function App() {
         className="w-full h-full bg-white flex flex-col justify-between box-border select-none overflow-hidden" 
         style={{ 
           border: '1.2px solid black', 
-          padding: '1mm 2mm',
+          padding: '1mm 1.5mm',
           fontFamily: "Arial, Tahoma, sans-serif",
           color: 'black'
         }}
       >
-        {/* Header BIG SALE! to đậm nổi bật */}
+        {/* Header BIG SALE! */}
         <div 
-          className="bg-black text-white text-center font-black uppercase tracking-widest py-1.5 leading-none shrink-0 flex items-center justify-center" 
+          className="bg-black text-white text-center font-black uppercase tracking-widest py-1 leading-none shrink-0 flex items-center justify-center" 
           style={{ fontSize: '18px', fontFamily: 'Arial Black, Impact, sans-serif', letterSpacing: '0.12em' }}
         >
           BIG SALE!
         </div>
 
-        {/* Tên sản phẩm */}
+        {/* Tên sản phẩm - 2 dòng thoáng, rõ ràng, không bị cộc / cắt chữ */}
         <div 
-          className="px-1 pt-1 pb-0.5 text-center font-bold leading-tight line-clamp-2 break-words shrink-0 text-black flex items-center justify-center" 
+          className="px-2 py-1 text-center font-bold text-black break-words shrink-0 flex items-center justify-center" 
           style={{ 
             fontSize: nameFontSize, 
-            minHeight: '22px',
-            maxHeight: '26px',
+            lineHeight: '1.25',
+            minHeight: '32px',
+            maxHeight: '36px',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
             overflowWrap: 'anywhere',
-            fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif" 
+            fontFamily: "Arial, Tahoma, sans-serif" 
           }}
         >
           {product.name}
         </div>
 
-        {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán (giới hạn chiều cao an toàn không đè mã vạch) */}
-        <div className="flex-1 min-h-0 px-1 flex items-center justify-between relative my-auto overflow-hidden" style={{ maxHeight: '21mm' }}>
-          {hasPromoLeft ? (
-            <div className="flex w-full justify-between items-center">
+        {/* Thân tem chia 2 cột chuẩn theo mẫu Sakuko */}
+        <div className="flex-1 min-h-0 flex px-1 pt-0.5 pb-0.5 justify-between items-stretch">
+          
+          {/* CỘT TRÁI: Ô ưu đãi / Nơ giảm giá (trên) + Mã vạch Barcode to rõ sát góc dưới (dưới) */}
+          <div className="flex flex-col justify-between items-start shrink-0" style={{ width: '38mm' }}>
+            <div className="flex items-center justify-start w-full" style={{ minHeight: '38px' }}>
               {showPromoText ? (
                 <div 
-                  className="relative flex flex-col items-center justify-center shrink-0 border border-black bg-white px-1 py-1 shadow-sm rounded-[3px] overflow-hidden"
-                  style={{ width: '90px', height: '70px', boxSizing: 'border-box' }}
+                  className="border-[1.5px] border-black bg-white px-1 py-1 flex items-center justify-center text-center overflow-hidden"
+                  style={{ width: '90px', height: '42px', boxSizing: 'border-box' }}
                 >
-                  <span style={{ fontSize: '8px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-[2px] leading-none mb-1 shrink-0">
-                    ƯU ĐÃI
-                  </span>
                   <div 
-                    className="text-black font-extrabold leading-tight text-center break-words w-full uppercase overflow-hidden"
+                    className="text-black font-extrabold uppercase text-center break-words w-full"
                     style={{ 
-                      fontSize: (product.promoContent || '').length > 40 ? '7.5px' : (product.promoContent || '').length > 25 ? '8.5px' : '9.5px', 
-                      fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif",
+                      fontSize: (product.promoContent || '').length > 40 ? '7.5px' : (product.promoContent || '').length > 25 ? '8.5px' : '9.5px',
+                      fontFamily: "Tahoma, Arial, sans-serif",
                       display: '-webkit-box',
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
-                      lineHeight: '1.2'
+                      lineHeight: '1.15'
                     }}
                   >
                     {product.promoContent}
                   </div>
                 </div>
-              ) : (
-                <div className="relative flex flex-col items-center justify-center shrink-0" style={{ width: '15mm', height: '16.5mm' }}>
+              ) : hasRibbon ? (
+                <div className="relative flex flex-col items-center justify-center shrink-0 ml-1" style={{ width: '15mm', height: '16.5mm' }}>
                   <svg className="absolute inset-0 w-full h-full text-black" viewBox="0 0 100 120" fill="currentColor" preserveAspectRatio="none">
                     <path d="M0,0 L100,0 L100,70 L50,120 L0,70 Z" />
                   </svg>
                   <span className="relative z-10 text-white font-bold leading-none uppercase mt-[-2px]" style={{ fontSize: '7.5px' }}>Giảm</span>
                   <span className="relative z-10 text-white font-black leading-none mt-0.5 tracking-tighter" style={{ fontSize: '15px', fontFamily: 'Arial Black, Impact, sans-serif' }}>{ribbonSub}</span>
                 </div>
-              )}
-
-              {/* Khối giá bán to đậm rõ ràng */}
-              <div className="flex flex-col items-end justify-center flex-1 ml-2">
-                <div className="flex items-baseline text-black leading-none justify-end w-full">
-                  <span 
-                    style={{ 
-                      fontSize: priceMain.length > 5 ? '34px' : priceMain.length >= 4 ? '39px' : '45px',
-                      fontFamily: 'Arial Black, Impact, sans-serif' 
-                    }}
-                    className="font-black tracking-tighter shrink-0"
-                  >
-                    {priceMain}
-                  </span>
-                  {hasDec ? (
-                    <span className="flex items-baseline ml-0.5 shrink-0">
-                      <span 
-                        style={{ 
-                          fontSize: priceMain.length >= 4 ? '15px' : '17px',
-                          fontFamily: 'Arial Black, Impact, sans-serif' 
-                        }}
-                      >
-                        {priceDec}
-                      </span>
-                      <span 
-                        className="font-bold ml-0.5"
-                        style={{ fontSize: '15px' }}
-                      >
-                        đ
-                      </span>
-                    </span>
-                  ) : (
-                    <span 
-                      className="font-bold ml-0.5"
-                      style={{ fontSize: '17px' }}
-                    >
-                      đ
-                    </span>
-                  )}
-                </div>
-                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '11px' }}>
-                  {product.originalPrice ? (
-                    <span>Giá niêm yết: <span className="line-through decoration-[1.2px] text-gray-800 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
-                  ) : <span>&nbsp;</span>}
-                </div>
-              </div>
+              ) : null}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center w-full py-0.5">
-              <div className="flex items-baseline text-black justify-center w-full leading-none">
+
+            {/* Barcode to rõ, không bị đường kẻ ngang đè lên */}
+            <div className="w-full mt-auto" style={{ height: '36px' }}>
+              <BarcodeImage barcode={product.barcode} className="h-full w-full object-contain object-left-bottom" scale={4} bcHeight={18} textsize={12} />
+            </div>
+          </div>
+
+          {/* CỘT PHẢI: Khối giá bán to đậm (trên) + Gạch ngang & Thời gian áp dụng (dưới) */}
+          <div className="flex flex-col justify-between items-end flex-1 pl-2">
+            
+            {/* Khối giá bán */}
+            <div className="flex flex-col items-end justify-center w-full my-auto">
+              <div className="flex items-baseline text-black leading-none justify-end w-full">
                 <span 
                   style={{ 
-                    fontSize: priceMain.length > 5 ? '38px' : priceMain.length >= 4 ? '44px' : '50px',
+                    fontSize: priceMain.length > 5 ? '34px' : priceMain.length >= 4 ? '39px' : '45px',
                     fontFamily: 'Arial Black, Impact, sans-serif' 
                   }}
                   className="font-black tracking-tighter shrink-0"
@@ -1998,7 +1967,7 @@ function App() {
                   <span className="flex items-baseline ml-0.5 shrink-0">
                     <span 
                       style={{ 
-                        fontSize: priceMain.length >= 4 ? '16px' : '18.5px',
+                        fontSize: priceMain.length >= 4 ? '15px' : '17px',
                         fontFamily: 'Arial Black, Impact, sans-serif' 
                       }}
                     >
@@ -2006,7 +1975,7 @@ function App() {
                     </span>
                     <span 
                       className="font-bold ml-0.5"
-                      style={{ fontSize: '16px' }}
+                      style={{ fontSize: '15px' }}
                     >
                       đ
                     </span>
@@ -2014,37 +1983,35 @@ function App() {
                 ) : (
                   <span 
                     className="font-bold ml-0.5"
-                    style={{ fontSize: '18.5px' }}
+                    style={{ fontSize: '17px' }}
                   >
                     đ
                   </span>
                 )}
               </div>
-              {product.originalPrice ? (
-                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '12px' }}>
+              <div className="text-right text-black font-semibold shrink-0 leading-tight mt-1" style={{ fontSize: '11px' }}>
+                {product.originalPrice ? (
                   <span>Giá niêm yết: <span className="line-through decoration-[1.2px] text-gray-800 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-
-        {/* Chân tem: Mã vạch to rõ + Thời gian áp dụng & Đơn vị tính */}
-        <div className="shrink-0 flex items-center justify-between border-t border-black pt-1 px-0.5 mt-auto">
-          <div className="shrink-0" style={{ width: '46mm' }}>
-            <BarcodeImage barcode={product.barcode} className="h-[30px]" scale={3.5} bcHeight={15} textsize={11} />
-          </div>
-          <div className="flex-1 min-w-0 flex flex-col items-end justify-center pl-1 text-black">
-            <div className="whitespace-nowrap font-bold" style={{ fontSize: '8px', lineHeight: '1.2' }}>
-              <span className="text-gray-600 font-medium" style={{ fontSize: '7.5px' }}>Áp dụng: </span>
-              <span>{product.dateRange ? formatDateRangeShort(product.dateRange) : '01/10 - 31/10'}</span>
-            </div>
-            {product.unit ? (
-              <div className="text-right whitespace-nowrap font-black mt-0.5" style={{ fontSize: '10px', lineHeight: '1.2' }}>
-                {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
+                ) : <span>&nbsp;</span>}
               </div>
-            ) : null}
+            </div>
+
+            {/* Đường gạch ngang ở nửa phải + Thời gian áp dụng */}
+            <div className="w-full flex flex-col items-center justify-end mt-auto pt-1">
+              <div className="w-full border-t-[1.5px] border-black mb-1"></div>
+              <div className="text-center font-bold text-black whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontSize: '8.5px', lineHeight: '1.2' }}>
+                <span className="text-gray-700 font-medium" style={{ fontSize: '8px' }}>Áp dụng: </span>
+                <span>{product.dateRange ? formatDateRangeShort(product.dateRange) : '01/10 - 31/10'}</span>
+                {product.unit ? (
+                  <span className="font-black ml-1 text-black" style={{ fontSize: '9.5px' }}>
+                    {String(product.unit).startsWith('/') ? product.unit : `/${product.unit}`}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
           </div>
+
         </div>
 
       </div>
