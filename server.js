@@ -128,31 +128,25 @@ if (!fs.existsSync(barcodeCacheDir)) {
 const barcodeCache = new Map();
 
 // API tạo Barcode đa tầng (RAM Cache -> Disk Cache -> bwip-js Local Render)
-// Tự động nhận diện chuẩn bán lẻ EAN-13 cho mã 13 số Nhật Bản (JAN code) để máy quét siêu thị quét nhạy 100%
+// Mặc định luôn là chuẩn Code 128 theo yêu cầu thực tế của cửa hàng và máy quét
 app.get('/api/barcode', async (req, res) => {
   const text = req.query.text;
-  const scale = parseInt(req.query.scale) || 3;
-  const height = parseInt(req.query.height) || 16;
-  const textsize = parseInt(req.query.textsize) || 10;
+  const scale = parseInt(req.query.scale) || 4;
+  const height = parseInt(req.query.height) || 12;
+  const textsize = parseInt(req.query.textsize) || 9;
+  const paddingwidth = req.query.paddingwidth !== undefined ? parseInt(req.query.paddingwidth) : 8;
+  const paddingheight = req.query.paddingheight !== undefined ? parseInt(req.query.paddingheight) : 2;
   
   if (!text) {
       return res.status(400).send('Missing text parameter');
   }
 
   const cleanText = String(text).trim();
-  let bcid = req.query.bcid;
-  if (!bcid) {
-    if (/^\d{13}$/.test(cleanText)) {
-      bcid = 'ean13';
-    } else if (/^\d{8}$/.test(cleanText)) {
-      bcid = 'ean8';
-    } else {
-      bcid = 'code128';
-    }
-  }
+  // Ưu tiên bcid do client chỉ định, mặc định luôn là code128
+  const bcid = req.query.bcid || 'code128';
 
-  const cacheKey = `${cleanText}_${bcid}_${scale}_${height}_${textsize}`;
-  const safeFileName = `${String(cleanText).replace(/[^a-zA-Z0-9_-]/g, '_')}_b${bcid}_s${scale}_h${height}_t${textsize}.png`;
+  const cacheKey = `${cleanText}_${bcid}_${scale}_${height}_${textsize}_${paddingwidth}_${paddingheight}`;
+  const safeFileName = `${String(cleanText).replace(/[^a-zA-Z0-9_-]/g, '_')}_b${bcid}_s${scale}_h${height}_t${textsize}_pw${paddingwidth}_ph${paddingheight}.png`;
   const filePath = path.join(barcodeCacheDir, safeFileName);
 
   res.set('Content-Type', 'image/png');
@@ -183,7 +177,10 @@ app.get('/api/barcode', async (req, res) => {
             text: cleanText,
             scale: scale,
             height: height,
-            includetext: true
+            includetext: true,
+            backgroundcolor: 'ffffff',
+            paddingwidth: paddingwidth,
+            paddingheight: paddingheight
         };
         if (textsize) bwipOptions.textsize = textsize;
         if (bcid === 'code128') bwipOptions.textxalign = 'center';
@@ -197,6 +194,9 @@ app.get('/api/barcode', async (req, res) => {
               scale: scale,
               height: height,
               includetext: true,
+              backgroundcolor: 'ffffff',
+              paddingwidth: paddingwidth,
+              paddingheight: paddingheight,
               textxalign: 'center',
               textsize: textsize
           });
