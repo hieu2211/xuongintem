@@ -1900,26 +1900,26 @@ function App() {
         </div>
 
         {/* Khu vực trung tâm: Ô khuyến mãi + Giá bán (giới hạn chiều cao an toàn không đè mã vạch) */}
-        <div className="flex-1 min-h-0 px-1 flex items-center justify-between relative my-auto overflow-hidden" style={{ maxHeight: '20mm' }}>
+        <div className="flex-1 min-h-0 px-1 flex items-center justify-between relative my-auto overflow-hidden" style={{ maxHeight: '21mm' }}>
           {hasPromoLeft ? (
             <div className="flex w-full justify-between items-center">
               {showPromoText ? (
                 <div 
-                  className="relative flex flex-col items-center justify-center shrink-0 border border-black bg-white px-1 py-0.5 shadow-sm rounded-[3px] overflow-hidden"
-                  style={{ width: '25mm', maxHeight: '18mm' }}
+                  className="relative flex flex-col items-center justify-center shrink-0 border border-black bg-white px-1 py-1 shadow-sm rounded-[3px] overflow-hidden"
+                  style={{ width: '90px', height: '70px', boxSizing: 'border-box' }}
                 >
-                  <span style={{ fontSize: '7.5px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1 py-0.5 rounded-[2px] leading-none mb-0.5 shrink-0">
+                  <span style={{ fontSize: '8px' }} className="font-bold uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-[2px] leading-none mb-1 shrink-0">
                     ƯU ĐÃI
                   </span>
                   <div 
                     className="text-black font-extrabold leading-tight text-center break-words w-full uppercase overflow-hidden"
                     style={{ 
-                      fontSize: (product.promoContent || '').length > 35 ? '7.5px' : '8.5px', 
+                      fontSize: (product.promoContent || '').length > 40 ? '7.5px' : (product.promoContent || '').length > 25 ? '8.5px' : '9.5px', 
                       fontFamily: "Tahoma, 'Segoe UI', Arial, sans-serif",
                       display: '-webkit-box',
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
-                      lineHeight: '1.15'
+                      lineHeight: '1.2'
                     }}
                   >
                     {product.promoContent}
@@ -1940,7 +1940,7 @@ function App() {
                 <div className="flex items-baseline text-black leading-none justify-end w-full">
                   <span 
                     style={{ 
-                      fontSize: priceMain.length > 5 ? '30px' : priceMain.length >= 4 ? '35px' : '40px',
+                      fontSize: priceMain.length > 5 ? '34px' : priceMain.length >= 4 ? '39px' : '45px',
                       fontFamily: 'Arial Black, Impact, sans-serif' 
                     }}
                     className="font-black tracking-tighter shrink-0"
@@ -1951,7 +1951,7 @@ function App() {
                     <span className="flex items-baseline ml-0.5 shrink-0">
                       <span 
                         style={{ 
-                          fontSize: priceMain.length >= 4 ? '13.5px' : '15px',
+                          fontSize: priceMain.length >= 4 ? '15px' : '17px',
                           fontFamily: 'Arial Black, Impact, sans-serif' 
                         }}
                       >
@@ -1959,7 +1959,7 @@ function App() {
                       </span>
                       <span 
                         className="font-bold ml-0.5"
-                        style={{ fontSize: '13px' }}
+                        style={{ fontSize: '15px' }}
                       >
                         đ
                       </span>
@@ -1967,15 +1967,15 @@ function App() {
                   ) : (
                     <span 
                       className="font-bold ml-0.5"
-                      style={{ fontSize: '15px' }}
+                      style={{ fontSize: '17px' }}
                     >
                       đ
                     </span>
                   )}
                 </div>
-                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '9.5px' }}>
+                <div className="text-right text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '11px' }}>
                   {product.originalPrice ? (
-                    <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
+                    <span>Giá niêm yết: <span className="line-through decoration-[1.2px] text-gray-800 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
                   ) : <span>&nbsp;</span>}
                 </div>
               </div>
@@ -1985,7 +1985,7 @@ function App() {
               <div className="flex items-baseline text-black justify-center w-full leading-none">
                 <span 
                   style={{ 
-                    fontSize: priceMain.length > 5 ? '34px' : priceMain.length >= 4 ? '38px' : '44px',
+                    fontSize: priceMain.length > 5 ? '38px' : priceMain.length >= 4 ? '44px' : '50px',
                     fontFamily: 'Arial Black, Impact, sans-serif' 
                   }}
                   className="font-black tracking-tighter shrink-0"
@@ -1996,7 +1996,7 @@ function App() {
                   <span className="flex items-baseline ml-0.5 shrink-0">
                     <span 
                       style={{ 
-                        fontSize: priceMain.length >= 4 ? '14px' : '16px',
+                        fontSize: priceMain.length >= 4 ? '16px' : '18.5px',
                         fontFamily: 'Arial Black, Impact, sans-serif' 
                       }}
                     >
@@ -2004,7 +2004,7 @@ function App() {
                     </span>
                     <span 
                       className="font-bold ml-0.5"
-                      style={{ fontSize: '14px' }}
+                      style={{ fontSize: '16px' }}
                     >
                       đ
                     </span>
@@ -2012,15 +2012,15 @@ function App() {
                 ) : (
                   <span 
                     className="font-bold ml-0.5"
-                    style={{ fontSize: '16px' }}
+                    style={{ fontSize: '18.5px' }}
                   >
                     đ
                   </span>
                 )}
               </div>
               {product.originalPrice ? (
-                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '10.5px' }}>
-                  <span>Giá niêm yết: <span className="line-through decoration-[1px] text-gray-700 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
+                <div className="text-center text-black font-semibold shrink-0 leading-tight mt-0.5" style={{ fontSize: '12px' }}>
+                  <span>Giá niêm yết: <span className="line-through decoration-[1.2px] text-gray-800 font-bold">{formatCurrency(product.originalPrice)}đ</span></span>
                 </div>
               ) : null}
             </div>
