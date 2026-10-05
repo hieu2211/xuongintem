@@ -2410,49 +2410,66 @@ function App() {
         {/* Global Styles for Printing and Scrollbar */}
         <style dangerouslySetInnerHTML={{__html: `
           @page { 
-            margin: 0mm !important; 
-            size: ${currentPaper.css}; 
+            size: A4 portrait; 
+            margin: 0; 
           }
           @media print {
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              height: 100% !important;
               background-color: white !important;
+              width: 210mm !important;
+              height: auto !important;
+              overflow: visible !important;
             }
-            body * { visibility: hidden; }
-            .print\\:hidden { display: none !important; }
-            .print-viewport, .print-viewport * { visibility: visible; }
-            .print-viewport { position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 0 !important; margin: 0 !important; background-color: white !important; }
+            .h-screen {
+              height: auto !important;
+              min-height: 0 !important;
+              overflow: visible !important;
+            }
+            .print\\:hidden, .print\\:hidden * { 
+              display: none !important; 
+            }
+            .print-viewport { 
+              position: static !important; 
+              left: auto !important; 
+              top: auto !important; 
+              width: 210mm !important; 
+              height: auto !important; 
+              padding: 0 !important; 
+              margin: 0 !important; 
+              background-color: white !important; 
+              display: block !important;
+              overflow: visible !important;
+            }
             .page-container { 
                 page-break-after: always !important; 
                 break-after: page !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin: 0 !important; 
+                margin: 0 auto !important; 
                 box-shadow: none !important; 
                 border: none !important; 
-                width: 100% !important;
-                height: auto !important;
-                box-sizing: border-box !important;
-            }
-            .page-sale_60x70 {
                 width: 210mm !important;
                 height: 297mm !important;
-                max-height: 297mm !important;
                 min-height: 297mm !important;
-                padding: 0 !important;
-                margin: 0 !important;
+                max-height: 297mm !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                background-color: white !important;
+            }
+            .page-sale_60x70 {
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
                 align-items: center !important;
-                overflow: hidden !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
             }
             .grid-sale_60x70 {
                 display: grid !important;
-                grid-template-columns: repeat(3, 60mm) !important;
-                grid-template-rows: repeat(4, 70mm) !important;
+                grid-template-columns: 60mm 60mm 60mm !important;
+                grid-template-rows: 70mm 70mm 70mm 70mm !important;
                 width: 180mm !important;
                 height: 280mm !important;
                 gap: 0 !important;
@@ -2470,6 +2487,14 @@ function App() {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .tag-sale_60x70 > div {
+                width: 600px !important;
+                height: 700px !important;
+                transform: scale(0.3779527559) !important;
+                transform-origin: top left !important;
             }
             .page-container:last-child { page-break-after: auto !important; break-after: auto !important; }
             .tag-wrapper { page-break-inside: avoid !important; break-inside: avoid !important; display: inline-block; }
